@@ -1,4 +1,4 @@
-#include "server.hpp"
+#include <src/server/server.hpp>
 
 server::server(int port) : _port(port)
 {

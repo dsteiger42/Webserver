@@ -1,4 +1,4 @@
-#include "server/server.hpp"
+#include <src/server/server.hpp>
 
 /*
 Create a port variable that will read the conf.file. then call the constructor with that port variable,
