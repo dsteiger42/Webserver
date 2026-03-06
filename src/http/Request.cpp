@@ -48,24 +48,68 @@ bool Request::isDone() const
 	return (this->state == DONE);
 }
 
-/* static size_t	splitHeaderFromBoddy(const std::string &request)
-{
-	size_t	HeaderPos;
-
-	HeaderPos = request.find("\r\n\r\n");
-	return (HeaderPos);
-} */
 static void	fillBuffer(const std::string &request, size_t pos)
 {
 	Buffer.write(request.c_str(), pos);
 }
 
-void Request::parseHeader(const std::string &headerStr)
+void Request::validateRequest()
 {
-	size_t	pos;
+	if (Version == "HTTP/1.1" && Headers.find("Host") == Headers.end())
+		throw std::runtime_error("400 Bad Request: Missing Host header");
+}
 
-	std::istringstream split(headerStr);
-	std::string line;
+std::string Request::extractHeaderFromBuffer(size_t size)
+{
+	std::vector<char> temp(size);
+	Buffer.read(temp.data(), size);
+	std::string header(temp.begin(), temp.end());
+	return header;
+}
+void Request::determineNextState()
+{
+	std::map<std::string,
+		std::string>::iterator it = Headers.find("Content-Length");
+	if (it != Headers.end())
+	{
+		contentLength = std::strtoul(it->second.c_str(), NULL, 10);
+		if (contentLength > 0)
+		{
+			state = READING_BODY;
+			return ;
+		}
+	}
+	state = DONE;
+}
+
+bool Request::processHeader() // parsing headers
+{
+	size_t pos = Buffer.find("\r\n\r\n");
+	if (pos == std::string::npos)
+		return (false);
+	size_t headersize = pos + 4;
+	if (Buffer.getSize() < headersize)
+		return (false);
+	std::string header = extractHeaderFromBuffer(headersize);
+	parseHeader(header);
+	validateRequest();
+	determineNextState();
+	return (true);
+}
+
+bool Request::processBoddy() // read the boddy
+{
+	if (Buffer.getSize() < this->contentLength)
+		return (false);
+	std::vector<char> bodyTemp(this->contentLength);
+	Buffer.read(bodyTemp.data(), this->contentLength);
+	this->Boddy.assign(bodyTemp.begin(), bodyTemp.end());
+	this->state = DONE;
+	return (true);
+}
+
+void Request::parseRequestLine(std::string &line, std::istringstream &split)
+{
 	if (std::getline(split, line))
 	{
 		if (!line.empty() && line[line.size() - 1] == '\r')
@@ -74,6 +118,12 @@ void Request::parseHeader(const std::string &headerStr)
 		if (!(rl >> Method >> Path >> Version))
 			throw std::runtime_error("Invalid request line");
 	}
+}
+
+void Request::parseHeaders(std::string &line, std::istringstream &split)
+{
+	size_t	pos;
+
 	while (std::getline(split, line))
 	{
 		if (!line.empty() && line[line.size() - 1] == '\r')
@@ -89,66 +139,33 @@ void Request::parseHeader(const std::string &headerStr)
 	}
 }
 
-void Request::advanceParsing()
+void Request::parseHeader(const std::string &headerStr)
 {
-    bool progressed = true;
-
-    while (progressed)
-    {
-        progressed = false;
-        if (this->state == READING_HEADER)
-        {
-            size_t pos = Buffer.find("\r\n\r\n");
-            if (pos == std::string::npos)
-                return;
-            size_t headersize = pos + 4;
-            if (Buffer.getSize() < headersize)
-                return;
-            std::vector<char> temp(headersize);
-            Buffer.read(temp.data(), headersize);
-            std::string header(temp.begin(), temp.end());
-            parseHeader(header);
-            if (Version == "HTTP/1.1" && Headers.find("Host") == Headers.end())
-                throw std::runtime_error("400 Bad Request: Missing Host header");
-            std::map<std::string, std::string>::iterator it = Headers.find("Content-Length");
-            if (it != Headers.end())
-            {
-                this->contentLength = std::strtoul(it->second.c_str(), NULL, 10);
-                if (this->contentLength > 0)
-                {
-                    this->state = READING_BODY;
-                    progressed = true;
-                    continue;
-                }
-            }
-            this->state = DONE;
-            progressed = true;
-            continue;
-        }
-        if (this->state == READING_BODY)
-        {
-            if (Buffer.getSize() < this->contentLength)
-                return;
-
-            std::vector<char> bodyTemp(this->contentLength);
-            Buffer.read(bodyTemp.data(), this->contentLength);
-
-            this->Boddy.assign(bodyTemp.begin(), bodyTemp.end());
-            this->state = DONE;
-            progressed = true;
-            continue;
-        }
-        if (this->state == DONE)
-            return;
-    }
+	std::istringstream split(headerStr);
+	std::string line;
+	parseRequestLine(line, split); // POST /index.html HTTP/1.1
+	parseHeaders(line, split);     // Host: localhost || Content-Length: 5
 }
 
+void Request::advanceParsing()
+{
+	bool	progressed;
+
+	progressed = true;
+	while (progressed)
+	{
+		progressed = false;
+		if (state == READING_HEADER)
+			progressed = processHeader();
+		else if (state == READING_BODY)
+			progressed = processBoddy();
+		else if (state == DONE)
+			return ;
+	}
+}
 
 void Request::parse(const std::string &request)
 {
-	/* size_t	HeaderFinalPos;
-	HeaderFinalPos = splitHeaderFromBoddy(request); */
-	/* parseHeader(Buffer, *this); */
 	fillBuffer(request, request.length());
 	advanceParsing();
 }
