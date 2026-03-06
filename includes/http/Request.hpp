@@ -1,34 +1,48 @@
 #ifndef REQUEST_HPP
-#define REQUEST_HPP
+# define REQUEST_HPP
 
-#include <http/CircularBuffer.hpp>
-#include <cstring>
-#include <iostream>
-#include <map>
-#include <vector>
+# include <cstring>
+# include <http/CircularBuffer.hpp>
+# include <iostream>
+# include <map>
+# include <sstream>
+# include <vector>
+#include <fstream>
+#include <cstdlib>
+
+enum	State
+{
+	READING_HEADER,
+	READING_BODY,
+	DONE
+};
 
 class Request
 {
-    private:
-        std::string Method;  // GET, POST, DELETE
-        std::string Path;   // /index.html
-        std::string Version; // HTTP/1.1
-        std::string Boddy;
-        std::map<std::string, std::string> Headers;
-    public:
-        Request();
-        const std::string getMethod() const;
-        const std::string getPath() const;
-        const std::string getVersion() const;
-        const std::string getBoddy() const;
-        const std::string getHeader(const std::string& key) const;
+  private:
+	std::string Method;  // GET, POST, DELETE
+	std::string Path;    // /index.html
+	std::string Version; // HTTP/1.1
+	std::string Boddy;
+	std::map<std::string, std::string> Headers;
+    State state;
+    size_t contentLength;
 
-        void parse(const std::string& request);
-
+  public:
+	Request();
+	const std::string getMethod() const;
+	const std::string getPath() const;
+	const std::string getVersion() const;
+	const std::string getBoddy() const;
+	const std::string getHeader(const std::string &key) const;
+    bool isDone() const;
+	void parse(const std::string &request);
+    void parseHeader(const std::string &headerStr);
+    void advanceParsing();
+	void reset();
 };
 
 #endif
-
 
 /* GET /index.html HTTP/1.1\r\n
 Host: localhost\r\n
