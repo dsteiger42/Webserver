@@ -1,5 +1,7 @@
 #include <http/Request.hpp>
 
+static CircularBuffer Buffer(4096);
+
 Request::Request()
 {
 }
@@ -33,29 +35,29 @@ const std::string Request::getHeader(const std::string &key) const
 static size_t	splitHeaderFromBoddy(const std::string &request)
 {
 	size_t	HeaderPos;
-    /* size_t BoddyPos; */
 
 	HeaderPos = request.find("\r\n\r\n");
     return HeaderPos;
 }
 
-static void CopyToBuffer(std::vector<char>&Buffer, const std::string& str, size_t length)
+static void fillBuffer(const std::string &request, size_t pos)
 {
-    for (size_t i = 0; i < length; i++)
-        Buffer.push_back(str[i]);
+    Buffer.write(request.c_str(), pos);
 }
+
 
 void Request::parse(const std::string &request)
 {
-    static std::vector<char> Header;
-    static std::vector<char> Boddy;
     size_t	HeaderFinalPos;
-
-    HeaderFinalPos = splitHeaderFromBoddy(request);
-    CopyToBuffer(Header, request, HeaderFinalPos);
     
-    for (size_t i = 0; i < Header.size(); i++)
-        std::cout << Header[i];
+    HeaderFinalPos = splitHeaderFromBoddy(request);
+    fillBuffer(request, HeaderFinalPos);
+    /* parseHeader(Buffer, ) */
+    
+    std::vector<char> tmp(HeaderFinalPos);
+    Buffer.read(tmp.data(), HeaderFinalPos);
+    for (size_t i = 0; i < tmp.size(); i++)
+        std::cout << tmp[i];
 
 }
 

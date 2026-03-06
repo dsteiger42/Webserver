@@ -1,6 +1,7 @@
 #ifndef REQUEST_HPP
 #define REQUEST_HPP
 
+#include <http/CircularBuffer.hpp>
 #include <cstring>
 #include <iostream>
 #include <map>
