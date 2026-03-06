@@ -28,8 +28,10 @@ const std::string Request::getBoddy() const
 
 const std::string Request::getHeader(const std::string &key) const
 {
-	(void)key;
-	return ("ok");
+	std::map<std::string, std::string>::const_iterator it = Headers.find(key);
+    if (it != Headers.end())
+        return it->second;
+    return "";
 }
 
 void Request::reset()
