@@ -171,35 +171,3 @@ void Request::parse(const std::string &request)
 	fillBuffer(request, request.length());
 	advanceParsing();
 }
-
-int	main(void)
-{
-	Request	req;
-
-	std::string request = "POST /index.html HTTP/1.1\r\n"
-							"Host: localhost\r\n"
-							"Content-Length: 5\r\n"
-							"\r\n"
-							"Hello";
-	try
-	{
-		req.parse(request);
-		if (req.isDone())
-		{
-			std::cout << "Request parsed successfully\n";
-			std::cout << "Method: " << req.getMethod() << std::endl;
-			std::cout << "Path: " << req.getPath() << std::endl;
-			std::cout << "Version: " << req.getVersion() << std::endl;
-			std::cout << "Body: " << req.getBoddy() << std::endl;
-		}
-		else
-		{
-			std::cout << "Request not fully parsed\n";
-		}
-	}
-	catch (const std::exception &e)
-	{
-		std::cerr << "Error parsing request: " << e.what() << std::endl;
-	}
-	return (0);
-}
