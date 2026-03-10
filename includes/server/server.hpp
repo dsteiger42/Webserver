@@ -19,6 +19,7 @@
 #include <fcntl.h>      // open, fcntl
 #include <sys/stat.h>  // stat
 #include <dirent.h>    // opendir, readdir, closedir
+#include <vector>
 
 class server
 {
@@ -31,6 +32,8 @@ class server
         ~server();
         sockaddr_in create_address();
         int setup_socket();
+        int accept_new_client(std::vector<pollfd> &fds);
+        bool handle_client_data(std::vector<pollfd> &fds, size_t index);
         void accept_clients();
 };
 
