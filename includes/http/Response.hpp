@@ -19,7 +19,7 @@ class Response
         Response();
         int getStatusCode() const;
         const std::string getBody() const;
-        const std::string getHeader(std::string &key);
+        const std::string& getHeader(std::string &key);
 
         void setHttpVersion(const std::string& version);
         void setStatusCode(int code);
@@ -27,7 +27,7 @@ class Response
         void setBody(std::string body);
         void setHeader(std::string key, std::string value);
         
-        bool hasHeader(std::string key);
+        bool hasHeader(std::string key) const;
         
         void prepareHeaders();
         std::string buildStatusLine();
