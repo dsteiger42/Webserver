@@ -40,7 +40,7 @@ const std::string Response::getBody() const
     return this->Body;
 }
 
-const std::string Response::getHeader(std::string &key)
+const std::string& Response::getHeader(std::string &key)
 {
     if (Headers.find(key) != Headers.end())
         return Headers[key];
@@ -69,7 +69,7 @@ void Response::setHeader(std::string key, std::string value)
     this->Headers[key] = value;
 }
 
-bool Response::hasHeader(std::string key)
+bool Response::hasHeader(std::string key) const
 {
     if (Headers.find(key) != Headers.end())
         return true;
