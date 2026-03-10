@@ -1,8 +1,6 @@
 #include <http/Request.hpp>
 
-static CircularBuffer	Buffer(4096);
-
-Request::Request() : state(READING_HEADER)
+Request::Request() : Buffer(4096), state(READING_HEADER)
 {
 }
 
@@ -21,9 +19,9 @@ const std::string Request::getVersion() const
 	return (this->Version);
 }
 
-const std::string Request::getBoddy() const
+const std::string Request::getBody() const
 {
-	return (this->Boddy);
+	return (this->Body);
 }
 
 const std::string Request::getHeader(const std::string &key) const
@@ -39,7 +37,7 @@ void Request::reset()
 	Method.clear();
 	Path.clear();
 	Version.clear();
-	Boddy.clear();
+	Body.clear();
 	Headers.clear();
 	contentLength = 0;
 	state = READING_HEADER;
@@ -50,18 +48,24 @@ bool Request::isDone() const
 	return (this->state == DONE);
 }
 
-void Request::fillBuffer(const std::string &request, size_t pos)
+void Request::fillBuffer(const std::string &request, size_t len)
 {
     size_t written = 0;
-    while (written < pos)
+
+    while (written < len)
     {
-        size_t bytesWritten = Buffer.write(request.data() + written, pos - written);
+        size_t bytesWritten = Buffer.write(request.data() + written, len - written);
+
         if (bytesWritten == 0)
-		{
-			advanceParsing();
-			continue;
-		}
-		written += bytesWritten;
+        {
+            advanceParsing();
+            if (Buffer.isFull())
+            {
+                break;
+            }
+            continue; 
+        }
+        written += bytesWritten;
         advanceParsing();
     }
 }
@@ -74,10 +78,10 @@ void Request::validateRequest()
 
 std::string Request::extractHeaderFromBuffer(size_t size)
 {
-	std::vector<char> temp(size);
-	Buffer.read(temp.data(), size);
-	std::string header(temp.begin(), temp.end());
-	return header;
+    std::string header(size, '\0');        // aloca string do tamanho exato
+    Buffer.peek(reinterpret_cast<char*>(&header[0]), size); // copia direto para string
+    Buffer.consume(size);                  // remove do buffer
+    return header;
 }
 void Request::determineNextState()
 {
@@ -110,15 +114,25 @@ bool Request::processHeader() // parsing headers
 	return (true);
 }
 
-bool Request::processBoddy() // read the boddy
+bool Request::processBody() // read the Body
 {
-	if (Buffer.getSize() < this->contentLength)
-		return (false);
-	std::vector<char> bodyTemp(this->contentLength);
-	Buffer.read(bodyTemp.data(), this->contentLength);
-	this->Boddy.assign(bodyTemp.begin(), bodyTemp.end());
-	this->state = DONE;
-	return (true);
+	size_t remaining = contentLength - Body.size();
+	if (remaining == 0)
+	{
+        state = DONE;
+        return true;
+    }
+	size_t available = Buffer.getSize();
+	size_t toRead = std::min(remaining, available);
+	if (toRead == 0)
+        return false;
+
+	size_t oldSize = Body.size();
+    Body.resize(oldSize + toRead);
+    Buffer.read(&Body[oldSize], toRead);
+    if (Body.size() >= contentLength)
+        state = DONE;
+    return true;
 }
 
 void Request::parseRequestLine(std::string &line, std::istringstream &split)
@@ -171,7 +185,7 @@ void Request::advanceParsing()
 		if (state == READING_HEADER)
 			progressed = processHeader();
 		else if (state == READING_BODY)
-			progressed = processBoddy();
+			progressed = processBody();
 		else if (state == DONE)
 			return ;
 	}

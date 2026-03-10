@@ -53,7 +53,7 @@ int main()
     std::cout << "\n===== RESULTADO =====\n";
     std::cout << "Method: " << req.getMethod() << "\n";
     std::cout << "Path: " << req.getPath() << "\n";
-    std::cout << "Body size: " << req.getBoddy().size() << "\n";
+    std::cout << "Body size: " << req.getBody().size() << "\n";
 
     return 0;
 }

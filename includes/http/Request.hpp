@@ -20,10 +20,11 @@ enum	State
 class Request
 {
   private:
+  	CircularBuffer	Buffer;
 	std::string Method;  // GET, POST, DELETE
 	std::string Path;    // /index.html
 	std::string Version; // HTTP/1.1
-	std::string Boddy;
+	std::string Body;
 	std::map<std::string, std::string> Headers;
     State state;
     size_t contentLength;
@@ -33,7 +34,7 @@ class Request
 	const std::string getMethod() const;
 	const std::string getPath() const;
 	const std::string getVersion() const;
-	const std::string getBoddy() const;
+	const std::string getBody() const;
 	const std::string getHeader(const std::string &key) const;
     bool isDone() const;
 	void reset();
@@ -45,7 +46,7 @@ class Request
 	std::string extractHeaderFromBuffer(size_t size);
 	void validateRequest();
 	bool processHeader();
-	bool processBoddy();
+	bool processBody();
 	void determineNextState();
 	void fillBuffer(const std::string &request, size_t pos);
 };
