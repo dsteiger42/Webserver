@@ -35,6 +35,11 @@ int Response::getStatusCode() const
     return this->StatusCode;
 }
 
+std::string Response::getStatusMessage() const
+{
+    return this->StatusMessage;
+}
+
 const std::string Response::getBody() const
 {
     return this->Body;
@@ -42,9 +47,10 @@ const std::string Response::getBody() const
 
 const std::string& Response::getHeader(std::string &key)
 {
+    static const std::string empty = "";
     if (Headers.find(key) != Headers.end())
         return Headers[key];
-    return "";
+    return empty;
 }
 
 void Response::setStatusCode(int code)

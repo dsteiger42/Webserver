@@ -20,6 +20,7 @@ class Response
         int getStatusCode() const;
         const std::string getBody() const;
         const std::string& getHeader(std::string &key);
+        std::string getStatusMessage() const;
 
         void setHttpVersion(const std::string& version);
         void setStatusCode(int code);

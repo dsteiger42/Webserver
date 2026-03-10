@@ -31,11 +31,11 @@ class Request
 
   public:
 	Request();
-	const std::string getMethod() const;
-	const std::string getPath() const;
-	const std::string getVersion() const;
-	const std::string getBody() const;
-	const std::string getHeader(const std::string &key) const;
+	const std::string& getMethod() const;
+	const std::string& getPath() const;
+	const std::string& getVersion() const;
+	const std::string& getBody() const;
+	const std::string& getHeader(const std::string &key) const;
     bool isDone() const;
 	void reset();
 	void parseRequestLine(std::string &line, std::istringstream &split);
