@@ -21,10 +21,11 @@ class CircularBuffer
         bool isEmpty();
         bool isFull();
         size_t getSize();
-        void write(const char *data, size_t len);
+        size_t write(const char *data, size_t len);
         size_t read(char *out, size_t len);
-        size_t peek(std::vector<char> &temp, size_t len) const;
+        size_t peek(char *temp, size_t len) const;
         size_t find(const std::string &pattern) const;
+        void consume(size_t bytes);
 };
 
 
