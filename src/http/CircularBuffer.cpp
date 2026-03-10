@@ -20,16 +20,17 @@ size_t CircularBuffer::getSize()
 	return (this->size);
 }
 
-void CircularBuffer::write(const char *data, size_t len)
+size_t CircularBuffer::write(const char *data, size_t len)
 {
-	if (len > capacity - size)
-		throw std::overflow_error("CircularBuffer overflow");
-	for (size_t i = 0; i < len; i++)
+	size_t freeSpace = capacity - size;
+	size_t toWrite = std::min(len, freeSpace);
+	for (size_t i = 0; i < toWrite; i++)
 	{
 		buffer[head] = data[i];
 		head = (head + 1) % capacity;
 	}
-	size += len;
+	size += toWrite;
+	return toWrite;
 }
 
 size_t CircularBuffer::read(char *out, size_t len)

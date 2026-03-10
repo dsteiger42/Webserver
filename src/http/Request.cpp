@@ -50,9 +50,20 @@ bool Request::isDone() const
 	return (this->state == DONE);
 }
 
-static void	fillBuffer(const std::string &request, size_t pos)
+void Request::fillBuffer(const std::string &request, size_t pos)
 {
-	Buffer.write(request.c_str(), pos);
+    size_t written = 0;
+    while (written < pos)
+    {
+        size_t bytesWritten = Buffer.write(request.data() + written, pos - written);
+        if (bytesWritten == 0)
+		{
+			advanceParsing();
+			continue;
+		}
+		written += bytesWritten;
+        advanceParsing();
+    }
 }
 
 void Request::validateRequest()

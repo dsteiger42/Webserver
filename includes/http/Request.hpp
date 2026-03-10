@@ -47,6 +47,7 @@ class Request
 	bool processHeader();
 	bool processBoddy();
 	void determineNextState();
+	void fillBuffer(const std::string &request, size_t pos);
 };
 
 #endif
