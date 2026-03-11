@@ -92,8 +92,6 @@ void Response::prepareHeaders()
         std::string length = ss.str();
         setHeader("Content-Length", length);
     }
-    if (!hasHeader("Content-Type"))
-        setHeader("Content-Type", "text/html");
     if (!hasHeader("Connection"))
         setHeader("Connection", "close");
 }
