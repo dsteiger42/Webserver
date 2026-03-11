@@ -17,9 +17,11 @@ class Response
         std::string Body;
     public:
         Response();
+        
         int getStatusCode() const;
         const std::string getBody() const;
         const std::string& getHeader(std::string &key);
+        std::string getStatusMessage() const;
 
         void setHttpVersion(const std::string& version);
         void setStatusCode(int code);
@@ -30,6 +32,7 @@ class Response
         bool hasHeader(std::string key) const;
         
         void prepareHeaders();
+        
         std::string buildStatusLine();
         void buildHeader(std::string &result);
         void buildBody(std::string &result);

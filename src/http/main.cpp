@@ -1,59 +1,79 @@
 #include <iostream>
-#include <vector>
-#include <string>
-
+#include <http/Router.hpp>
 #include <http/Request.hpp>
+#include <http/utils/mime.hpp> // getMimeType, getExtension
+
+void testRequest(const std::string &raw)
+{
+    Router router;
+    Request req;
+
+    req.parse(raw);
+    Response res = router.handleRequest(req);
+
+    std::cout << "RAW REQUEST:\n" << raw << std::endl;
+    std::cout << "Method: " << req.getMethod() << std::endl;
+    std::cout << "Original Path: " << req.getPath() << std::endl;
+    std::cout << "Normalized Path: " << router.getPath() << std::endl;
+    std::cout << "Status code: " << res.getStatusCode() << std::endl;
+    std::cout << "Body: " << res.getBody() << std::endl;
+
+    std::string mime = getMimeType(getExtension(router.getAbsolutePath()));
+    std::cout << "MIME type: " << mime << std::endl;
+
+    std::cout << "--------------------------" << std::endl;
+}
 
 int main()
 {
-    Request req;
-
-    // criar body grande
-    std::string bigBody(20000, 'B');
-
-    std::string request =
-        "POST /upload HTTP/1.1\r\n"
+    // HTML válido
+    testRequest(
+        "GET /index.html HTTP/1.1\r\n"
         "Host: localhost\r\n"
-        "Content-Length: 20000\r\n"
-        "\r\n" +
-        bigBody;
+        "\r\n"
+    );
 
-    std::cout << "Request size: " << request.size() << "\n";
+    // CSS válido
+    testRequest(
+        "GET /styles.css HTTP/1.1\r\n"
+        "Host: localhost\r\n"
+        "\r\n"
+    );
 
-    // simular chunks de rede
-    size_t chunkSize = 128;
-    std::vector<std::string> chunks;
+    // JS válido
+    testRequest(
+        "GET /app.js HTTP/1.1\r\n"
+        "Host: localhost\r\n"
+        "\r\n"
+    );
 
-    for (size_t i = 0; i < request.size(); i += chunkSize)
-        chunks.push_back(request.substr(i, chunkSize));
+    // PNG válido
+    testRequest(
+        "GET /logo.png HTTP/1.1\r\n"
+        "Host: localhost\r\n"
+        "\r\n"
+    );
 
-    std::cout << "\n===== SIMULACAO =====\n";
+    // JPG válido
+    testRequest(
+        "GET /photo.jpg HTTP/1.1\r\n"
+        "Host: localhost\r\n"
+        "\r\n"
+    );
 
-    for (size_t i = 0; i < chunks.size(); i++)
-    {
-        std::cout << "Chunk " << i << " (" << chunks[i].size() << " bytes)\n";
+    // Arquivo inexistente -> 404
+    testRequest(
+        "GET /doesnotexist.txt HTTP/1.1\r\n"
+        "Host: localhost\r\n"
+        "\r\n"
+    );
 
-        try
-        {
-            req.parse(chunks[i]);
-        }
-        catch (const std::exception& e)
-        {
-            std::cout << "Erro: " << e.what() << "\n";
-            return 1;
-        }
-
-        if (req.isDone())
-        {
-            std::cout << "\n→ Request completa!\n";
-            break;
-        }
-    }
-
-    std::cout << "\n===== RESULTADO =====\n";
-    std::cout << "Method: " << req.getMethod() << "\n";
-    std::cout << "Path: " << req.getPath() << "\n";
-    std::cout << "Body size: " << req.getBody().size() << "\n";
+    // Path inválido (sem / inicial) -> 400
+    testRequest(
+        "GET index.html HTTP/1.1\r\n"
+        "Host: localhost\r\n"
+        "\r\n"
+    );
 
     return 0;
 }

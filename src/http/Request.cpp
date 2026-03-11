@@ -4,32 +4,33 @@ Request::Request() : Buffer(4096), state(READING_HEADER)
 {
 }
 
-const std::string Request::getMethod() const
+const std::string& Request::getMethod() const
 {
 	return (this->Method);
 }
 
-const std::string Request::getPath() const
+const std::string& Request::getPath() const
 {
 	return (this->Path);
 }
 
-const std::string Request::getVersion() const
+const std::string& Request::getVersion() const
 {
 	return (this->Version);
 }
 
-const std::string Request::getBody() const
+const std::string& Request::getBody() const
 {
 	return (this->Body);
 }
 
-const std::string Request::getHeader(const std::string &key) const
+const std::string& Request::getHeader(const std::string &key) const
 {
+	static const std::string empty = "";
 	std::map<std::string, std::string>::const_iterator it = Headers.find(key);
     if (it != Headers.end())
         return it->second;
-    return "";
+    return empty;
 }
 
 void Request::reset()

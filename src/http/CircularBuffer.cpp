@@ -20,19 +20,6 @@ size_t CircularBuffer::getSize()
 	return (this->size);
 }
 
-// size_t CircularBuffer::write(const char *data, size_t len)
-// {
-// 	size_t freeSpace = capacity - size;
-// 	size_t toWrite = std::min(len, freeSpace);
-// 	for (size_t i = 0; i < toWrite; i++)
-// 	{
-// 		buffer[head] = data[i];
-// 		head = (head + 1) % capacity;
-// 	}
-// 	size += toWrite;
-// 	return toWrite;
-// }
-
 size_t CircularBuffer::write(const char *data, size_t len)
 {
     if (size == capacity)
@@ -43,7 +30,7 @@ size_t CircularBuffer::write(const char *data, size_t len)
     std::memcpy(&buffer[head], data, firstChunk); // trocar
     size_t secondChunk = toWrite - firstChunk;
     if (secondChunk)
-        std::memcpy(&buffer[0], data + firstChunk, secondChunk);
+        std::memcpy(&buffer[0], data + firstChunk, secondChunk); //trocar
     head = (head + toWrite) % capacity;
     size += toWrite;
     return toWrite;
