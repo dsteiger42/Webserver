@@ -1,4 +1,7 @@
 #include <server/server.hpp>
+#include <http/Request.hpp>
+#include <http/Router.hpp>
+
 
 Server::Server(int port) : _port(port)
 {
@@ -122,6 +125,7 @@ bool Server::handle_client_data(std::vector<pollfd> &fds, size_t index)
 	char	buffer[1024];
 	char	temp[1024];
 	size_t	n;
+	Router router;
 
 	client_fd = fds[index].fd;
 	Client &client = _allClients[client_fd];
@@ -138,16 +142,15 @@ bool Server::handle_client_data(std::vector<pollfd> &fds, size_t index)
  		if (client.request.isDone())
 		{
 			std::cout << "INSIDE DONE" << std::endl;
-			client.response = Response();
+			client.response = router.handleRequest(client.request);
 			std::string rawResponse = client.response.serialize();
 			std::cout << "=== RAW RESPONSE BEGIN ===\n";
 			std::cout << rawResponse << "\n";
 			std::cout << "=== RAW RESPONSE END ===\n";
-
 			client.writeBuffer.write(rawResponse.c_str(), rawResponse.size());
 			fds[index].events |= POLLOUT;
 			client.request.reset();
-		} 
+		}
 		return (true);
 	}
 	else
@@ -201,8 +204,13 @@ void Server::accept_clients()
 				available = client.writeBuffer.getSize();
 				if (available == 0)
 				{
-					fds[i].events &= ~POLLOUT;
-					continue ;
+					close(fds[i].fd);
+        			_allClients.erase(fds[i].fd);
+        			fds.erase(fds.begin() + i);
+        			break;
+					// fds[i].events &= ~POLLOUT;
+					// continue ;
+					//Com estas alteracoes, fecha a ligacao quando a resposta esta totalmente enviada
 				}
 				toSend = std::min(available, sizeof(temp));
 				copied = client.writeBuffer.peek(temp, toSend);
@@ -211,7 +219,14 @@ void Server::accept_clients()
 				{
 					client.writeBuffer.consume(sent);
 					if (client.writeBuffer.getSize() == 0)
-						fds[i].events &= ~POLLOUT;
+					{
+						close(fds[i].fd);
+						_allClients.erase(fds[i].fd);
+						fds.erase(fds.begin() + i);
+						break;
+						// fds[i].events &= ~POLLOUT;
+						//Com estas alteracoes, fecha a ligacao quando a resposta esta totalmente enviada
+					}
 				}
 			}
 		}
