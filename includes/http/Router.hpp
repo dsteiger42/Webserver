@@ -22,6 +22,8 @@ class Router
         bool validateMethod(const std::string &method);
         bool validatePath(const std::string &path);
         void splitPathQuery(const std::string& path);
+        std::vector<std::string> splitPath(std::string& path);
+        bool buildFinalPath(std::string& path);
         Response handleeRequest(const std::string request);
 
 
