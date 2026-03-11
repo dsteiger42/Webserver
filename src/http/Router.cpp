@@ -171,5 +171,7 @@ Response Router::handleRequest(const Request& request)
     if (!readFile(AbsolutePath, content))
         return makeErrorCode(500);
     response.setBody(content);
+    std::string MimeType = getMimeType(getExtension(AbsolutePath));
+    response.setHeader("Content-Type", MimeType);
     return response;
 }

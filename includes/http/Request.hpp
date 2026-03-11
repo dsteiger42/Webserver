@@ -36,18 +36,25 @@ class Request
 	const std::string& getVersion() const;
 	const std::string& getBody() const;
 	const std::string& getHeader(const std::string &key) const;
-    bool isDone() const;
+    
+	bool isDone() const;
+	
 	void reset();
+	
+	std::string extractHeaderFromBuffer(size_t size);
+	void validateRequest();
+	
+	bool processHeader();
+	bool processBody();
+	
+	void determineNextState();
+	
 	void parseRequestLine(std::string &line, std::istringstream &split);
 	void parseHeaders(std::string &line, std::istringstream &split);
     void parseHeader(const std::string &headerStr);
     void advanceParsing();
 	void parse(const std::string &request);
-	std::string extractHeaderFromBuffer(size_t size);
-	void validateRequest();
-	bool processHeader();
-	bool processBody();
-	void determineNextState();
+	
 	void fillBuffer(const std::string &request, size_t pos);
 };
 

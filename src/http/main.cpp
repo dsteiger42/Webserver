@@ -1,6 +1,7 @@
 #include <iostream>
-#include <http/Request.hpp>
 #include <http/Router.hpp>
+#include <http/Request.hpp>
+#include <http/utils/mime.hpp> // getMimeType, getExtension
 
 void testRequest(const std::string &raw)
 {
@@ -16,42 +17,60 @@ void testRequest(const std::string &raw)
     std::cout << "Normalized Path: " << router.getPath() << std::endl;
     std::cout << "Status code: " << res.getStatusCode() << std::endl;
     std::cout << "Body: " << res.getBody() << std::endl;
+
+    std::string mime = getMimeType(getExtension(router.getAbsolutePath()));
+    std::cout << "MIME type: " << mime << std::endl;
+
     std::cout << "--------------------------" << std::endl;
 }
 
 int main()
 {
-    // 1️⃣ Path inválido (sem / inicial) -> 400
+    // HTML válido
+    testRequest(
+        "GET /index.html HTTP/1.1\r\n"
+        "Host: localhost\r\n"
+        "\r\n"
+    );
+
+    // CSS válido
+    testRequest(
+        "GET /styles.css HTTP/1.1\r\n"
+        "Host: localhost\r\n"
+        "\r\n"
+    );
+
+    // JS válido
+    testRequest(
+        "GET /app.js HTTP/1.1\r\n"
+        "Host: localhost\r\n"
+        "\r\n"
+    );
+
+    // PNG válido
+    testRequest(
+        "GET /logo.png HTTP/1.1\r\n"
+        "Host: localhost\r\n"
+        "\r\n"
+    );
+
+    // JPG válido
+    testRequest(
+        "GET /photo.jpg HTTP/1.1\r\n"
+        "Host: localhost\r\n"
+        "\r\n"
+    );
+
+    // Arquivo inexistente -> 404
+    testRequest(
+        "GET /doesnotexist.txt HTTP/1.1\r\n"
+        "Host: localhost\r\n"
+        "\r\n"
+    );
+
+    // Path inválido (sem / inicial) -> 400
     testRequest(
         "GET index.html HTTP/1.1\r\n"
-        "Host: localhost\r\n"
-        "\r\n"
-    );
-
-    // 2️⃣ Directory traversal -> 403
-    testRequest(
-        "GET /../secret.txt HTTP/1.1\r\n"
-        "Host: localhost\r\n"
-        "\r\n"
-    );
-
-    // 3️⃣ Diretório sem index.html -> 404
-    testRequest(
-        "GET /emptydir HTTP/1.1\r\n"
-        "Host: localhost\r\n"
-        "\r\n"
-    );
-
-    // 4️⃣ Path com caracteres inválidos -> 400
-    testRequest(
-        "GET /bad*path:illegal HTTP/1.1\r\n"
-        "Host: localhost\r\n"
-        "\r\n"
-    );
-
-    // 5️⃣ Symlink fora do DocumentRoot (se existir) -> 403
-    testRequest(
-        "GET /symlink_to_secret HTTP/1.1\r\n"
         "Host: localhost\r\n"
         "\r\n"
     );

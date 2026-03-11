@@ -6,7 +6,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <http/utils.hpp>
+#include <http/utils/utils.hpp>
+#include <http/utils/mime.hpp>
 
 
 
