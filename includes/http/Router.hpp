@@ -3,6 +3,9 @@
 
 #include <http/Request.hpp>
 #include <http/Response.hpp>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 
 
@@ -14,18 +17,29 @@ class Router
         std::string Query;
         std::string Method;
         std::string DocumentRoot; //in the future will be at .conf
+        std::string AbsolutePath;
     public:
         Router();
-        std::string getPath();
-        Response handleRequest(const Request& request);
-        Response makeErrorCode(size_t code);
+
+        std::string getPath() const;
+        std::string getQuery() const;
+        std::string getMethod() const;
+        std::string getAbsolutePath() const;
+        
         bool validateMethod(const std::string &method);
         bool validatePath(const std::string &path);
+
+        bool buildFinalPath(std::string& path);
+        bool buildDocumentRoot(std::string& documentRoot);
+
         void splitPathQuery(const std::string& path);
         std::vector<std::string> splitPath(std::string& path);
-        bool buildFinalPath(std::string& path);
-        Response handleeRequest(const std::string request);
 
+        bool isDirectory(const std::string& absolutePath);
+        bool checkFile(const std::string& index);
+
+        Response makeErrorCode(size_t code);
+        Response handleRequest(const Request& request);
 
 };
 

@@ -9,11 +9,25 @@ Router::Router()
     Query = "";
     Method = "";
     DocumentRoot = "./www";
+    AbsolutePath = "";
 }
 
-std::string Router::getPath()
+std::string Router::getPath() const
 {
     return (this->Path);
+}
+
+std::string Router::getQuery() const
+{
+    return this->Query;
+}
+std::string Router::getMethod() const
+{
+    return this->Method;
+}
+std::string Router::getAbsolutePath() const
+{
+    return this->AbsolutePath;
 }
 
 bool Router::validateMethod(const std::string &method)
@@ -58,19 +72,6 @@ void Router::splitPathQuery(const std::string& path)
         Path = path;    
 }
 
-Response Router::handleRequest(const Request& request)
-{
-    Response response;
-    if (!validateMethod(request.getMethod()))
-        return makeErrorCode(405);
-    splitPathQuery(request.getPath());
-    if (!validatePath(Path))
-        return makeErrorCode(400);
-    if (!buildFinalPath(Path))
-        return makeErrorCode(403);
-    return response;
-}
-
 std::vector<std::string> Router::splitPath(std::string& path)
 {
     std::vector<std::string> tokens;
@@ -85,6 +86,42 @@ std::vector<std::string> Router::splitPath(std::string& path)
         start = pos + 1;
     }
     return tokens;
+}
+Response Router::handleRequest(const Request& request)
+{
+    Response response;
+    if (!validateMethod(request.getMethod()))
+        return makeErrorCode(405);
+    splitPathQuery(request.getPath());
+    if (!validatePath(Path))
+        return makeErrorCode(400);
+    if (!buildFinalPath(Path))
+        return makeErrorCode(403);
+    AbsolutePath = DocumentRoot + Path;
+    if (AbsolutePath.compare(0, DocumentRoot.size(), DocumentRoot) != 0)
+        return makeErrorCode(403);
+    if (isDirectory(AbsolutePath))
+    {
+        std::string index = AbsolutePath + "/index.html";
+        if (checkFile(index))
+        {
+            AbsolutePath = index;
+            Path += "/index.html";
+        }
+        else
+            return makeErrorCode(403);
+    }
+    if (!checkFile(AbsolutePath)) //if it's not a directory but the file doens't exist
+        return makeErrorCode(404);
+    return response;
+}
+
+bool Router::checkFile(const std::string& index)
+{
+    struct stat info;
+    if (stat(index.c_str(), &info) == 0 && S_ISREG(info.st_mode) && access(index.c_str(), R_OK | F_OK) == 0)
+        return true;
+    return false;
 }
 
 bool Router::buildFinalPath(std::string& path)
@@ -105,17 +142,28 @@ bool Router::buildFinalPath(std::string& path)
         else
             final.push_back(tokens[i]);
     }
-    this->Path = "";
+    this->Path = "/";
     for (size_t i = 0; i < final.size(); i++)
     {
         this->Path += final[i];
-        std::cout << "Path: " << Path << std::endl;
         if (i + 1 < final.size())
             this->Path += "/";
     }
     return true;
 }
 
+bool Router::isDirectory(const std::string& absolutePath)
+{
+    struct stat info;
+
+    if (stat(absolutePath.c_str(), &info) != 0)
+        return false;
+    if (!S_ISDIR(info.st_mode))
+        return false;
+    if (access(absolutePath.c_str(), R_OK) != 0)
+        return false;
+    return true;
+}
 
 void testRequest(const std::string &raw)
 {
@@ -134,67 +182,72 @@ void testRequest(const std::string &raw)
     std::cout << "--------------------------" << std::endl;
 }
 
+#include <http/Router.hpp>
+
 int main()
 {
-    /* // método inválido
-    testRequest(
-        "POSTT /index.html HTTP/1.1\r\n"
-        "Host: localhost\r\n"
-        "\r\n"
-    );
+    // router e request de teste
+    Router router;
 
-    // directory traversal
-    testRequest(
-        "GET /../secret.txt HTTP/1.1\r\n"
-        "Host: localhost\r\n"
-        "\r\n"
-    );
-
-    // path inválido (sem /)
-    testRequest(
-        "GET index.html HTTP/1.1\r\n"
-        "Host: localhost\r\n"
-        "\r\n"
-    );
-
-    // request válida simples
-    testRequest(
-        "GET /index.html HTTP/1.1\r\n"
-        "Host: localhost\r\n"
-        "\r\n"
-    );
-
-    // query string
-    testRequest(
-        "GET /search?q=webserv&lang=pt HTTP/1.1\r\n"
-        "Host: localhost\r\n"
-        "\r\n"
-    );
-
-    // path com múltiplos /
+    // 1️⃣ Path com múltiplos /
     testRequest(
         "GET //images///logo.png HTTP/1.1\r\n"
         "Host: localhost\r\n"
         "\r\n"
     );
 
-    // path com .
+    // 2️⃣ Path com . (current dir)
     testRequest(
         "GET /images/./logo.png HTTP/1.1\r\n"
         "Host: localhost\r\n"
         "\r\n"
     );
 
-    // path com ..
+    // 3️⃣ Path com .. (parent dir)
     testRequest(
         "GET /images/../index.html HTTP/1.1\r\n"
         "Host: localhost\r\n"
         "\r\n"
-    ); */
+    );
 
-    // path complexo (normalização real)
+    // 4️⃣ Path complexo (normalização real)
     testRequest(
         "GET /a/b/../c/./d//file.txt HTTP/1.1\r\n"
+        "Host: localhost\r\n"
+        "\r\n"
+    );
+
+    // 5️⃣ Query string
+    testRequest(
+        "GET /search?q=webserv&lang=pt HTTP/1.1\r\n"
+        "Host: localhost\r\n"
+        "\r\n"
+    );
+
+    // 6️⃣ Diretório existente com index.html
+    testRequest(
+        "GET / HTTP/1.1\r\n"
+        "Host: localhost\r\n"
+        "\r\n"
+    );
+
+    // 7️⃣ Diretório sem index.html (deve retornar 403)
+    testRequest(
+        "GET /emptydir HTTP/1.1\r\n"
+        "Host: localhost\r\n"
+        "\r\n"
+    );
+
+    // 8️⃣ Path malformado (sem / inicial)
+    testRequest(
+        "GET index.html HTTP/1.1\r\n"
+        "Host: localhost\r\n"
+        "\r\n"
+    );
+
+    // 9️⃣ Directory traversal (deve ser bloqueado)
+    testRequest(
+        "GET /../secret.txt HTTP/1.1\r\n"
         "Host: localhost\r\n"
         "\r\n"
     );

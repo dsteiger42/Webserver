@@ -1,1 +1,153 @@
 ou seja no primeiro ponto onde dizes que preciso de validar o metodo, para o projeto webserver da escola 42, devo criar tipo uma enum de metodos validos e criar uma funcao para verificar se e valido ou nao ?
+
+
+
+
+
+
+🟪 Tarefa 6 — Verificar se o path é diretório
+
+Atual-
+🧱 TAREFA 1 — Criar o Router
+✔ O que é
+Uma classe ou função que recebe um Request e devolve um Response.
+
+✔ O que faz
+Decide o que fazer com o path
+
+Chama funções para abrir ficheiros
+
+Devolve erros (404, 405, 500)
+
+Prepara a Response final
+
+✔ Interface típica:
+cpp
+class Router {
+public:
+    Response handle(const Request& req);
+};
+O Router é o cérebro do Ponto 4.
+
+🟩 TAREFA 2 — Resolver o caminho do ficheiro
+✔ O que é
+Transformar o path pedido pelo cliente num caminho real no disco.
+
+Exemplo:
+
+Código
+/index.html → ./www/index.html
+✔ Tarefas:
+Definir um diretório raiz (ex: www/)
+
+Concatenar o path da request com esse diretório
+
+Impedir ataques tipo ../../etc/passwd
+
+🟨 TAREFA 3 — Verificar se o ficheiro existe
+✔ Se existir → abrir
+✔ Se não existir → devolver 404
+Exemplo:
+
+cpp
+if (!fileExists(path))
+    return make404Response();
+🟧 TAREFA 4 — Ler o ficheiro
+✔ Abrir o ficheiro em modo binário
+✔ Ler todo o conteúdo para uma string
+✔ Fechar o ficheiro
+Função típica:
+
+cpp
+std::string readFile(const std::string& path);
+🟥 TAREFA 5 — Determinar o MIME type
+✔ Porque é necessário
+O browser precisa de saber o tipo do ficheiro:
+
+HTML
+
+CSS
+
+JS
+
+PNG
+
+JPEG
+
+TXT
+
+✔ Criar função:
+cpp
+std::string getMimeType(const std::string& path);
+✔ Tabela simples:
+Extensão	MIME
+.html	text/html
+.css	text/css
+.js	application/javascript
+.png	image/png
+.jpg / .jpeg	image/jpeg
+.gif	image/gif
+.txt	text/plain
+🟪 TAREFA 6 — Criar a Response com o ficheiro
+Depois de leres o ficheiro:
+
+cpp
+Response res;
+res.setStatusCode(200);
+res.setHeader("Content-Type", mime);
+res.setBody(content);
+return res;
+🟫 TAREFA 7 — Integrar o Router na main com sockets
+Na tua main atual, tens algo assim:
+
+cpp
+Response res;
+res.setStatusCode(200);
+res.setBody("<h1>Hello</h1>");
+Isto vai ser substituído por:
+
+cpp
+Router router;
+Response res = router.handle(req);
+E depois:
+
+cpp
+std::string httpResponse = res.serialize();
+send(client_fd, httpResponse.c_str(), httpResponse.size(), 0);
+🟦 TAREFA 8 — Tratar erros comuns
+✔ 404 — ficheiro não encontrado
+✔ 405 — método não permitido
+✔ 500 — erro interno
+✔ 403 — acesso proibido (opcional)
+🟩 TAREFA 9 — Testar com browser e curl
+✔ Testar:
+Código
+http://localhost:8080/index.html
+http://localhost:8080/style.css
+http://localhost:8080/script.js
+http://localhost:8080/naoexiste.html
+✔ Testar com curl:
+Código
+curl -v http://localhost:8080/index.html
+🧭 Resumo final das tarefas do Ponto 4
+Ordem	Tarefa	Explicação
+1	Criar Router	Decide o que devolver
+2	Resolver path	Mapear /ficheiro → www/ficheiro
+3	Verificar existência	Se não existir → 404
+4	Ler ficheiro	Ler conteúdo para string
+5	MIME types	Dizer ao browser o tipo do ficheiro
+6	Criar Response	Status + headers + body
+7	Integrar com sockets	Router → Response → send()
+8	Tratar erros	404, 405, 500
+9	Testar	Browser + curl
+Se quiseres, posso agora:
+
+criar o Router básico
+
+criar o Router completo com file serving
+
+escrever as funções readFile() e getMimeType()
+
+integrar tudo com a tua main de sockets
+
+Diz-me por onde queres começar.
