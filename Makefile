@@ -2,7 +2,8 @@ SRCS =  src/http/Request.cpp \
 		src/http/Response.cpp \
 		src/http/CircularBuffer.cpp \
 		src/http/Router.cpp \
-		#src/http/main.cpp \
+		src/http/utils.cpp \
+		src/http/main.cpp \
 		#src/server/server.cpp \
 
 NAME = Webserv

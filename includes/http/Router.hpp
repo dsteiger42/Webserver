@@ -6,13 +6,13 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <http/utils.hpp>
 
 
 
 class Router
 {
     private:
-        std::vector<std::string> Methods;
         std::string Path;
         std::string Query;
         std::string Method;
@@ -28,15 +28,16 @@ class Router
         
         bool validateMethod(const std::string &method);
         bool validatePath(const std::string &path);
+        
+        bool isDirectory(const std::string& absolutePath);
+        bool isInsideRoot(const std::string& path);
+        bool checkFile(const std::string& index);
+
+        void splitPathQuery(const std::string& path);
+        std::vector<std::string> splitPath(const std::string& path);
 
         bool buildFinalPath(std::string& path);
         bool buildDocumentRoot(std::string& documentRoot);
-
-        void splitPathQuery(const std::string& path);
-        std::vector<std::string> splitPath(std::string& path);
-
-        bool isDirectory(const std::string& absolutePath);
-        bool checkFile(const std::string& index);
 
         Response makeErrorCode(size_t code);
         Response handleRequest(const Request& request);
