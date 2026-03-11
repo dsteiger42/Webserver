@@ -1,10 +1,14 @@
 #include <http/Router.hpp>
 
 Router::Router() 
-{
+{    
     Methods.push_back("GET");
     Methods.push_back("POST");
     Methods.push_back("DELETE");
+    Path = "";
+    Query = "";
+    Method = "";
+    DocumentRoot = "./www";
 }
 
 Response Router::makeErrorCode(size_t code)
@@ -24,9 +28,9 @@ Response Router::handleRequest(const Request& request)
         return makeErrorCode(405);
     if (request.getPath().find("..") != std::string::npos)
         return makeErrorCode(403);
-    if (!validatePath(request.getPath()))
+    splitPathQuery(request.getPath());
+    if (!validatePath(Path))
         return makeErrorCode(400);
-
     return response;
 }
 
@@ -46,23 +50,27 @@ bool Router::validatePath(const std::string &path)
         return false; 
     if (path[0] != '/')
         return false; 
-    if (path.find("'\'") != std::string::npos || path.find("\0") != std::string::npos || path.find(":") != std::string::npos || path.find("*") != std::string::npos)
+    if (path.find("\\") != std::string::npos || path.find("\0") != std::string::npos || path.find(":") != std::string::npos || path.find("*") != std::string::npos)
         return false; 
     return true;
 }
 
-Response Router::handleeRequest(const std::string request)
+void Router::splitPathQuery(const std::string& path)
 {
-    Response response;
-    if (!validateMethod(request))
-        return makeErrorCode(405);
-    if (request.find("..") != std::string::npos)
-        return makeErrorCode(403);
-    if (!validatePath(request))
-        return makeErrorCode(400);
-    return response;
+    size_t pos = path.find("?");
+    if (pos != std::string::npos)
+    {
+        Path = path.substr(0, pos);
+        Query = path.substr(pos + 1);
+    }
+    else
+        Path = path;    
 }
 
+std::string Router::getPath()
+{
+    return (this->Path);
+}
 
 void testRequest(const std::string &raw)
 {
@@ -75,7 +83,7 @@ void testRequest(const std::string &raw)
 
     std::cout << "RAW REQUEST:\n" << raw << std::endl;
     std::cout << "Method: " << req.getMethod() << std::endl;
-    std::cout << "Path: " << req.getPath() << std::endl;
+    std::cout << "Path: " << router.getPath() << std::endl;
     std::cout << "Status code: " << res.getStatusCode() << std::endl;
     std::cout << "Body: " << res.getBody() << std::endl;
     std::cout << "--------------------------" << std::endl;
@@ -107,6 +115,13 @@ int main()
     // request válida
     testRequest(
         "GET /index.html HTTP/1.1\r\n"
+        "Host: localhost\r\n"
+        "\r\n"
+    );
+
+    // request com query string
+    testRequest(
+        "GET /search?q=webserv&lang=pt HTTP/1.1\r\n"
         "Host: localhost\r\n"
         "\r\n"
     );
