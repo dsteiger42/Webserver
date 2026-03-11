@@ -145,3 +145,17 @@ escrever as funções readFile() e getMimeType()
 integrar tudo com a tua main de sockets
 
 Diz-me por onde queres começar.
+
+
+if (client.request.isDone())
+		{
+			std::cout << "INSIDE DONE" << std::endl;
+			client.response = router.handleRequest(client.request);
+			std::string rawResponse = client.response.serialize();
+			std::cout << "=== RAW RESPONSE BEGIN ===\n";
+			std::cout << rawResponse << "\n";
+			std::cout << "=== RAW RESPONSE END ===\n";
+			client.writeBuffer.write(rawResponse.c_str(), rawResponse.size());
+			fds[index].events |= POLLOUT;
+			client.request.reset();
+		}
