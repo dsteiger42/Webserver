@@ -20,23 +20,24 @@
 #include <sys/stat.h>  // stat
 #include <dirent.h>    // opendir, readdir, closedir
 #include <vector>
+#include <map>
+#include <client/client.hpp>
 
-class server
+class Server
 {
     private:
         int _server_fd;
         int _port;
+        std::map<int, Client> _allClients; // store each fd to each client
 
     public:
-        server(int port);
-        ~server();
+        Server(int port);
+        ~Server();
         sockaddr_in create_address();
         int setup_socket();
         int accept_new_client(std::vector<pollfd> &fds);
         bool handle_client_data(std::vector<pollfd> &fds, size_t index);
         void accept_clients();
 };
-
-
 
 #endif
