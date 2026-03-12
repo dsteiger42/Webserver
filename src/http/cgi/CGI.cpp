@@ -22,6 +22,22 @@ std::vector<char*> CGI::buildArguments(const std::string& scriptPath)
     return argv;
 }
 
+std::vector<std::string> CGI::buildEnvironment(const Request& req, const std::string& scriptPath)
+{
+    env.clear();
+    std::stringstream ss;
+    int length = req.getBody().size();
+    ss << length;
+    std::string contentLength = ss.str();
+    env.push_back("REQUEST_METHOD=" + req.getMethod());
+    env.push_back("QUERY_STRING=" + req.getQuery());
+    env.push_back("CONTENT_LENGTH=" + contentLength);
+    env.push_back("CONTENT_TYPE=" + req.getHeader("Content-Type"));
+    env.push_back("SCRIPT_FILENAME=" + scriptPath);
+    env.push_back("SCRIPT_NAME=" + req.getPath());
+    env.push_back("SERVER_PROTOCOL=" + req.getVersion());
+    env.push_back("GATEWAY_INTERFACE=CGI/1.1");
+}
 
 Response CGI::execute(const Request& req)
 {
@@ -36,6 +52,17 @@ Response CGI::execute(const Request& req)
     if (!isExecutable(scriptPath))
         return makeErrorCode(403);
     argv = buildArguments(scriptPath);
+    std::vector<char*> argv = buildArguments(scriptPath);
+    std::vector<std::string> envp = buildEnvironment(req, scriptPath);
+
+    // 4. Criar pipes
+    // 5. fork()
+    // 6. execve()
+    // 7. ler output
+    // 8. parsear headers
+    // 9. construir Response final
+
+    // Temporário enquanto não implementas o resto:
     res.setStatusCode(200);
     res.setHeader("Content-Type", "text/plain");    
     res.setBody("CGI OK - execute() foi chamado!");

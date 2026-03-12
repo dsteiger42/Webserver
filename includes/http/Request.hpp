@@ -25,6 +25,7 @@ class Request
 	std::string Path;    // /index.html
 	std::string Version; // HTTP/1.1
 	std::string Body;
+	std::string Query;
 	std::map<std::string, std::string> Headers;
     State state;
     size_t contentLength;
@@ -36,11 +37,13 @@ class Request
 	const std::string& getVersion() const;
 	const std::string& getBody() const;
 	const std::string& getHeader(const std::string &key) const;
-    
+    const std::string getQuery() const;
+	
 	bool isDone() const;
 	
 	void reset();
 	
+	void splitPathQuery(const std::string& path);
 	std::string extractHeaderFromBuffer(size_t size);
 	void validateRequest();
 	

@@ -66,3 +66,4 @@ bool isExecutable(const std::string& path)
 {
     return access(path.c_str(), X_OK) == 0;
 }
+

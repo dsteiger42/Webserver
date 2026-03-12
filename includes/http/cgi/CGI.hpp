@@ -18,13 +18,15 @@ class CGI
 
     private:
         std::vector<std::string> args;
+        std::vector<std::string> env;
         Router router; // To remove
         std::string resolveScriptPath(const std::string& path);
 
-        std::vector<std::string> buildEnvironment(const Request& req);
+        std::vector<char*> buildArguments(const std::string& scriptPath);
+
+        std::vector<std::string> buildEnvironment(const Request& req, const std::string& scriptPath);
         std::vector<char*> convertEnv(const std::vector<std::string>& env);
 
-        std::vector<char*> buildArguments(const std::string& scriptPath);
 
         void createPipes(int inPipe[2], int outPipe[2]);
 
