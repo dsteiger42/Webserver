@@ -1,0 +1,145 @@
+Tarefa 1 — Preparar argv para o execve
+
+Objetivo: dizer ao sistema operativo o que executar.
+
+    Cria uma função, por exemplo:
+    buildArgv(const std::string& scriptPath)
+
+    O que ela deve fazer:
+
+        Criar um std::vector<std::string> com os argumentos.
+
+            Para já, podes começar simples: só o script.
+
+        Depois, converte para std::vector<char*> (terminado em NULL) para o execve.
+
+    No fim, em execute(), vais ter algo como:
+    “tenho um argv pronto para passar ao filho”.
+
+Tarefa 2 — Preparar envp com variáveis CGI
+
+Objetivo: dar ao script CGI o contexto do pedido HTTP.
+
+    Cria uma função, por exemplo:
+    buildEnv(const Request& req, const std::string& scriptPath)
+
+    O que ela deve montar (como strings "KEY=VALUE"):
+
+        REQUEST_METHOD → req.getMethod()
+
+        QUERY_STRING → o que já tens no Router (podes passar a query ao CGI)
+
+        CONTENT_LENGTH → se for POST, o tamanho do body
+
+        CONTENT_TYPE → header Content-Type se existir
+
+        SCRIPT_FILENAME → scriptPath (caminho real)
+
+        SCRIPT_NAME → path HTTP (/cgi-bin/...)
+
+        SERVER_PROTOCOL → "HTTP/1.1" (ou o que usares)
+
+        GATEWAY_INTERFACE → "CGI/1.1"
+
+    No fim, converte esse std::vector<std::string> para std::vector<char*> terminado em NULL.
+
+Tarefa 3 — Criar os pipes
+
+Objetivo: comunicar com o script.
+
+    Vais precisar de:
+
+        um pipe para o STDIN do script (para enviar body em POST)
+
+        um pipe para o STDOUT do script (para ler a resposta CGI)
+
+    Cria uma função, por exemplo:
+    createPipes()
+
+    Ela deve:
+
+        criar int inPipe[2]; e int outPipe[2];
+
+        garantir que, se falhar, devolves 500.
+
+Tarefa 4 — Preparar o fork e o execve
+
+Objetivo: separar pai (servidor) e filho (script).
+
+    Cria uma função, por exemplo:
+    runChild(scriptPath, argv, envp, inPipe, outPipe)
+
+    No filho:
+
+        dup2(inPipe[0], STDIN_FILENO);
+
+        dup2(outPipe[1], STDOUT_FILENO);
+
+        fechar descritores que não usa
+
+        chamar execve(scriptPath.c_str(), argv, envp);
+
+        se execve falhar → _exit(1);
+
+    No pai:
+
+        fecha as pontas dos pipes que não usa
+
+        se for POST, escreve o body no inPipe[1]
+
+        lê a resposta do script a partir de outPipe[0]
+
+        espera pelo filho (waitpid)
+
+Tarefa 5 — Ler o output CGI e construir o Response
+
+Objetivo: transformar o que o script escreve em HTTP para o cliente.
+
+    O script CGI vai escrever algo como:
+    text
+
+    Status: 200 OK
+    Content-Type: text/html
+
+    <html>...</html>
+
+    Tens de:
+
+        ler tudo do outPipe[0] para uma std::string
+
+        separar headers da body (dividindo em "\r\n\r\n" ou "\n\n")
+
+        para cada header:
+
+            se for Status: 302 Found → ajustar res.setStatusCode(302)
+
+            se for Content-Type: ... → res.setHeader(...)
+
+        o resto é o corpo → res.setBody(...)
+
+Tarefa 6 — Integrar tudo no execute()
+
+No fim, o fluxo de execute() deve ser:
+
+    Validar script (o que já tens).
+
+    Construir argv.
+
+    Construir envp.
+
+    Criar pipes.
+
+    Fazer fork.
+
+    No pai:
+
+        enviar body (se POST)
+
+        ler output
+
+        parsear headers
+
+        montar Response
+
+    Devolver Response.
+

@@ -1,161 +1,205 @@
-Em que tarefa estás neste momento?
 
 
-Atual-
-🧱 TAREFA 1 — Criar o Router
-✔ O que é
-Uma classe ou função que recebe um Request e devolve um Response.
+🟦 FASE 1 — Preparar a estrutura do módulo CGI
+Tarefa 1.1 — Criar os ficheiros da classe
+includes/http/cgi/CGI.hpp
 
-✔ O que faz
-Decide o que fazer com o path
+src/http/cgi/CGI.cpp
 
-Chama funções para abrir ficheiros
+Tarefa 1.2 — Definir a interface pública da classe
+A classe deve ter um único método público:
 
-Devolve erros (404, 405, 500)
+Response execute(const Request& req);
 
-Prepara a Response final
+Este método será chamado pelo Router.
 
-✔ Interface típica:
-cpp
-class Router {
-public:
-    Response handle(const Request& req);
-};
-O Router é o cérebro do Ponto 4.
+Tarefa 1.3 — Definir métodos privados (apenas declarações)
+Sem implementar ainda, só declarar:
 
-🟩 TAREFA 2 — Resolver o caminho do ficheiro
-✔ O que é
-Transformar o path pedido pelo cliente num caminho real no disco.
+preparar variáveis de ambiente
 
-Exemplo:
+preparar argumentos
 
-Código
-/index.html → ./www/index.html
-✔ Tarefas:
-Definir um diretório raiz (ex: www/)
+resolver caminho do script
 
-Concatenar o path da request com esse diretório
+criar pipes
 
-Impedir ataques tipo ../../etc/passwd
+executar fork/execve
 
-🟨 TAREFA 3 — Verificar se o ficheiro existe
-✔ Se existir → abrir
-✔ Se não existir → devolver 404
-Exemplo:
+ler output
 
-cpp
-if (!fileExists(path))
-    return make404Response();
-🟧 TAREFA 4 — Ler o ficheiro
-✔ Abrir o ficheiro em modo binário
-✔ Ler todo o conteúdo para uma string
-✔ Fechar o ficheiro
-Função típica:
+construir Response
 
-cpp
-std::string readFile(const std::string& path);
-🟥 TAREFA 5 — Determinar o MIME type
-✔ Porque é necessário
-O browser precisa de saber o tipo do ficheiro:
+🟩 FASE 2 — Integrar o CGI no Router
+Tarefa 2.1 — Criar função isCGI(path)
+Decide quando um pedido deve ser tratado como CGI.
+Exemplo: paths que começam por /cgi-bin/.
 
-HTML
+Tarefa 2.2 — Modificar o Router
+No método handle():
 
-CSS
+se isCGI(path) → chamar cgi.execute(req)
 
-JS
+senão → fluxo normal de ficheiros estáticos
 
-PNG
+Ainda sem implementar o CGI, só a ligação.
 
-JPEG
+🟦 FASE 3 — Resolver o caminho do script
+Tarefa 3.1 — Reutilizar a tua lógica de path resolving
+Tal como fizeste para ficheiros estáticos.
 
-TXT
+Tarefa 3.2 — Validar o script
+existe?
 
-✔ Criar função:
-cpp
-std::string getMimeType(const std::string& path);
-✔ Tabela simples:
-Extensão	MIME
-.html	text/html
-.css	text/css
-.js	application/javascript
-.png	image/png
-.jpg / .jpeg	image/jpeg
-.gif	image/gif
-.txt	text/plain
-🟪 TAREFA 6 — Criar a Response com o ficheiro
-Depois de leres o ficheiro:
+é um ficheiro?
 
-cpp
-Response res;
-res.setStatusCode(200);
-res.setHeader("Content-Type", mime);
-res.setBody(content);
-return res;
-🟫 TAREFA 7 — Integrar o Router na main com sockets
-Na tua main atual, tens algo assim:
+tem permissões de execução?
 
-cpp
-Response res;
-res.setStatusCode(200);
-res.setBody("<h1>Hello</h1>");
-Isto vai ser substituído por:
+Se falhar → devolver 404 ou 500.
 
-cpp
-Router router;
-Response res = router.handle(req);
-E depois:
+🟩 FASE 4 — Preparar o ambiente do CGI (ENV)
+Tarefa 4.1 — Criar função buildEnvironment(req)
+Esta função deve montar variáveis como:
 
-cpp
-std::string httpResponse = res.serialize();
-send(client_fd, httpResponse.c_str(), httpResponse.size(), 0);
-🟦 TAREFA 8 — Tratar erros comuns
-✔ 404 — ficheiro não encontrado
-✔ 405 — método não permitido
-✔ 500 — erro interno
-✔ 403 — acesso proibido (opcional)
-🟩 TAREFA 9 — Testar com browser e curl
-✔ Testar:
-Código
-http://localhost:8080/index.html
-http://localhost:8080/style.css
-http://localhost:8080/script.js
-http://localhost:8080/naoexiste.html
-✔ Testar com curl:
-Código
-curl -v http://localhost:8080/index.html
-🧭 Resumo final das tarefas do Ponto 4
-Ordem	Tarefa	Explicação
-1	Criar Router	Decide o que devolver
-2	Resolver path	Mapear /ficheiro → www/ficheiro
-3	Verificar existência	Se não existir → 404
-4	Ler ficheiro	Ler conteúdo para string
-5	MIME types	Dizer ao browser o tipo do ficheiro
-6	Criar Response	Status + headers + body
-7	Integrar com sockets	Router → Response → send()
-8	Tratar erros	404, 405, 500
-9	Testar	Browser + curl
-Se quiseres, posso agora:
+REQUEST_METHOD
 
-criar o Router básico
+SCRIPT_NAME
 
-criar o Router completo com file serving
+QUERY_STRING
 
-escrever as funções readFile() e getMimeType()
+CONTENT_LENGTH
 
-integrar tudo com a tua main de sockets
+CONTENT_TYPE
 
-Diz-me por onde queres começar.
+SERVER_PROTOCOL
 
+SERVER_NAME
 
-if (client.request.isDone())
-		{
-			std::cout << "INSIDE DONE" << std::endl;
-			client.response = router.handleRequest(client.request);
-			std::string rawResponse = client.response.serialize();
-			std::cout << "=== RAW RESPONSE BEGIN ===\n";
-			std::cout << rawResponse << "\n";
-			std::cout << "=== RAW RESPONSE END ===\n";
-			client.writeBuffer.write(rawResponse.c_str(), rawResponse.size());
-			fds[index].events |= POLLOUT;
-			client.request.reset();
-		}
+SERVER_PORT
+
+Tarefa 4.2 — Converter para char*[]
+O execve() exige este formato.
+
+🟦 FASE 5 — Preparar argumentos (ARGV)
+Tarefa 5.1 — Criar função buildArguments(scriptPath)
+O CGI normalmente só precisa de:
+
+argv[0] = caminho do script
+
+argv[1] = NULL
+
+🟩 FASE 6 — Criar pipes
+Tarefa 6.1 — Criar função createPipes()
+Precisas de dois pipes:
+
+pipe de entrada → para enviar body ao CGI (stdin do filho)
+
+pipe de saída → para ler output do CGI (stdout do filho)
+
+🟦 FASE 7 — Implementar o fork/execve
+Esta é a parte mais crítica.
+
+Tarefa 7.1 — Criar função executeChildProcess(...)
+No processo filho:
+
+redirecionar stdin com dup2
+
+redirecionar stdout com dup2
+
+fechar descritores desnecessários
+
+chamar execve()
+
+Tarefa 7.2 — Criar função handleParentProcess(...)
+No processo pai:
+
+fechar descritores desnecessários
+
+se for POST → escrever o body no pipe de entrada
+
+ler o output do CGI do pipe de saída
+
+esperar pelo filho (waitpid)
+
+🟩 FASE 8 — Ler o output do CGI
+Tarefa 8.1 — Criar função readCGIOutput(pipeFd)
+Esta função deve:
+
+ler tudo do pipe
+
+guardar numa string
+
+devolver essa string
+
+🟦 FASE 9 — Construir a Response final
+Tarefa 9.1 — Criar função buildResponseFromCGIOutput(output)
+Esta função deve:
+
+separar headers do body
+
+meter headers na Response
+
+meter body na Response
+
+garantir Content-Length
+
+devolver a Response
+
+🟩 FASE 10 — Testar
+Tarefa 10.1 — Criar script de teste
+Exemplo: www/cgi-bin/test.py
+
+Tarefa 10.2 — Testar GET
+http://localhost:8080/cgi-bin/test.py
+
+Tarefa 10.3 — Testar POST
+Enviar body e ver se o CGI recebe.
+
+🟦 RESUMO FINAL — Lista de tarefas em ordem
+FASE 1 — Estrutura
+Criar ficheiros CGI.hpp / CGI.cpp
+
+Criar interface pública
+
+Declarar métodos privados
+
+FASE 2 — Router
+Criar isCGI(path)
+
+Integrar cgi.execute(req) no Router
+
+FASE 3 — Script path
+Resolver caminho real
+
+Validar permissões
+
+FASE 4 — Ambiente
+Criar buildEnvironment()
+
+Converter para char*[]
+
+FASE 5 — Argumentos
+Criar buildArguments()
+
+FASE 6 — Pipes
+Criar createPipes()
+
+FASE 7 — fork/execve
+Criar executeChildProcess()
+
+Criar handleParentProcess()
+
+FASE 8 — Output
+Criar readCGIOutput()
+
+FASE 9 — Response
+Criar buildResponseFromCGIOutput()
+
+FASE 10 — Testes
+Criar script de teste
+
+Testar GET
+
+Testar POST
+
+Se quiseres, posso agora pegar na FASE 1 e ajudar-te a desenhar a estrutura da classe CGI (sem código ainda).

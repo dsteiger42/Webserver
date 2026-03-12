@@ -1,14 +1,19 @@
 #include <http/Router.hpp>
 
 Router::Router() 
-{    
+{   
     Path = "";
     Query = "";
     Method = "";
     DocumentRoot = "./www/";
     AbsolutePath = "";
+    cgi = new CGI();
+    cgi->setRouter(this);
 }
-
+Router::~Router()
+{
+    delete cgi;
+}
 std::string Router::getPath() const
 {
     return (this->Path);
@@ -27,6 +32,11 @@ std::string Router::getAbsolutePath() const
     return this->AbsolutePath;
 }
 
+std::string Router::getDocumentRoot() const
+{
+    return this->DocumentRoot;
+}
+
 bool Router::validateMethod(const std::string &method)
 {
     return method == "GET" || method == "POST" || method == "DELETE";
@@ -42,37 +52,6 @@ bool Router::validatePath(const std::string &path)
     return true;
 }
 
-bool Router::isDirectory(const std::string& absolutePath)
-{
-    struct stat info;
-
-    if (stat(absolutePath.c_str(), &info) != 0)
-        return false;
-    if (!S_ISDIR(info.st_mode))
-        return false;
-    if (access(absolutePath.c_str(), R_OK) != 0)
-        return false;
-    return true;
-}
-
-bool Router::isInsideRoot(const std::string& path)
-{
-    if (path.compare(0, DocumentRoot.size(), DocumentRoot) != 0)
-        return false;
-
-    if (path.size() > DocumentRoot.size() &&
-        path[DocumentRoot.size()] != '/')
-        return false;
-
-    return true;
-}
-bool Router::checkFile(const std::string& index)
-{
-    struct stat info;
-    if (stat(index.c_str(), &info) == 0 && S_ISREG(info.st_mode) && access(index.c_str(), R_OK | F_OK) == 0)
-        return true;
-    return false;
-}
 void Router::splitPathQuery(const std::string& path)
 {
     size_t pos = path.find("?");
@@ -129,15 +108,6 @@ bool Router::buildFinalPath(std::string& path)
     return true;
 }
 
-Response Router::makeErrorCode(size_t code)
-{
-    Response res;
-    res.setStatusCode(code);
-    std::stringstream ss;
-    ss << "<h1>" << code << " " << res.getStatusMessage() << "</h1>";    res.setBody(ss.str());
-    return res;
-}
-
 Response Router::handleRequest(const Request& request)
 {
     Response response;
@@ -151,6 +121,8 @@ Response Router::handleRequest(const Request& request)
     AbsolutePath = DocumentRoot + Path;
     if (!isInsideRoot(AbsolutePath))
          return makeErrorCode(403);
+    if (isCGI(request.getPath()))
+        return cgi->execute(request);
     if (isDirectory(AbsolutePath))
     {
         std::string index = AbsolutePath + "/index.html";
@@ -174,4 +146,14 @@ Response Router::handleRequest(const Request& request)
     std::string MimeType = getMimeType(getExtension(AbsolutePath));
     response.setHeader("Content-Type", MimeType);
     return response;
+}
+
+bool Router::isCGI(const std::string& path)
+{
+    if (path.empty())
+        return false;
+    //temporario, mais tarde com base no web.conf
+    if (path.compare(0, 9, "/cgi-bin/") == 0)
+        return true;
+    return false;
 }

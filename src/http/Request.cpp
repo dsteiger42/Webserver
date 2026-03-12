@@ -24,6 +24,11 @@ const std::string& Request::getBody() const
 	return (this->Body);
 }
 
+const std::string Request::getQuery() const
+{
+    return this->Query;
+}
+
 const std::string& Request::getHeader(const std::string &key) const
 {
 	static const std::string empty = "";
@@ -145,6 +150,7 @@ void Request::parseRequestLine(std::string &line, std::istringstream &split)
 		std::istringstream rl(line);
 		if (!(rl >> Method >> Path >> Version))
 			throw std::runtime_error("Invalid request line");
+		splitPathQuery(Path);
 	}
 }
 
@@ -196,4 +202,16 @@ void Request::parse(const std::string &request)
 {
 	fillBuffer(request, request.length());
 	advanceParsing();
+}
+
+void Request::splitPathQuery(const std::string& path)
+{
+    size_t pos = path.find("?");
+    if (pos != std::string::npos)
+    {
+        Path = path.substr(0, pos);
+        Query = path.substr(pos + 1);
+    }
+    else
+        Path = path;    
 }

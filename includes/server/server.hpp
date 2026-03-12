@@ -22,6 +22,7 @@
 #include <vector>
 #include <map>
 #include <client/client.hpp>
+#include <http/Router.hpp>
 
 enum SendStatus
 {
@@ -34,9 +35,11 @@ enum SendStatus
 class Server
 {
     private:
+
         int _server_fd;
         int _port;
         std::map<int, Client> _allClients; // store each fd to each client
+        Router _router; //Rafael  
 
     public:
         Server(int port);
