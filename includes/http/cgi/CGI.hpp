@@ -17,6 +17,7 @@ class CGI
         Response execute(const Request& req);
 
     private:
+        std::vector<std::string> args;
         Router router; // To remove
         std::string resolveScriptPath(const std::string& path);
 
