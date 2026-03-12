@@ -151,6 +151,8 @@ Response Router::handleRequest(const Request& request)
     AbsolutePath = DocumentRoot + Path;
     if (!isInsideRoot(AbsolutePath))
          return makeErrorCode(403);
+    //if (isCGI(request.getPath()))
+        //return TODO
     if (isDirectory(AbsolutePath))
     {
         std::string index = AbsolutePath + "/index.html";
@@ -174,4 +176,14 @@ Response Router::handleRequest(const Request& request)
     std::string MimeType = getMimeType(getExtension(AbsolutePath));
     response.setHeader("Content-Type", MimeType);
     return response;
+}
+
+bool Router::isCGI(const std::string& path)
+{
+    if (path.empty())
+        return false;
+    //temporario, mais tarde com base no web.conf
+    if (path.compare(0, 9, "/cgi-bin/") == 0)
+        return true;
+    return false;
 }

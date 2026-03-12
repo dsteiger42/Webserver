@@ -43,7 +43,9 @@ class Router
         Response makeErrorCode(size_t code);
         Response handleRequest(const Request& request);
 
-};
+        bool isCGI(const std::string& path);
+
+    };
 
 
 
