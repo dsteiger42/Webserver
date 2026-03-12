@@ -9,7 +9,7 @@
 #include <http/utils/utils.hpp>
 #include <http/utils/mime.hpp>
 
-
+//serve para analisar um Request HTTP e decidir qual recurso devolver, construindo a Response adequada (ficheiro ou erro).
 
 class Router
 {

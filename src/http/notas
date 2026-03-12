@@ -159,3 +159,211 @@ if (client.request.isDone())
 			fds[index].events |= POLLOUT;
 			client.request.reset();
 		}
+
+
+
+
+
+🟦 FASE 1 — Preparar a estrutura do módulo CGI
+Tarefa 1.1 — Criar os ficheiros da classe
+includes/http/cgi/CGI.hpp
+
+src/http/cgi/CGI.cpp
+
+Tarefa 1.2 — Definir a interface pública da classe
+A classe deve ter um único método público:
+
+Response execute(const Request& req);
+
+Este método será chamado pelo Router.
+
+Tarefa 1.3 — Definir métodos privados (apenas declarações)
+Sem implementar ainda, só declarar:
+
+preparar variáveis de ambiente
+
+preparar argumentos
+
+resolver caminho do script
+
+criar pipes
+
+executar fork/execve
+
+ler output
+
+construir Response
+
+🟩 FASE 2 — Integrar o CGI no Router
+Tarefa 2.1 — Criar função isCGI(path)
+Decide quando um pedido deve ser tratado como CGI.
+Exemplo: paths que começam por /cgi-bin/.
+
+Tarefa 2.2 — Modificar o Router
+No método handle():
+
+se isCGI(path) → chamar cgi.execute(req)
+
+senão → fluxo normal de ficheiros estáticos
+
+Ainda sem implementar o CGI, só a ligação.
+
+🟦 FASE 3 — Resolver o caminho do script
+Tarefa 3.1 — Reutilizar a tua lógica de path resolving
+Tal como fizeste para ficheiros estáticos.
+
+Tarefa 3.2 — Validar o script
+existe?
+
+é um ficheiro?
+
+tem permissões de execução?
+
+Se falhar → devolver 404 ou 500.
+
+🟩 FASE 4 — Preparar o ambiente do CGI (ENV)
+Tarefa 4.1 — Criar função buildEnvironment(req)
+Esta função deve montar variáveis como:
+
+REQUEST_METHOD
+
+SCRIPT_NAME
+
+QUERY_STRING
+
+CONTENT_LENGTH
+
+CONTENT_TYPE
+
+SERVER_PROTOCOL
+
+SERVER_NAME
+
+SERVER_PORT
+
+Tarefa 4.2 — Converter para char*[]
+O execve() exige este formato.
+
+🟦 FASE 5 — Preparar argumentos (ARGV)
+Tarefa 5.1 — Criar função buildArguments(scriptPath)
+O CGI normalmente só precisa de:
+
+argv[0] = caminho do script
+
+argv[1] = NULL
+
+🟩 FASE 6 — Criar pipes
+Tarefa 6.1 — Criar função createPipes()
+Precisas de dois pipes:
+
+pipe de entrada → para enviar body ao CGI (stdin do filho)
+
+pipe de saída → para ler output do CGI (stdout do filho)
+
+🟦 FASE 7 — Implementar o fork/execve
+Esta é a parte mais crítica.
+
+Tarefa 7.1 — Criar função executeChildProcess(...)
+No processo filho:
+
+redirecionar stdin com dup2
+
+redirecionar stdout com dup2
+
+fechar descritores desnecessários
+
+chamar execve()
+
+Tarefa 7.2 — Criar função handleParentProcess(...)
+No processo pai:
+
+fechar descritores desnecessários
+
+se for POST → escrever o body no pipe de entrada
+
+ler o output do CGI do pipe de saída
+
+esperar pelo filho (waitpid)
+
+🟩 FASE 8 — Ler o output do CGI
+Tarefa 8.1 — Criar função readCGIOutput(pipeFd)
+Esta função deve:
+
+ler tudo do pipe
+
+guardar numa string
+
+devolver essa string
+
+🟦 FASE 9 — Construir a Response final
+Tarefa 9.1 — Criar função buildResponseFromCGIOutput(output)
+Esta função deve:
+
+separar headers do body
+
+meter headers na Response
+
+meter body na Response
+
+garantir Content-Length
+
+devolver a Response
+
+🟩 FASE 10 — Testar
+Tarefa 10.1 — Criar script de teste
+Exemplo: www/cgi-bin/test.py
+
+Tarefa 10.2 — Testar GET
+http://localhost:8080/cgi-bin/test.py
+
+Tarefa 10.3 — Testar POST
+Enviar body e ver se o CGI recebe.
+
+🟦 RESUMO FINAL — Lista de tarefas em ordem
+FASE 1 — Estrutura
+Criar ficheiros CGI.hpp / CGI.cpp
+
+Criar interface pública
+
+Declarar métodos privados
+
+FASE 2 — Router
+Criar isCGI(path)
+
+Integrar cgi.execute(req) no Router
+
+FASE 3 — Script path
+Resolver caminho real
+
+Validar permissões
+
+FASE 4 — Ambiente
+Criar buildEnvironment()
+
+Converter para char*[]
+
+FASE 5 — Argumentos
+Criar buildArguments()
+
+FASE 6 — Pipes
+Criar createPipes()
+
+FASE 7 — fork/execve
+Criar executeChildProcess()
+
+Criar handleParentProcess()
+
+FASE 8 — Output
+Criar readCGIOutput()
+
+FASE 9 — Response
+Criar buildResponseFromCGIOutput()
+
+FASE 10 — Testes
+Criar script de teste
+
+Testar GET
+
+Testar POST
+
+Se quiseres, posso agora pegar na FASE 1 e ajudar-te a desenhar a estrutura da classe CGI (sem código ainda).
