@@ -9,12 +9,13 @@ std::string CGI::resolveScriptPath(const std::string& path)
     std::string temp;
 
     temp = path.substr(path.find("/cgi-bin/") + 9);
-    finalPath =  router.getDocumentRoot() + "/cgi-bin/" + temp;
+    finalPath =  router->getDocumentRoot() + "/cgi-bin/" + temp;
     return finalPath;
 }
 
 std::vector<char*> CGI::buildArguments(const std::string& scriptPath)
 {
+    args.clear();
     args.push_back(scriptPath);
     std::vector<char*> argv;
     argv.push_back(const_cast<char*>(args[0].c_str()));
@@ -39,7 +40,7 @@ void CGI::buildEnvironment(const Request& req, const std::string& scriptPath)
     env.push_back("GATEWAY_INTERFACE=CGI/1.1");
 }
 
-std::vector<char*> convertEnv(const std::vector<std::string>& env)
+std::vector<char*> CGI::convertEnv(const std::vector<std::string>& env)
 {
     std::vector<char*> envp;
     for (size_t i = 0; i < env.size(); i++)
@@ -47,10 +48,13 @@ std::vector<char*> convertEnv(const std::vector<std::string>& env)
     envp.push_back(NULL);
     return envp;    
 }
-
+void CGI::setRouter(Router *r)
+{
+    router = r; 
+}
 Response CGI::execute(const Request& req)
 {
-    (void)req;
+    // (void)req;
     Response res;
     std::vector<char*> argv;
     std::string scriptPath = resolveScriptPath(req.getPath());

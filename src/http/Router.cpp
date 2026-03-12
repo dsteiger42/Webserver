@@ -1,14 +1,19 @@
 #include <http/Router.hpp>
 
 Router::Router() 
-{    
+{   
     Path = "";
     Query = "";
     Method = "";
     DocumentRoot = "./www/";
     AbsolutePath = "";
+    cgi = new CGI();
+    cgi->setRouter(this);
 }
-
+Router::~Router()
+{
+    delete cgi;
+}
 std::string Router::getPath() const
 {
     return (this->Path);
@@ -117,7 +122,7 @@ Response Router::handleRequest(const Request& request)
     if (!isInsideRoot(AbsolutePath))
          return makeErrorCode(403);
     if (isCGI(request.getPath()))
-        return cgi.execute(request);
+        return cgi->execute(request);
     if (isDirectory(AbsolutePath))
     {
         std::string index = AbsolutePath + "/index.html";

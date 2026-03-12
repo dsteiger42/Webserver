@@ -125,7 +125,6 @@ bool Server::handle_client_data(std::vector<pollfd> &fds, size_t index)
 	char	buffer[1024];
 	char	temp[1024];
 	size_t	n;
-	Router router;
 
 	client_fd = fds[index].fd;
 	Client &client = _allClients[client_fd];
@@ -142,7 +141,7 @@ bool Server::handle_client_data(std::vector<pollfd> &fds, size_t index)
  		if (client.request.isDone())
 		{
 			std::cout << "INSIDE DONE" << std::endl;
-			client.response = router.handleRequest(client.request);
+			client.response = _router.handleRequest(client.request);
 			std::string rawResponse = client.response.serialize();
 			std::cout << "=== RAW RESPONSE BEGIN ===\n";
 			std::cout << rawResponse << "\n";
