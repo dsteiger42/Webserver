@@ -24,7 +24,7 @@ class CGI
 
         std::vector<char*> buildArguments(const std::string& scriptPath);
 
-        std::vector<std::string> buildEnvironment(const Request& req, const std::string& scriptPath);
+        void buildEnvironment(const Request& req, const std::string& scriptPath);
         std::vector<char*> convertEnv(const std::vector<std::string>& env);
 
 

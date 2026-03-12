@@ -22,7 +22,7 @@ std::vector<char*> CGI::buildArguments(const std::string& scriptPath)
     return argv;
 }
 
-std::vector<std::string> CGI::buildEnvironment(const Request& req, const std::string& scriptPath)
+void CGI::buildEnvironment(const Request& req, const std::string& scriptPath)
 {
     env.clear();
     std::stringstream ss;
@@ -39,6 +39,15 @@ std::vector<std::string> CGI::buildEnvironment(const Request& req, const std::st
     env.push_back("GATEWAY_INTERFACE=CGI/1.1");
 }
 
+std::vector<char*> convertEnv(const std::vector<std::string>& env)
+{
+    std::vector<char*> envp;
+    for (size_t i = 0; i < env.size(); i++)
+        envp.push_back(const_cast<char*>(env[i].c_str()));
+    envp.push_back(NULL);
+    return envp;    
+}
+
 Response CGI::execute(const Request& req)
 {
     (void)req;
@@ -52,9 +61,8 @@ Response CGI::execute(const Request& req)
     if (!isExecutable(scriptPath))
         return makeErrorCode(403);
     argv = buildArguments(scriptPath);
-    std::vector<char*> argv = buildArguments(scriptPath);
-    std::vector<std::string> envp = buildEnvironment(req, scriptPath);
-
+    buildEnvironment(req, scriptPath);
+    std::vector<char*> envp = convertEnv(env);
     // 4. Criar pipes
     // 5. fork()
     // 6. execve()
