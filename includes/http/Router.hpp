@@ -3,9 +3,6 @@
 
 #include <http/Request.hpp>
 #include <http/Response.hpp>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
 #include <http/utils/utils.hpp>
 #include <http/utils/mime.hpp>
 #include <http/cgi/CGI.hpp>
@@ -28,14 +25,11 @@ class Router
         std::string getQuery() const;
         std::string getMethod() const;
         std::string getAbsolutePath() const;
+        std::string getDocumentRoot() const;
         
         bool validateMethod(const std::string &method);
         bool validatePath(const std::string &path);
         
-        bool isDirectory(const std::string& absolutePath);
-        bool isInsideRoot(const std::string& path);
-        bool checkFile(const std::string& index);
-
         void splitPathQuery(const std::string& path);
         std::vector<std::string> splitPath(const std::string& path);
 

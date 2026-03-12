@@ -5,6 +5,8 @@
 #include <vector>
 #include <http/Request.hpp>
 #include <http/Response.hpp>
+#include <http/Router.hpp>
+#include <http/utils/utils.hpp>
 
 class CGI
 {
@@ -15,6 +17,7 @@ class CGI
         Response execute(const Request& req);
 
     private:
+        Router router; // To remove
         std::string resolveScriptPath(const std::string& path);
 
         std::vector<std::string> buildEnvironment(const Request& req);
@@ -35,6 +38,7 @@ class CGI
         std::string readCGIOutput(int fd);
 
         Response buildResponseFromCGIOutput(const std::string& output);
-};
+
+    };
 
 #endif

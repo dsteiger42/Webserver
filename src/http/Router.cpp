@@ -27,6 +27,11 @@ std::string Router::getAbsolutePath() const
     return this->AbsolutePath;
 }
 
+std::string Router::getDocumentRoot() const
+{
+    return this->DocumentRoot;
+}
+
 bool Router::validateMethod(const std::string &method)
 {
     return method == "GET" || method == "POST" || method == "DELETE";
@@ -42,37 +47,6 @@ bool Router::validatePath(const std::string &path)
     return true;
 }
 
-bool Router::isDirectory(const std::string& absolutePath)
-{
-    struct stat info;
-
-    if (stat(absolutePath.c_str(), &info) != 0)
-        return false;
-    if (!S_ISDIR(info.st_mode))
-        return false;
-    if (access(absolutePath.c_str(), R_OK) != 0)
-        return false;
-    return true;
-}
-
-bool Router::isInsideRoot(const std::string& path)
-{
-    if (path.compare(0, DocumentRoot.size(), DocumentRoot) != 0)
-        return false;
-
-    if (path.size() > DocumentRoot.size() &&
-        path[DocumentRoot.size()] != '/')
-        return false;
-
-    return true;
-}
-bool Router::checkFile(const std::string& index)
-{
-    struct stat info;
-    if (stat(index.c_str(), &info) == 0 && S_ISREG(info.st_mode) && access(index.c_str(), R_OK | F_OK) == 0)
-        return true;
-    return false;
-}
 void Router::splitPathQuery(const std::string& path)
 {
     size_t pos = path.find("?");
@@ -127,15 +101,6 @@ bool Router::buildFinalPath(std::string& path)
             this->Path += "/";
     }
     return true;
-}
-
-Response Router::makeErrorCode(size_t code)
-{
-    Response res;
-    res.setStatusCode(code);
-    std::stringstream ss;
-    ss << "<h1>" << code << " " << res.getStatusMessage() << "</h1>";    res.setBody(ss.str());
-    return res;
 }
 
 Response Router::handleRequest(const Request& request)
