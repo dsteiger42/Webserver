@@ -4,6 +4,7 @@ SRCS =  src/http/Request.cpp \
 		src/http/Router.cpp \
 		src/http/utils/utils.cpp \
 		src/http/utils/mime.cpp \
+		src/http/cgi/CGI.cpp \
 		main.cpp \
 		src/server/server.cpp \
 		src/client/client.cpp \

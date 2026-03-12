@@ -8,12 +8,14 @@
 #include <unistd.h>
 #include <http/utils/utils.hpp>
 #include <http/utils/mime.hpp>
+#include <http/cgi/CGI.hpp>
 
 //serve para analisar um Request HTTP e decidir qual recurso devolver, construindo a Response adequada (ficheiro ou erro).
 
 class Router
 {
     private:
+        CGI cgi;
         std::string Path;
         std::string Query;
         std::string Method;

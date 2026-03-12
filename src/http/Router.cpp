@@ -151,8 +151,8 @@ Response Router::handleRequest(const Request& request)
     AbsolutePath = DocumentRoot + Path;
     if (!isInsideRoot(AbsolutePath))
          return makeErrorCode(403);
-    //if (isCGI(request.getPath()))
-        //return TODO
+    if (isCGI(request.getPath()))
+        return cgi.execute(request);
     if (isDirectory(AbsolutePath))
     {
         std::string index = AbsolutePath + "/index.html";
