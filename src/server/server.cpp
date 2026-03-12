@@ -118,7 +118,7 @@ int Server::accept_new_client(std::vector<pollfd> &fds)
 	return (client_fd);
 }
 
-bool Server::handle_client_data(std::vector<pollfd> &fds, size_t index)
+bool Server::receive_from_client(std::vector<pollfd> &fds, size_t index)
 {
 	int		client_fd;
 	int		bytes_received;
@@ -148,7 +148,7 @@ bool Server::handle_client_data(std::vector<pollfd> &fds, size_t index)
 			std::cout << rawResponse << "\n";
 			std::cout << "=== RAW RESPONSE END ===\n";
 			client.writeBuffer.write(rawResponse.c_str(), rawResponse.size());
-			fds[index].events |= POLLOUT;
+			fds[index].events |= POLLOUT; //Enables POLLOUT on this socket so the server knows it must send data
 			client.request.reset();
 		}
 		return (true);
@@ -166,16 +166,29 @@ bool Server::handle_client_data(std::vector<pollfd> &fds, size_t index)
 	}
 }
 
-void Server::accept_clients()
+SendStatus Server::send_to_client(std::vector<pollfd> &fds, size_t index)
 {
-	pollfd	listen_fd;
-	int		ret;
-	size_t	available;
-				char temp[1024];
-	size_t	toSend;
-	size_t	copied;
-	size_t	sent;
+	int fd = fds[index].fd;
+	Client &client = _allClients[fd];
+	size_t available = client.writeBuffer.getSize();
+	if(available == 0)
+		return SEND_DONE;
+	char temp[1024];
+	size_t toSend = std::min(available, sizeof(temp));
+	size_t copied = client.writeBuffer.peek(temp, toSend);
+	size_t sent = send(fd, temp, copied, 0);
+	if(sent <= 0)
+		return SEND_ERROR;
+	client.writeBuffer.consume(sent);
+	if(client.writeBuffer.getSize() == 0)
+		return SEND_DONE;
+	return SEND_OK;
+}
 
+void Server::handle_clients()
+{
+	int		ret;
+	pollfd	listen_fd;
 	std::vector<pollfd> fds;
 	listen_fd.fd = _server_fd;
 	listen_fd.events = POLLIN; // the listening socket only cares about POLLIN
@@ -190,43 +203,23 @@ void Server::accept_clients()
 		}
 		for (size_t i = 0; i < fds.size(); ++i)
 		{
+			// if the POLLIN bit is inside revents (int containing bit flags)
 			if (fds[i].revents & POLLIN)
-				// if the POLLIN bit is inside revents (int containing bit flags)
 			{
 				if (fds[i].fd == _server_fd)
 					accept_new_client(fds);
 				else
-					handle_client_data(fds, i);
+					receive_from_client(fds, i);
 			}
 			if (fds[i].revents & POLLOUT)
 			{
-				Client &client = _allClients[fds[i].fd];
-				available = client.writeBuffer.getSize();
-				if (available == 0)
+				SendStatus status = send_to_client(fds, i);
+				if (status == SEND_DONE || status == SEND_ERROR)
 				{
 					close(fds[i].fd);
-        			_allClients.erase(fds[i].fd);
-        			fds.erase(fds.begin() + i);
-        			break;
-					// fds[i].events &= ~POLLOUT;
-					// continue ;
-					//Com estas alteracoes, fecha a ligacao quando a resposta esta totalmente enviada
-				}
-				toSend = std::min(available, sizeof(temp));
-				copied = client.writeBuffer.peek(temp, toSend);
-				sent = send(fds[i].fd, temp, copied, 0);
-				if (sent > 0)
-				{
-					client.writeBuffer.consume(sent);
-					if (client.writeBuffer.getSize() == 0)
-					{
-						close(fds[i].fd);
-						_allClients.erase(fds[i].fd);
-						fds.erase(fds.begin() + i);
-						break;
-						// fds[i].events &= ~POLLOUT;
-						//Com estas alteracoes, fecha a ligacao quando a resposta esta totalmente enviada
-					}
+					_allClients.erase(fds[i].fd);
+					fds.erase(fds.begin() + i);
+					break;
 				}
 			}
 		}

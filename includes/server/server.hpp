@@ -23,6 +23,14 @@
 #include <map>
 #include <client/client.hpp>
 
+enum SendStatus
+{
+    SEND_OK,
+    SEND_DONE,
+    SEND_ERROR
+};
+
+
 class Server
 {
     private:
@@ -36,8 +44,9 @@ class Server
         sockaddr_in create_address();
         int setup_socket();
         int accept_new_client(std::vector<pollfd> &fds);
-        bool handle_client_data(std::vector<pollfd> &fds, size_t index);
-        void accept_clients();
+        bool receive_from_client(std::vector<pollfd> &fds, size_t index);
+        SendStatus send_to_client(std::vector<pollfd> &fds, size_t index);
+        void handle_clients();
 };
 
 #endif
