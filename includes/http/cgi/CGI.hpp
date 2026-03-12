@@ -3,6 +3,8 @@
 
 #include <string>
 #include <vector>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include <http/Request.hpp>
 #include <http/Response.hpp>
 #include <http/Router.hpp>

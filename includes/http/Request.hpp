@@ -62,9 +62,3 @@ class Request
 };
 
 #endif
-
-/* GET /index.html HTTP/1.1\r\n
-Host: localhost\r\n
-Content-Length: 5\r\n
-\r\n
-Hello */
