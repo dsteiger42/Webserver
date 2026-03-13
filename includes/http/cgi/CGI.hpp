@@ -42,8 +42,6 @@ class CGI
                                  char* const envp[]);
         std::string handleParentProcess(int inPipe[2], int outPipe[2],
                                         const Request& req);
-        /* std::string readCGIOutput(int fd); */
-        Response buildResponseFromCGIOutput(const std::string& output);
         CGIResult parseCGIOutput(const std::string& output);
 
     };
