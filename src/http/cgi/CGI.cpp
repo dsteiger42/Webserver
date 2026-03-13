@@ -49,6 +49,8 @@ void CGI::buildEnvironment(const Request &req, const std::string &scriptPath)
 	env.push_back("SCRIPT_NAME=" + req.getPath());
 	env.push_back("SERVER_PROTOCOL=" + req.getVersion());
 	env.push_back("GATEWAY_INTERFACE=CGI/1.1");
+	env.push_back("REDIRECT_STATUS=200");
+
 }
 
 std::vector<char *> CGI::convertEnv(const std::vector<std::string> &env)
@@ -106,6 +108,61 @@ std::string CGI::handleParentProcess(int inPipe[2], int outPipe[2],
     return buff;
 }
 
+
+CGI::CGIResult CGI::parseCGIOutput(const std::string& output)
+{
+	CGIResult result;
+
+	result.status = 200;
+	result.contentType = "text/plain";
+	size_t pos = output.find("\r\n\r\n");
+	size_t sepLen = 4;
+	if (pos == std::string::npos)
+    {
+        pos = output.find("\n\n");
+        sepLen = 2;
+    }
+    if (pos == std::string::npos)
+    {
+        result.body = output;
+        return result;
+    }
+	std::string header = output.substr(0, pos);
+	result.body = output.substr(pos + sepLen);
+	std::istringstream stream(header);
+	std::string line;
+	while (std::getline(stream, line))
+	{
+		if (!line.empty() && line[line.size() - 1] == '\r')
+			line.erase(line.size() - 1);
+		if (line.empty())
+			break ;
+		size_t colon = line.find(':');
+		std::string key = line.substr(0, colon);
+		std::string value = line.substr(colon + 1);
+		while (!value.empty() && (value[0] == ' ' || value[0] == '\t'))
+			value.erase(value.begin());
+		result.headers[key] = value;
+		if (key == "Content-Type")
+            result.contentType = value;
+		if (key == "Status")
+        {
+            std::istringstream ss(value);
+            ss >> result.status;
+        }
+		if (key == "Location")
+		{
+			result.headers["Location"] = value;
+			//se cgi nao enviou o status troca para 302
+			if (result.status == 200)
+				result.status = 302;
+		}
+    }
+    return result;	
+}
+	
+
+
 Response CGI::execute(const Request &req)
 {
 	Response res;
@@ -113,6 +170,7 @@ Response CGI::execute(const Request &req)
 	int outPipe[2];
 	std::vector<char *> argv;
 	pid_t pid;
+	std::string output;
 	std::string scriptPath = resolveScriptPath(req.getPath());
 	if (!isInsideRoot(scriptPath))
 		return (makeErrorCode(403));
@@ -132,18 +190,20 @@ Response CGI::execute(const Request &req)
     // 6. execve()
 	if (pid == 0)
 		executeChildProcess(inPipe, outPipe, scriptPath, &argv[0], &envp[0]);
+	// 7. ler output
 	if (pid > 0) // father
     {
-		std::string output = handleParentProcess(inPipe, outPipe, req);
+		output = handleParentProcess(inPipe, outPipe, req);
         waitpid(pid, NULL, 0);
     }
-    // 7. ler output
 	// 8. parsear headers
+	CGIResult result = parseCGIOutput(output);
+	
 	// 9. construir Response final
-
-	// Temporário enquanto não implementas o resto:
-	res.setStatusCode(200);
-	res.setHeader("Content-Type", "text/plain");
-	res.setBody("CGI OK - execute() foi chamado!");
+	res.setStatusCode(result.status);
+	res.setHeader("Content-Type", result.contentType);
+	if (result.headers.count("Location"))
+    	res.setHeader("Location", result.headers["Location"]);
+	res.setBody(result.body);
 	return (res);
 }
