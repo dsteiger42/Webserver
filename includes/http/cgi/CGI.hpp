@@ -3,6 +3,8 @@
 
 #include <string>
 #include <vector>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include <http/Request.hpp>
 #include <http/Response.hpp>
 #include <http/Router.hpp>
@@ -16,6 +18,13 @@ class CGI
         CGI();
         ~CGI();
         void setRouter(Router* r);
+        struct CGIResult 
+        {
+            int status;
+            std::string contentType;
+            std::string body;
+            std::map<std::string,std::string> headers;
+        };
         Response execute(const Request& req);
 
     private:
@@ -33,7 +42,7 @@ class CGI
                                  char* const envp[]);
         std::string handleParentProcess(int inPipe[2], int outPipe[2],
                                         const Request& req);
-        std::string readCGIOutput(int fd);
-        Response buildResponseFromCGIOutput(const std::string& output);
-};
+        CGIResult parseCGIOutput(const std::string& output);
+
+    };
 #endif
