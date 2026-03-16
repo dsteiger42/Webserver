@@ -6,7 +6,7 @@
 /*   By: raamorim <raamorim@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/16 15:17:16 by dsteiger          #+#    #+#             */
-/*   Updated: 2026/03/16 22:13:42 by raamorim         ###   ########.fr       */
+/*   Updated: 2026/03/16 22:15:05 by raamorim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -99,7 +99,7 @@ void parse_error_page(const std::vector<std::string> &tokens, size_t &i, t_confi
     
 }
 
-std::vector<std::string> tokenize(const std::string &filename);
+
 
 void	parse_all(const std::string &filename, t_config &config)
 {
