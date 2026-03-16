@@ -117,15 +117,22 @@ Response Router::handleRequest(const Request& request)
     if (!validatePath(Path))
         return makeErrorCode(400);
     if (!buildFinalPath(Path))
+    {
+        std::cout << "buildfinalpath" << std::endl;
         return makeErrorCode(403);
+    }
     AbsolutePath = DocumentRoot + Path;
     if (!isInsideRoot(AbsolutePath))
-         return makeErrorCode(403);
+    {
+        std::cout << "insideroot" << std::endl;
+        return makeErrorCode(403);
+    }
     if (isCGI(request.getPath()))
         return cgi->execute(request);
     if (isDirectory(AbsolutePath))
     {
         std::string index = AbsolutePath + "/index.html";
+        std::cout << "Trying index: " << index << std::endl;
         if (checkFile(index))
         {
             AbsolutePath = index;
@@ -135,7 +142,10 @@ Response Router::handleRequest(const Request& request)
                 Path += "/index.html";
         }
         else
+        {
+            std::cout << "else" << std::endl;
             return makeErrorCode(403);
+        }
     }
     if (!checkFile(AbsolutePath)) //if it's not a directory but the file doens't exist
         return makeErrorCode(404);

@@ -173,11 +173,17 @@ Response CGI::execute(const Request &req)
 	std::string output;
 	std::string scriptPath = resolveScriptPath(req.getPath());
 	if (!isInsideRoot(scriptPath))
+	{
+		std::cout << "root cgi" << std::endl;
 		return (makeErrorCode(403));
+	}
 	if (!checkFile(scriptPath))
 		return (makeErrorCode(404));
 	if (!isExecutable(scriptPath))
+	{
+		std::cout << "executable" << std::endl;
 		return (makeErrorCode(403));
+	}
 	argv = buildArguments(scriptPath);
 	buildEnvironment(req, scriptPath);
 	std::vector<char *> envp = convertEnv(env);
