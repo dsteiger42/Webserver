@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   parser.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dsteiger <dsteiger@student.42.fr>          +#+  +:+       +#+        */
+/*   By: raamorim <raamorim@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/16 15:18:48 by dsteiger          #+#    #+#             */
-/*   Updated: 2026/03/16 15:58:38 by dsteiger         ###   ########.fr       */
+/*   Updated: 2026/03/16 19:59:45 by raamorim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,8 +30,8 @@ typedef struct s_locations
 
 typedef struct s_config
 {
-    std::map<std::string, std::vector<std::string>> mime = {};
-    std::map<std::string, t_locations> locations = {}; // store all location blocks
+    // std::map<std::string, std::vector<std::string>> mime = {};
+    // std::map<std::string, t_locations> locations = {}; // store all location blocks
     std::string server_name = "";
     std::string root = "";
     std::string index = "";
@@ -39,6 +39,11 @@ typedef struct s_config
     int listen = 0;
 
 } t_config;
+
+typedef struct MimeTypes
+{
+    std::map<std::string, std::string> types;
+} t_MimeTypes;
 
 void parse_all(const std::string &filename, t_config &config);
 
