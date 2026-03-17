@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/16 15:18:48 by dsteiger          #+#    #+#             */
-/*   Updated: 2026/03/17 04:30:01 by rafael           ###   ########.fr       */
+/*   Updated: 2026/03/17 19:37:40 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,10 @@
 #include <stdexcept>
 #include <cctype>
 #include <map>
+#include <vector>
+#include <http/utils/utils.hpp>
+#include <cstdlib>
+#include <climits>
 
 /* typedef struct s_locations
 {
@@ -50,13 +54,25 @@ typedef struct s_MimeTypes
     std::map<std::string, std::string> types;
 } t_MimeTypes;
 
+typedef struct s_Location
+{
+    std::string path;
+    std::string root;
+    std::vector<std::string> allowedMethods;
+    bool autoIndex;
+    bool cgiPass;
+    bool regex;
+    bool hasRedirect;
+    size_t redirectCode;
+    std::string redirectUrl;
+} t_Location;
+
 typedef struct s_parser
 {
     
 /*     t_config config; */
     t_MimeTypes MimeTypes;
-    
-    
+    t_Location Location;
 } t_parser;
 
 

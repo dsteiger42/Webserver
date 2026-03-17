@@ -38,10 +38,6 @@ std::string Router::getDocumentRoot() const
     return this->DocumentRoot;
 }
 
-bool Router::validateMethod(const std::string &method)
-{
-    return method == "GET" || method == "POST" || method == "DELETE";
-}
 bool Router::validatePath(const std::string &path)
 {
     if (path.empty())

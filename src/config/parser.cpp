@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/16 15:17:16 by dsteiger          #+#    #+#             */
-/*   Updated: 2026/03/17 03:23:30 by rafael           ###   ########.fr       */
+/*   Updated: 2026/03/17 19:40:17 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -104,9 +104,9 @@ void parse_error_page(const std::vector<std::string> &tokens, size_t &i, t_confi
 void	parse_all(const std::string &filename, t_parser &parser)
 {
     std::vector<std::string> tokens = tokenize(filename);
-    /* std::cout << "All tokens:\n";
+    std::cout << "All tokens:\n";
     for (size_t j = 0; j < tokens.size(); j++)
-        std::cout << j << ": [" << tokens[j] << "]\n"; */
+        std::cout << j << ": [" << tokens[j] << "]\n";
     size_t i = 0;
 
     while(i < tokens.size())
@@ -127,9 +127,103 @@ void	parse_all(const std::string &filename, t_parser &parser)
         }
         if (i + 1 < tokens.size() && tokens[i] == "mime_types" && tokens[i + 1] == "{")
             parse_mimeTypes(parser.MimeTypes, i, tokens);
+        if (i + 2 < tokens.size() && tokens[i] == "location" && tokens[i + 2] == "{")
+            /* parse_mimeTypes(parser.MimeTypes, i, tokens); */
         i++;
     }
 }
+
+static void set_Autoindex(std::string &value, t_Location &location)
+{
+    if (value == "true")
+        location.autoIndex = true;
+    else
+        location.autoIndex = false;
+}
+
+static void set_AllowedMethods(std::vector<std::string> &tokens, size_t &i, t_Location &location)
+{
+    if (!tokens[i].empty())
+    {
+        while(validateMethod(tokens[i]))
+        {
+            location.allowedMethods.push_back(tokens[i]);
+            i++;
+        }
+    }
+}
+
+static void set_Root(std::string &value, t_Location &location)
+{
+    if (!value.empty() && value != ";")
+        location.root = value;
+    else
+        location.root = "";
+}
+
+static void set_cgiPass(std::string &value, t_Location &location)
+{
+    if (value == "on")
+        location.cgiPass = true;
+    else
+        location.cgiPass = false;
+}
+
+static void set_redirection(std::vector<std::string> tokens, size_t &i, t_Location &location)
+{
+    if (!isNumber(tokens[i]))
+        return ;
+    location.hasRedirect = true;
+    long code = std::atol(tokens[i].c_str());
+    if (code > INT_MAX || code < INT_MIN)
+        location.redirectCode = 0;
+    else
+        location.redirectCode = code;
+    i++;
+    if (tokens[i] != ";")
+        location.redirectUrl = tokens[i];
+    else
+        location.redirectUrl = "";
+}
+
+void parse_location(t_Location &Location, size_t &i, std::vector<std::string> tokens)
+{
+    i++;
+    Location.path = tokens[i];
+    i++;
+    if (tokens[i] != "{")
+        throw std::runtime_error("Expected '{'");
+    while(tokens[i] != "}")
+    {
+        if (tokens[i] == "autoindex")
+        {
+            i++;
+            set_Autoindex(tokens[i], Location);   
+        }
+        if (tokens[i] == "allowed_methods" && !tokens[i + 1].empty())
+        {
+            i++;
+            set_AllowedMethods(tokens, i, Location);
+        }
+        if (tokens[i] == "root" && !tokens[i + 1].empty())
+        {
+            i++;
+            set_Root(tokens[i], Location);
+        }
+        if (tokens[i] == "cgi_pass" && !tokens[i + 1].empty())
+        {
+            i++;
+            set_cgiPass(tokens[i], Location);
+        }
+        if (tokens[i] == "return" && !tokens[i + 1].empty())
+        {
+            i++;
+            set_redirection(tokens, i, Location);
+        }
+        i++;   
+    }
+}
+
 
 void parse_mimeTypes(t_MimeTypes& MimeTypes, size_t &i, std::vector<std::string> tokens)
 {

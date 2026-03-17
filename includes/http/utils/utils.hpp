@@ -14,5 +14,7 @@ bool isInsideRoot(const std::string& path);
 bool checkFile(const std::string& index);
 Response makeErrorCode(size_t code);
 bool isExecutable(const std::string& path);
+bool validateMethod(const std::string &method);
+bool isNumber(std::string &string);
 
 #endif

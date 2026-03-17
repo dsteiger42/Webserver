@@ -67,3 +67,21 @@ bool isExecutable(const std::string& path)
     return access(path.c_str(), X_OK) == 0;
 }
 
+bool validateMethod(const std::string &method)
+{
+    return method == "GET" || method == "POST" || method == "DELETE";
+}
+
+bool isNumber(std::string &string)
+{
+    if (string.empty())
+        return false;
+    for (size_t i = 0; i < string.size(); i++)
+    {
+        if (string[i] == '+')
+            i++;
+        if (!std::isdigit(string[i]))
+            return false;
+    }
+    return true;
+}
