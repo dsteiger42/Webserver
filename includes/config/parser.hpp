@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/16 15:18:48 by dsteiger          #+#    #+#             */
-/*   Updated: 2026/03/17 19:48:39 by rafael           ###   ########.fr       */
+/*   Updated: 2026/03/17 20:28:44 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,11 +61,12 @@ typedef struct s_Location
     std::vector<std::string> allowedMethods;
     bool autoIndex;
     bool cgiPass;
-    bool regex;
+    bool isRegex;
     bool hasRedirect;
     size_t redirectCode;
     std::string redirectUrl;
     std::vector<std::string> try_files; 
+    s_Location();
 } t_Location;
 
 typedef struct s_parser
@@ -74,6 +75,7 @@ typedef struct s_parser
 /*     t_config config; */
     t_MimeTypes MimeTypes;
     t_Location Location;
+    s_parser();
 } t_parser;
 
 
@@ -82,7 +84,7 @@ void parse_all(const std::string &filename, t_parser &parse);
 std::vector<std::string> tokenize(const std::string &filename);
 void parse_server_block(const std::vector<std::string> &tokens);
 //void parse_error_page(const std::vector<std::string> &tokens, size_t &i, t_config &config);
-void parse_mimeTypes(t_MimeTypes& MimeTypes, size_t &i, std::vector<std::string> tokens);
-
+void parse_mimeTypes(t_MimeTypes& MimeTypes, size_t &i, std::vector<std::string> &tokens);
+void parse_location(t_Location &Location, size_t &i, std::vector<std::string> &tokens);
 
 #endif

@@ -13,7 +13,6 @@ int main(int argc, char **argv)
         return -1;
     }
     parse_all(argv[1], parser);
-    
     //int port = parseListenPort(); -> parse the "listen" in webserver.conf
     //server myServer(port);
 
