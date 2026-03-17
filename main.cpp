@@ -18,7 +18,7 @@ int main(int argc, char **argv)
     //server myServer(port);
 
     // used for testing a connection
-    Server myServer(8080);
+    Server myServer(8080, parser);
     myServer.setup_socket();
     myServer.handle_clients();
     return 0;

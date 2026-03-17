@@ -6,6 +6,7 @@
 #include <http/utils/utils.hpp>
 #include <http/utils/mime.hpp>
 #include <http/cgi/CGI.hpp>
+#include <config/parser.hpp>
 
 //serve para analisar um Request HTTP e decidir qual recurso devolver, construindo a Response adequada (ficheiro ou erro).
 
@@ -13,6 +14,7 @@ class CGI; //to remove
 class Router
 {
     private:
+        t_MimeTypes MimeTypes;
         std::string Path;
         std::string Query;
         std::string Method;
@@ -20,7 +22,7 @@ class Router
         std::string AbsolutePath;
     public:
         CGI* cgi;
-        Router();
+        Router(const t_parser &parser);
         ~Router();
         std::string getPath() const;
         std::string getQuery() const;

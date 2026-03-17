@@ -24,6 +24,7 @@
 #include <client/client.hpp>
 #include <http/Router.hpp>
 
+
 enum SendStatus
 {
     SEND_OK,
@@ -42,7 +43,7 @@ class Server
         Router _router; //Rafael  
 
     public:
-        Server(int port);
+        Server(int port, const t_parser &parser);
         ~Server();
         sockaddr_in create_address();
         int setup_socket();

@@ -1,7 +1,8 @@
 #include <http/Router.hpp>
 
-Router::Router() 
+Router::Router(const t_parser& parser) 
 {   
+    MimeTypes = parser.MimeTypes;
     Path = "";
     Query = "";
     Method = "";
@@ -153,7 +154,7 @@ Response Router::handleRequest(const Request& request)
     if (!readFile(AbsolutePath, content))
         return makeErrorCode(500);
     response.setBody(content);
-    std::string MimeType = getMimeType(getExtension(AbsolutePath));
+    std::string MimeType = getMimeType(getExtension(AbsolutePath), MimeTypes.types);
     response.setHeader("Content-Type", MimeType);
     return response;
 }
