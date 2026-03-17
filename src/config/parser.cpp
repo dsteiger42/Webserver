@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   parser.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: raamorim <raamorim@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/16 15:17:16 by dsteiger          #+#    #+#             */
-/*   Updated: 2026/03/16 22:15:05 by raamorim         ###   ########.fr       */
+/*   Updated: 2026/03/17 03:23:30 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,7 +57,7 @@ std::vector<std::string> tokenize(const std::string &filename)
 	return (tokens);
 }
 
-void	parse_server_block(const std::vector<std::string> &tokens)
+/* void	parse_server_block(const std::vector<std::string> &tokens)
 {
     t_config config;
     size_t i = 0;
@@ -97,11 +97,11 @@ void	parse_server_block(const std::vector<std::string> &tokens)
 void parse_error_page(const std::vector<std::string> &tokens, size_t &i, t_config &config)
 {
     
-}
+} */
 
 
 
-void	parse_all(const std::string &filename, t_config &config)
+void	parse_all(const std::string &filename, t_parser &parser)
 {
     std::vector<std::string> tokens = tokenize(filename);
     /* std::cout << "All tokens:\n";
@@ -113,42 +113,38 @@ void	parse_all(const std::string &filename, t_config &config)
     {
         if(tokens[i] == "server" && tokens[i + 1] == "{")
         {
-            i += 2;
+            /* i += 2;
             std::vector<std::string> server_tokens;
             while(i < tokens.size() && tokens[i] != "error_page")
             {
                 server_tokens.push_back(tokens[i]);
                 i++;
             }
-            /* std::cout << "Server tokens:\n";
+            std::cout << "Server tokens:\n";
             for (size_t j = 0; j < server_tokens.size(); j++)
-                std::cout << j << ": [" << server_tokens[j] << "]\n"; */
-            parse_server_block(server_tokens);
+                std::cout << j << ": [" << server_tokens[j] << "]\n";
+            parse_server_block(server_tokens); */
         }
+        if (i + 1 < tokens.size() && tokens[i] == "mime_types" && tokens[i + 1] == "{")
+            parse_mimeTypes(parser.MimeTypes, i, tokens);
         i++;
     }
 }
 
-
 void parse_mimeTypes(t_MimeTypes& MimeTypes, size_t &i, std::vector<std::string> tokens)
 {
-    i++; //anda para {
+    i++;
     if (tokens[i] != "{")
         throw std::runtime_error("Expected '{'");
     i++;
     while(tokens[i] != "}")
     {
         std::string type =  tokens[i];
-        std::cout << "type: " << type << std::endl;
         i++;
-        size_t prev = i;
         while(tokens[i] != ";")
         {
             std::string value = tokens[i];
-            if (i > prev)
-                MimeTypes.types[type] += value;
-            else
-                MimeTypes.types[type] = value;
+            MimeTypes.types[value] = type;    
             i++;
         }
         i++;
