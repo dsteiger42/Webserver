@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/16 15:18:48 by dsteiger          #+#    #+#             */
-/*   Updated: 2026/03/17 19:37:40 by rafael           ###   ########.fr       */
+/*   Updated: 2026/03/17 19:48:39 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,6 +65,7 @@ typedef struct s_Location
     bool hasRedirect;
     size_t redirectCode;
     std::string redirectUrl;
+    std::vector<std::string> try_files; 
 } t_Location;
 
 typedef struct s_parser

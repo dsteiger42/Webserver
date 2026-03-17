@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/16 15:17:16 by dsteiger          #+#    #+#             */
-/*   Updated: 2026/03/17 19:40:17 by rafael           ###   ########.fr       */
+/*   Updated: 2026/03/17 19:59:40 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -186,6 +186,18 @@ static void set_redirection(std::vector<std::string> tokens, size_t &i, t_Locati
         location.redirectUrl = "";
 }
 
+static void set_tryFiles(std::vector<std::string> tokens, size_t &i, t_Location &location)
+{
+    if (!tokens[i].empty())
+    {
+        while (tokens[i] != ";")
+        {
+            location.try_files.push_back(tokens[i]);
+            i++;
+        }
+    }
+}
+
 void parse_location(t_Location &Location, size_t &i, std::vector<std::string> tokens)
 {
     i++;
@@ -219,6 +231,11 @@ void parse_location(t_Location &Location, size_t &i, std::vector<std::string> to
         {
             i++;
             set_redirection(tokens, i, Location);
+        }
+        if (tokens[i] == "try_files" && !tokens[i + 1].empty())
+        {
+            i++;
+            set_tryFiles(tokens, i, Location);           
         }
         i++;   
     }
