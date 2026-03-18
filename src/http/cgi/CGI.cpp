@@ -17,10 +17,13 @@ std::string CGI::resolveScriptPath(const std::string &path)
 {
 
 	std::string locPath = router->matchLocation(path).path;
-	std::string relativPath = path.substr(locPath.size() - 1);
-	if (relativPath.empty())
-		relativPath = "/";
-	return (router->getDocumentRoot() + relativPath);
+	std::string relativePath = path.substr(locPath.size() - 1);
+	if (!relativePath.empty() && relativePath[0] == '/')
+        relativePath.erase(0, 1);
+	std::string fullPath = router->getDocumentRoot();
+	if (!fullPath.empty() && fullPath[fullPath.size() - 1] != '/')
+		fullPath += '/';
+	return (fullPath + relativePath);
 }
 
 std::vector<char *> CGI::buildArguments(const std::string &scriptPath)

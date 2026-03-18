@@ -38,9 +38,6 @@ bool isInsideRoot(const std::string& path, const std::string &DocumentRoot)
 {
     if (path.compare(0, DocumentRoot.size(), DocumentRoot) != 0)
         return false;
-    if (path.size() > DocumentRoot.size() &&
-        path[DocumentRoot.size()] != '/')
-        return false;
     return true;
 }
 bool checkFile(const std::string& index)

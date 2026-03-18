@@ -139,8 +139,9 @@ Response Router::handleRequest(const Request& request)
         DocumentRoot = "./www"; // trocar server.root;
     if (loc.cgiPass)    
         return (cgi->execute(request));
-    std::cout << "DEPOIS LOC.CGIPASS" << std::endl;
     AbsolutePath = DocumentRoot + Path;
+    if (!isInsideRoot(AbsolutePath, DocumentRoot))
+       return makeErrorCode(403);
     if (isDirectory(AbsolutePath))
     {
         //se tiver autoindex on retorna um generateautoindex(absolutepath)
@@ -160,12 +161,6 @@ Response Router::handleRequest(const Request& request)
     //try files
     if (!checkFile(AbsolutePath)) //if it's not a directory but the file doens't exist
         return makeErrorCode(404);
-
-    /* if (!isInsideRoot(AbsolutePath))
-    {
-        std::cout << "insideroot" << std::endl;
-        return makeErrorCode(403);
-    } */
     std::string content;
     if (!readFile(AbsolutePath, content))
         return makeErrorCode(500);
