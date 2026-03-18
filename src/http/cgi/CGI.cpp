@@ -15,11 +15,7 @@ void CGI::setRouter(Router *r)
 
 std::string CGI::resolveScriptPath(const std::string &path)
 {
-	std::string finalPath;
-	std::string temp;
-	temp = path.substr(path.find("/cgi-bin/") + 9);
-	finalPath = router->getDocumentRoot() + "/cgi-bin/" + temp;
-	return (finalPath);
+	return (router->getDocumentRoot() + path);
 }
 
 std::vector<char *> CGI::buildArguments(const std::string &scriptPath)
@@ -187,25 +183,18 @@ Response CGI::execute(const Request &req)
 	argv = buildArguments(scriptPath);
 	buildEnvironment(req, scriptPath);
 	std::vector<char *> envp = convertEnv(env);
-	// 4. Criar pipes
 	createPipes(inPipe, outPipe);
-    // 5. fork()
 	pid = fork();
 	if (pid == -1)
 		return (makeErrorCode(500));
-    // 6. execve()
 	if (pid == 0)
 		executeChildProcess(inPipe, outPipe, scriptPath, &argv[0], &envp[0]);
-	// 7. ler output
-	if (pid > 0) // father
+	if (pid > 0)
     {
 		output = handleParentProcess(inPipe, outPipe, req);
         waitpid(pid, NULL, 0);
     }
-	// 8. parsear headers
 	CGIResult result = parseCGIOutput(output);
-	
-	// 9. construir Response final
 	res.setStatusCode(result.status);
 	res.setHeader("Content-Type", result.contentType);
 	if (result.headers.count("Location"))

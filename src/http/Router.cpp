@@ -126,28 +126,21 @@ Response Router::handleRequest(const Request& request)
     if (!validatePath(Path))
         return makeErrorCode(400);
     if (!buildFinalPath(Path))
-    {
-        std::cout << "buildfinalpath" << std::endl;
         return makeErrorCode(403);
-    }
     t_Location& loc = matchLocation(Path);
     if (loc.hasRedirect)
-    {
-        std::cout << "has redirect nigga" << std::endl;
         return redirect(loc.redirectCode, loc.redirectUrl);
-    }
     if (!isValidMethod(loc.allowedMethods, request.getMethod()))
-    {
-        std::cout << "aqui: " << request.getMethod() << std::endl;
         return makeErrorCode(405);
-    }
-    //fazer redirecao atraves de location
-
     //setar DocRoot para loc root ou server root caso nao haja loc root
-    AbsolutePath = DocumentRoot + Path;
+    if (!loc.root.empty())
+        DocumentRoot = loc.root;
+    else
+        DocumentRoot = "./www"; // trocar server.root;
     //se cgi pass tiver on retornar cgi->execute;
-    if (isCGI(request.getPath()))
-        return cgi->execute(request);
+    if (loc.cgiPass)
+        return (cgi->execute(request));
+    AbsolutePath = DocumentRoot + Path;
     if (isDirectory(AbsolutePath))
     {
         //se tiver autoindex on retorna um generateautoindex(absolutepath)
@@ -180,16 +173,6 @@ Response Router::handleRequest(const Request& request)
     std::string MimeType = getMimeType(getExtension(AbsolutePath), MimeTypes.types);
     response.setHeader("Content-Type", MimeType);
     return response;
-}
-
-bool Router::isCGI(const std::string& path)
-{
-    if (path.empty())
-        return false;
-    //temporario, mais tarde com base no web.conf
-    if (path.compare(0, 9, "/cgi-bin/") == 0)
-        return true;
-    return false;
 }
 
 t_Location& Router::matchLocation(const std::string &path)

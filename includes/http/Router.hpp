@@ -38,7 +38,6 @@ class Router
         bool buildFinalPath(std::string& path);
         bool buildDocumentRoot(std::string& documentRoot);
         Response handleRequest(const Request& request);
-        bool isCGI(const std::string& path);
         t_Location& matchLocation(const std::string& path);
         Response redirect(int redirectCode, std::string redirectUrl);
 
