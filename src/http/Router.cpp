@@ -117,6 +117,38 @@ Response Router::redirect(int redirectCode, std::string redirectUrl)
     return response;
 }
 
+std::string generateAutoIndex(std::string &AbsolutePath, std::string &Path)
+{
+    std::string html;
+    DIR *dir = opendir(AbsolutePath.c_str());
+    if (!dir)
+    {
+        //500
+        std::cout << "Couldn't opendir" << std::endl;
+        return NULL;
+    }
+/*     1. abrir diretoria
+    2. para cada entry:
+        - ignorar "." e ".."
+        - construir full path
+        - fazer stat
+        - identificar tipo (dir/file)
+        - extrair tamanho
+        - extrair data
+        - guardar tudo num vector
+
+    3. ordenar vector
+
+    4. gerar HTML:
+        - header
+        - tabela
+        - loop no vector
+        - footer
+
+    5. return HTML */
+}
+
+
 Response Router::handleRequest(const Request& request)
 {
     Response response;
@@ -148,13 +180,7 @@ Response Router::handleRequest(const Request& request)
         //Para listar diretórios quando autoindex = on.
         std::string index = AbsolutePath + "/index.html";
         if (checkFile(index))
-        {
             AbsolutePath = index;
-            /* if (Path == "/")
-                Path = "/index.html";
-            else
-                Path += "/index.html"; */
-        }
         else
             return makeErrorCode(403);
     }

@@ -7,6 +7,7 @@
 #include <http/utils/mime.hpp>
 #include <http/cgi/CGI.hpp>
 #include <config/parser.hpp>
+#include <dirent.h>
 
 //serve para analisar um Request HTTP e decidir qual recurso devolver, construindo a Response adequada (ficheiro ou erro).
 
