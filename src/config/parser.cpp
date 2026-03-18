@@ -64,30 +64,34 @@ void	parse_server_block(const std::vector<std::string> &tokens)
     
     while(i < tokens.size())
     {
-        if (tokens[i] == "listen" && i + 1 < tokens.size())
+        if (tokens[i] == "listen" && i + 2 < tokens.size())
         {
             config.listen = std::atoi(tokens[i + 1].c_str());
-            i += 2;
+            i += 3;
         }
-        else if(tokens[i] == "server_name" && i + 1 < tokens.size())
+        else if(tokens[i] == "server_name" && i + 2 < tokens.size())
         {
             config.server_name = tokens[i + 1].c_str();
-            i += 2;
+            i += 3;
         }
-        else if(tokens[i] == "root" && i + 1 < tokens.size())
+        else if(tokens[i] == "root" && i + 2 < tokens.size())
         {
             config.root = tokens[i + 1].c_str();
-            i += 2;
+            i += 3;
         }
-        else if(tokens[i] == "index" && i + 1 < tokens.size())
+        else if(tokens[i] == "index" && i + 2 < tokens.size())
         {
             config.index = tokens[i + 1].c_str();
-            i += 2;
+            i += 3;
         }
-        else if(tokens[i] == "client_body_buffer_size" && i + 1 < tokens.size())
+        else if(tokens[i] == "client_body_buffer_size" && i + 2 < tokens.size())
         {
             config.client_body_buffer_size = std::atoi(tokens[i + 1].c_str());
-            i += 2;
+            i += 3;
+        }
+        else if (tokens[i] == "error_page")
+        {
+            parse_error_page(tokens, i, config);
         }
         else
             i++;
@@ -96,10 +100,16 @@ void	parse_server_block(const std::vector<std::string> &tokens)
 
 void parse_error_page(const std::vector<std::string> &tokens, size_t &i, t_config &config)
 {
-    
-}
+    if (i + 3 >= tokens.size())
+        return;
 
-std::vector<std::string> tokenize(const std::string &filename);
+    int code = std::atoi(tokens[i + 1].c_str());
+    std::string path = tokens[i + 2];
+
+    config.error_pages[code] = path;
+
+    i += 4;
+}
 
 void	parse_all(const std::string &filename, t_config &config)
 {
@@ -111,13 +121,19 @@ void	parse_all(const std::string &filename, t_config &config)
 
     while(i < tokens.size())
     {
-        if(tokens[i] == "server" && tokens[i + 1] == "{")
+        if(tokens[i] == "server" && i + 1 < tokens.size() && tokens[i + 1] == "{")
         {
             i += 2;
+            int brace_level = 1;
             std::vector<std::string> server_tokens;
-            while(i < tokens.size() && tokens[i] != "error_page")
+            while(i < tokens.size() && brace_level > 0)
             {
-                server_tokens.push_back(tokens[i]);
+                if (tokens[i] == "{")
+                    brace_level++;
+                else if (tokens[i] == "}")
+                    brace_level--;
+                if (brace_level > 0)
+                    server_tokens.push_back(tokens[i]);
                 i++;
             }
             /* std::cout << "Server tokens:\n";
@@ -125,9 +141,10 @@ void	parse_all(const std::string &filename, t_config &config)
                 std::cout << j << ": [" << server_tokens[j] << "]\n"; */
             parse_server_block(server_tokens);
         }
-        i++;
+        else
+            i++;
     }
-
+}
 
 void parse_mimeTypes(t_MimeTypes& MimeTypes, size_t &i, std::vector<std::string> tokens)
 {
