@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/16 15:18:48 by dsteiger          #+#    #+#             */
-/*   Updated: 2026/03/17 20:28:44 by rafael           ###   ########.fr       */
+/*   Updated: 2026/03/18 00:09:25 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,7 +74,7 @@ typedef struct s_parser
     
 /*     t_config config; */
     t_MimeTypes MimeTypes;
-    t_Location Location;
+    std::vector<t_Location> Location;
     s_parser();
 } t_parser;
 

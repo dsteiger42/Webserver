@@ -15,6 +15,7 @@ class Router
 {
     private:
         t_MimeTypes MimeTypes;
+        std::vector<t_Location> Locations;
         std::string Path;
         std::string Query;
         std::string Method;
@@ -38,6 +39,8 @@ class Router
         bool buildDocumentRoot(std::string& documentRoot);
         Response handleRequest(const Request& request);
         bool isCGI(const std::string& path);
+        const t_Location& matchLocation(const std::string& path);
+
 };
 
 

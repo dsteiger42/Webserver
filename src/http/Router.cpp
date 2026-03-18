@@ -3,6 +3,7 @@
 Router::Router(const t_parser& parser) 
 {   
     MimeTypes = parser.MimeTypes;
+    Locations = parser.Location;
     Path = "";
     Query = "";
     Method = "";

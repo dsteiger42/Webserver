@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/16 15:17:16 by dsteiger          #+#    #+#             */
-/*   Updated: 2026/03/17 20:34:18 by rafael           ###   ########.fr       */
+/*   Updated: 2026/03/18 00:24:02 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -135,12 +135,16 @@ void	parse_all(const std::string &filename, t_parser &parser)
 			parse_mimeTypes(parser.MimeTypes, i, tokens);
 		if (i + 2 < tokens.size() && tokens[i] == "location" && tokens[i
 			+ 2] == "{")
-			parse_location(parser.Location, i, tokens);
+		{
+			t_Location loc;
+			parse_location(loc, i, tokens);
+			parser.Location.push_back(loc);
+		}
 		i++;
 	}
 }
 
-static void	set_Path(std::vector<std::string> tokens, size_t &i,
+static void	set_Path(std::vector<std::string> &tokens, size_t &i,
 		t_Location &location)
 {
 	if (tokens[i].empty())
@@ -231,7 +235,7 @@ void	parse_location(t_Location &Location, size_t &i,
 	i++;
 	if (tokens[i] != "{")
 		throw std::runtime_error("Expected '{'");
-	while (tokens[i] != "}")
+	while (i < tokens.size() && tokens[i] != "}")
 	{
 		if (tokens[i] == "autoindex")
 		{
@@ -274,7 +278,7 @@ void	parse_mimeTypes(t_MimeTypes &MimeTypes, size_t &i,
 	if (tokens[i] != "{")
 		throw std::runtime_error("Expected '{'");
 	i++;
-	while (tokens[i] != "}")
+	while (i < tokens.size() && tokens[i] != "}")
 	{
 		std::string type = tokens[i];
 		i++;
