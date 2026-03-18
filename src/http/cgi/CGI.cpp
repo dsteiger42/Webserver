@@ -15,7 +15,12 @@ void CGI::setRouter(Router *r)
 
 std::string CGI::resolveScriptPath(const std::string &path)
 {
-	return (router->getDocumentRoot() + path);
+
+	std::string locPath = router->matchLocation(path).path;
+	std::string relativPath = path.substr(locPath.size() - 1);
+	if (relativPath.empty())
+		relativPath = "/";
+	return (router->getDocumentRoot() + relativPath);
 }
 
 std::vector<char *> CGI::buildArguments(const std::string &scriptPath)
@@ -168,18 +173,12 @@ Response CGI::execute(const Request &req)
 	pid_t pid;
 	std::string output;
 	std::string scriptPath = resolveScriptPath(req.getPath());
-	if (!isInsideRoot(scriptPath))
-	{
-		std::cout << "root cgi" << std::endl;
+	if (!isInsideRoot(scriptPath, router->getDocumentRoot()))
 		return (makeErrorCode(403));
-	}
 	if (!checkFile(scriptPath))
 		return (makeErrorCode(404));
 	if (!isExecutable(scriptPath))
-	{
-		std::cout << "executable" << std::endl;
 		return (makeErrorCode(403));
-	}
 	argv = buildArguments(scriptPath);
 	buildEnvironment(req, scriptPath);
 	std::vector<char *> envp = convertEnv(env);

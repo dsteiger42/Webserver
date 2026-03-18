@@ -137,13 +137,8 @@ Response Router::handleRequest(const Request& request)
         DocumentRoot = loc.root;
     else
         DocumentRoot = "./www"; // trocar server.root;
-    //se cgi pass tiver on retornar cgi->execute;
-    std::cout << "ANTES LOC.CGIPASS" << std::endl;
-    if (loc.cgiPass)
-    {
-        std::cout << "LOC.CGIPASS" << std::endl;    
+    if (loc.cgiPass)    
         return (cgi->execute(request));
-    }
     std::cout << "DEPOIS LOC.CGIPASS" << std::endl;
     AbsolutePath = DocumentRoot + Path;
     if (isDirectory(AbsolutePath))
@@ -189,7 +184,6 @@ t_Location& Router::matchLocation(const std::string &path)
     for (size_t i = 0; i < Locations.size(); i++)
     {
         t_Location& loc = Locations[i];
-
         if (path.compare(0, loc.path.size(), loc.path) == 0)
         {
             if (loc.path.size() > bestLength)
@@ -199,7 +193,6 @@ t_Location& Router::matchLocation(const std::string &path)
             }
         }
     }
-
     if (!bestMatch)
     {
         for (size_t i = 0; i < Locations.size(); i++)
@@ -209,6 +202,5 @@ t_Location& Router::matchLocation(const std::string &path)
         }
         return Locations[0];
     }
-
     return *bestMatch;
 }
