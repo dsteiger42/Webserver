@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/16 15:18:48 by dsteiger          #+#    #+#             */
-/*   Updated: 2026/03/18 01:04:54 by rafael           ###   ########.fr       */
+/*   Updated: 2026/03/18 18:15:04 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,9 +59,9 @@ typedef struct s_Location
     std::string path;
     std::string root;
     std::vector<std::string> allowedMethods;
+    std::vector<std::string> cgiExt;
     bool autoIndex;
     bool cgiPass;
-    bool isRegex;
     bool hasRedirect;
     size_t redirectCode;
     std::string redirectUrl;

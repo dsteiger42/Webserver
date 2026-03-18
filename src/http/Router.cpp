@@ -138,8 +138,13 @@ Response Router::handleRequest(const Request& request)
     else
         DocumentRoot = "./www"; // trocar server.root;
     //se cgi pass tiver on retornar cgi->execute;
+    std::cout << "ANTES LOC.CGIPASS" << std::endl;
     if (loc.cgiPass)
+    {
+        std::cout << "LOC.CGIPASS" << std::endl;    
         return (cgi->execute(request));
+    }
+    std::cout << "DEPOIS LOC.CGIPASS" << std::endl;
     AbsolutePath = DocumentRoot + Path;
     if (isDirectory(AbsolutePath))
     {
@@ -175,47 +180,35 @@ Response Router::handleRequest(const Request& request)
     return response;
 }
 
+
 t_Location& Router::matchLocation(const std::string &path)
 {
     t_Location* bestMatch = NULL;
     size_t bestLength = 0;
 
-    for (size_t i = 0; i < Locations.size(); ++i)
+    for (size_t i = 0; i < Locations.size(); i++)
     {
         t_Location& loc = Locations[i];
-        if (!loc.isRegex) // apenas prefix / exact match
+
+        if (path.compare(0, loc.path.size(), loc.path) == 0)
         {
-            // normalizar: path e loc.path sem slash final
-            std::string pathNorm = path;
-            std::string locNorm = loc.path;
-
-            if (!pathNorm.empty() && pathNorm[pathNorm.size() - 1] == '/')
-                pathNorm = pathNorm.substr(0, pathNorm.size() - 1);
-
-            if (!locNorm.empty() && locNorm[locNorm.size() - 1] == '/')
-                locNorm = locNorm.substr(0, locNorm.size() - 1);
-
-            // prefix match
-            if (pathNorm.rfind(locNorm, 0) == 0)
+            if (loc.path.size() > bestLength)
             {
-                // se houver mais de um match, pega o mais específico (maior path)
-                if (locNorm.length() > bestLength)
-                {
-                    bestLength = locNorm.length();
-                    bestMatch = &loc;
-                }
+                bestLength = loc.path.size();
+                bestMatch = &loc;
             }
         }
     }
-    if (bestMatch == NULL)
+
+    if (!bestMatch)
     {
-        for (size_t i = 0; i < Locations.size(); ++i)
+        for (size_t i = 0; i < Locations.size(); i++)
         {
             if (Locations[i].path == "/")
                 return Locations[i];
         }
+        return Locations[0];
     }
-    if (bestMatch)
-        return (*bestMatch);
-    return (Locations[0]);
+
+    return *bestMatch;
 }

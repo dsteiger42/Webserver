@@ -6,14 +6,14 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/16 15:17:16 by dsteiger          #+#    #+#             */
-/*   Updated: 2026/03/18 03:37:53 by rafael           ###   ########.fr       */
+/*   Updated: 2026/03/18 18:16:23 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <config/parser.hpp>
 
 s_Location::s_Location() : path(""), root(""), autoIndex(false), cgiPass(false),
-	isRegex(false), hasRedirect(false), redirectCode(0), redirectUrl("")
+	hasRedirect(false), redirectCode(0), redirectUrl("")
 {
 }
 
@@ -149,13 +149,10 @@ static void	set_Path(std::vector<std::string> &tokens, size_t &i,
 {
 	if (tokens[i].empty())
 		return ;
-	if (tokens[i] == "~")
-	{
-		location.isRegex = true;
-		i++;
-	}
 	if (!tokens[i].empty())
 		location.path = tokens[i];
+	else 
+		location.path = "/";
 }
 static void	set_Autoindex(std::string &value, t_Location &location)
 {
@@ -227,6 +224,18 @@ static void	set_tryFiles(std::vector<std::string> &tokens, size_t &i,
 	}
 }
 
+static void set_cgiExt(std::vector<std::string> &tokens, size_t &i, t_Location &location)
+{
+	if (!tokens[i].empty())
+	{
+		while(tokens[i] != ";")
+		{
+			location.cgiExt.push_back(tokens[i]);
+			i++;
+		}
+	}
+}
+
 void	parse_location(t_Location &Location, size_t &i,
 		std::vector<std::string> &tokens)
 {
@@ -266,6 +275,11 @@ void	parse_location(t_Location &Location, size_t &i,
 		{
 			i++;
 			set_tryFiles(tokens, i, Location);
+		}
+		if (tokens[i] == "cgi_ext" && !tokens[i + 1].empty())
+		{
+			i++;
+			set_cgiExt(tokens, i, Location);
 		}
 		i++;
 	}
