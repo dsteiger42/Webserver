@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/16 15:18:48 by dsteiger          #+#    #+#             */
-/*   Updated: 2026/03/18 00:09:25 by rafael           ###   ########.fr       */
+/*   Updated: 2026/03/18 01:04:54 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,7 @@
     // std::map<std::string, t_locations> locations = {}; // store all location blocks
     std::string server_name = "";
     std::string root = "";
-    std::string index = "";
+    std::string ind ex = "";
     int client_body_buffer_size = 0;
     int listen = 0;
 

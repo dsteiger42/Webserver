@@ -7,6 +7,7 @@
 #include <http/utils/mime.hpp>
 #include <http/cgi/CGI.hpp>
 #include <config/parser.hpp>
+#include <regex>
 
 //serve para analisar um Request HTTP e decidir qual recurso devolver, construindo a Response adequada (ficheiro ou erro).
 
@@ -39,7 +40,7 @@ class Router
         bool buildDocumentRoot(std::string& documentRoot);
         Response handleRequest(const Request& request);
         bool isCGI(const std::string& path);
-        const t_Location& matchLocation(const std::string& path);
+        t_Location& matchLocation(const std::string& path);
 
 };
 

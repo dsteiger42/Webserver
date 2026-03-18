@@ -119,34 +119,39 @@ Response Router::handleRequest(const Request& request)
         std::cout << "buildfinalpath" << std::endl;
         return makeErrorCode(403);
     }
+    t_Location& loc = matchLocation(Path);
+    //verificar metodos da request com os metodos de location
+    //fazer redirecao atraves de location
+    //setar DocRoot para loc root ou server root caso nao haja loc root
     AbsolutePath = DocumentRoot + Path;
-    if (!isInsideRoot(AbsolutePath))
-    {
-        std::cout << "insideroot" << std::endl;
-        return makeErrorCode(403);
-    }
+    //se cgi pass tiver on retornar cgi->execute;
     if (isCGI(request.getPath()))
         return cgi->execute(request);
     if (isDirectory(AbsolutePath))
     {
+        //se tiver autoindex on retorna um generateautoindex(absolutepath)
+        //Para listar diretórios quando autoindex = on.
         std::string index = AbsolutePath + "/index.html";
-        std::cout << "Trying index: " << index << std::endl;
         if (checkFile(index))
         {
             AbsolutePath = index;
-            if (Path == "/")
+            /* if (Path == "/")
                 Path = "/index.html";
             else
-                Path += "/index.html";
+                Path += "/index.html"; */
         }
         else
-        {
-            std::cout << "else" << std::endl;
             return makeErrorCode(403);
-        }
     }
+    //try files
     if (!checkFile(AbsolutePath)) //if it's not a directory but the file doens't exist
         return makeErrorCode(404);
+
+    /* if (!isInsideRoot(AbsolutePath))
+    {
+        std::cout << "insideroot" << std::endl;
+        return makeErrorCode(403);
+    } */
     std::string content;
     if (!readFile(AbsolutePath, content))
         return makeErrorCode(500);
@@ -164,4 +169,52 @@ bool Router::isCGI(const std::string& path)
     if (path.compare(0, 9, "/cgi-bin/") == 0)
         return true;
     return false;
+}
+
+t_Location& Router::matchLocation(const std::string &path)
+{
+    t_Location* bestMatch = NULL;
+    size_t bestLength = 0;
+
+    for (size_t i = 0; i < Locations.size(); i++)
+    {
+        t_Location& loc = Locations[i];
+        if (loc.isRegex)
+        {
+            try
+            {
+                std::regex re(loc.path);
+                if (std::regex_match(path, re))
+                    return loc;
+            }
+            catch (std::regex_error&)
+            {
+                // regex inválido → ignora
+            }
+        }
+    }
+    for (size_t i = 0; i < Locations.size(); i++)
+    {
+        t_Location& loc = Locations[i];
+        if (!loc.isRegex)
+        {
+            if (path.rfind(loc.path, 0) == 0)
+            {
+                if (loc.path.length() > bestLength)
+                {
+                    bestLength = loc.path.length();
+                    bestMatch = &loc;
+                }
+            }
+        }
+    }
+    if (bestMatch == NULL)
+    {
+        for (size_t i = 0; i < Locations.size(); i++)
+        {
+            if (Locations[i].path == "/")
+                return Locations[i];
+        }
+    }
+    return (*bestMatch);
 }
