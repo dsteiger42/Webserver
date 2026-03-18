@@ -106,6 +106,17 @@ bool Router::buildFinalPath(std::string& path)
     return true;
 }
 
+Response Router::redirect(int redirectCode, std::string redirectUrl)
+{
+    Response response;
+    response.setStatusCode(redirectCode);
+    response.setHeader("Location", redirectUrl);
+    response.setBody("Redirecting");
+    response.setHeader("Content-Type", "text/plain");
+    response.setHeader("Content-Length", "11");
+    return response;
+}
+
 Response Router::handleRequest(const Request& request)
 {
     Response response;
@@ -120,8 +131,18 @@ Response Router::handleRequest(const Request& request)
         return makeErrorCode(403);
     }
     t_Location& loc = matchLocation(Path);
-    //verificar metodos da request com os metodos de location
+    if (loc.hasRedirect)
+    {
+        std::cout << "has redirect nigga" << std::endl;
+        return redirect(loc.redirectCode, loc.redirectUrl);
+    }
+    if (!isValidMethod(loc.allowedMethods, request.getMethod()))
+    {
+        std::cout << "aqui: " << request.getMethod() << std::endl;
+        return makeErrorCode(405);
+    }
     //fazer redirecao atraves de location
+
     //setar DocRoot para loc root ou server root caso nao haja loc root
     AbsolutePath = DocumentRoot + Path;
     //se cgi pass tiver on retornar cgi->execute;
@@ -176,33 +197,28 @@ t_Location& Router::matchLocation(const std::string &path)
     t_Location* bestMatch = NULL;
     size_t bestLength = 0;
 
-    for (size_t i = 0; i < Locations.size(); i++)
+    for (size_t i = 0; i < Locations.size(); ++i)
     {
         t_Location& loc = Locations[i];
-        if (loc.isRegex)
+        if (!loc.isRegex) // apenas prefix / exact match
         {
-            try
+            // normalizar: path e loc.path sem slash final
+            std::string pathNorm = path;
+            std::string locNorm = loc.path;
+
+            if (!pathNorm.empty() && pathNorm[pathNorm.size() - 1] == '/')
+                pathNorm = pathNorm.substr(0, pathNorm.size() - 1);
+
+            if (!locNorm.empty() && locNorm[locNorm.size() - 1] == '/')
+                locNorm = locNorm.substr(0, locNorm.size() - 1);
+
+            // prefix match
+            if (pathNorm.rfind(locNorm, 0) == 0)
             {
-                std::regex re(loc.path);
-                if (std::regex_match(path, re))
-                    return loc;
-            }
-            catch (std::regex_error&)
-            {
-                // regex inválido → ignora
-            }
-        }
-    }
-    for (size_t i = 0; i < Locations.size(); i++)
-    {
-        t_Location& loc = Locations[i];
-        if (!loc.isRegex)
-        {
-            if (path.rfind(loc.path, 0) == 0)
-            {
-                if (loc.path.length() > bestLength)
+                // se houver mais de um match, pega o mais específico (maior path)
+                if (locNorm.length() > bestLength)
                 {
-                    bestLength = loc.path.length();
+                    bestLength = locNorm.length();
                     bestMatch = &loc;
                 }
             }
@@ -210,11 +226,13 @@ t_Location& Router::matchLocation(const std::string &path)
     }
     if (bestMatch == NULL)
     {
-        for (size_t i = 0; i < Locations.size(); i++)
+        for (size_t i = 0; i < Locations.size(); ++i)
         {
             if (Locations[i].path == "/")
                 return Locations[i];
         }
     }
-    return (*bestMatch);
+    if (bestMatch)
+        return (*bestMatch);
+    return (Locations[0]);
 }

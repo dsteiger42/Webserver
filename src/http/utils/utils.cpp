@@ -85,3 +85,13 @@ bool isNumber(std::string &string)
     }
     return true;
 }
+
+bool isValidMethod(std::vector<std::string> &allowedMethods, const std::string &method)
+{
+    for (size_t i = 0; i < allowedMethods.size(); i++)
+    {
+        if (allowedMethods[i] == method)
+            return true;
+    }
+    return false;
+}
