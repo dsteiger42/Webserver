@@ -6,25 +6,26 @@
 /*   By: dsteiger <dsteiger@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/16 15:17:16 by dsteiger          #+#    #+#             */
-/*   Updated: 2026/03/19 15:20:57 by dsteiger         ###   ########.fr       */
+/*   Updated: 2026/03/19 16:33:03 by dsteiger         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <config/parser.hpp>
+
+s_config::s_config() : server_name(""), root(""), index(""), client_body_buffer_size(0), listen(0)
+{
+}
 
 s_Location::s_Location() : path(""), root(""), autoIndex(false), cgiPass(false),
 	hasRedirect(false), redirectCode(0), redirectUrl("")
 {
 }
 
-s_parser::s_parser() : Location() {}
+s_parser::s_parser() : config(), Location() {}
 
 std::vector<std::string> tokenize(const std::string &filename)
 {
 	char	c;
-	std::vector<std::string> tokens;
-	std::string line;
-
 	std::vector<std::string> tokens;
 	std::string line;
 	std::ifstream file(filename.c_str());
@@ -77,12 +78,8 @@ void	parse_error_page(const std::vector<std::string> &tokens, size_t &i, t_confi
 	i += 4;
 }
 
-void	parse_server_block(const std::vector<std::string> &tokens)
+void	parse_server_block(const std::vector<std::string> &tokens, size_t &i, t_config &config)
 {
-	t_config	config;
-	size_t		i;
-
-	i = 0;
 	while (i < tokens.size())
 	{
 		if (tokens[i] == "listen" && i + 2 < tokens.size())
@@ -117,6 +114,24 @@ void	parse_server_block(const std::vector<std::string> &tokens)
 		else
 			i++;
 	}
+}
+
+static bool count_braces(std::vector<std::string> &tokens)
+{
+	int braces_left = 0;
+	int braces_right = 0;
+	for (size_t i = 0; i < tokens.size(); i++)
+	{
+		if(tokens[i] == "{")
+			braces_left++;
+		if(tokens[i] == "}")
+			braces_right++;
+	}
+	if(braces_left != braces_right)
+		return false;
+	std::cout << (braces_left + braces_right) % 2 << std::endl;
+	return true;
+}
 
 void	parse_all(const std::string &filename, t_parser &parser)
 {
@@ -124,28 +139,16 @@ void	parse_all(const std::string &filename, t_parser &parser)
 	/* std::cout << "All tokens:\n";
 	for (size_t j = 0; j < tokens.size(); j++)
 		std::cout << j << ": [" << tokens[j] << "]\n"; */
-  
-  size_t	i = 0;
-	int		brace_level;
+	size_t	i = 0;
+	if(!count_braces(tokens))
+		return ;
 	while (i < tokens.size())
 	{
 		if (tokens[i] == "server" && tokens[i + 1] == "{")
 		{
 			i += 2;
-			brace_level = 1;
-			std::vector<std::string> server_tokens;
-			while (i < tokens.size() && brace_level > 0)
-			{
-				if (tokens[i] == "{")
-					brace_level++;
-				else if (tokens[i] == "}")
-					brace_level--;
-				if (brace_level > 0)
-					server_tokens.push_back(tokens[i]);
-				i++;
+			parse_server_block(tokens, i, parser.config);
 		}
-    parse_server_block(server_tokens);
-   
 		if (i + 1 < tokens.size() && tokens[i] == "mime_types" && tokens[i + 1] == "{")
 			parse_mimeTypes(parser.MimeTypes, i, tokens);
 		if (i + 2 < tokens.size() && tokens[i] == "location" && tokens[i + 2] == "{")
