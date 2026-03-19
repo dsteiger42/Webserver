@@ -82,14 +82,15 @@ bool Router::buildFinalPath(std::string& path)
 {
     std::vector<std::string> tokens = splitPath(path);
     std::vector<std::string> final;
+
+    bool hasTrailingSlash = (path.size() > 0 && path[path.size() - 1] == '/');
     for (size_t i = 0; i < tokens.size(); i++)
     {
         if (tokens[i] == "..")
         {
             if (final.size() == 0)
                 return false;
-            else
-                final.pop_back();
+            final.pop_back();
         }
         else if (tokens[i] == "" || tokens[i] == ".")
             continue;
@@ -103,6 +104,9 @@ bool Router::buildFinalPath(std::string& path)
         if (i + 1 < final.size())
             this->Path += "/";
     }
+    if (hasTrailingSlash && this->Path.size() > 1)
+        this->Path += "/";
+
     return true;
 }
 
@@ -169,7 +173,7 @@ Response Router::handleRequest(const Request& request)
         DocumentRoot = loc.root;
     else
         DocumentRoot = "./www"; // trocar server.root;
-    if (loc.cgiPass)    
+    if (loc.cgiPass)
         return (cgi->execute(request));
     AbsolutePath = DocumentRoot + Path;
     if (!isInsideRoot(AbsolutePath, DocumentRoot))
