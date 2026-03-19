@@ -6,6 +6,8 @@
 #include <http/utils/utils.hpp>
 #include <http/utils/mime.hpp>
 #include <http/cgi/CGI.hpp>
+#include <config/parser.hpp>
+#include <dirent.h>
 
 //serve para analisar um Request HTTP e decidir qual recurso devolver, construindo a Response adequada (ficheiro ou erro).
 
@@ -13,6 +15,8 @@ class CGI; //to remove
 class Router
 {
     private:
+        t_MimeTypes MimeTypes;
+        std::vector<t_Location> Locations;
         std::string Path;
         std::string Query;
         std::string Method;
@@ -20,7 +24,7 @@ class Router
         std::string AbsolutePath;
     public:
         CGI* cgi;
-        Router();
+        Router(const t_parser &parser);
         ~Router();
         std::string getPath() const;
         std::string getQuery() const;
@@ -28,14 +32,16 @@ class Router
         std::string getAbsolutePath() const;
         std::string getDocumentRoot() const;
     
-        bool validateMethod(const std::string &method);
+        //bool validateMethod(const std::string &method);
         bool validatePath(const std::string &path);
         void splitPathQuery(const std::string& path);
         std::vector<std::string> splitPath(const std::string& path);
         bool buildFinalPath(std::string& path);
         bool buildDocumentRoot(std::string& documentRoot);
         Response handleRequest(const Request& request);
-        bool isCGI(const std::string& path);
+        t_Location& matchLocation(const std::string& path);
+        Response redirect(int redirectCode, std::string redirectUrl);
+
 };
 
 

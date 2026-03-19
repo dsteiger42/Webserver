@@ -1,7 +1,9 @@
 #include <http/Router.hpp>
 
-Router::Router() 
+Router::Router(const t_parser& parser) 
 {   
+    MimeTypes = parser.MimeTypes;
+    Locations = parser.Location;
     Path = "";
     Query = "";
     Method = "";
@@ -37,10 +39,6 @@ std::string Router::getDocumentRoot() const
     return this->DocumentRoot;
 }
 
-bool Router::validateMethod(const std::string &method)
-{
-    return method == "GET" || method == "POST" || method == "DELETE";
-}
 bool Router::validatePath(const std::string &path)
 {
     if (path.empty())
@@ -108,6 +106,49 @@ bool Router::buildFinalPath(std::string& path)
     return true;
 }
 
+Response Router::redirect(int redirectCode, std::string redirectUrl)
+{
+    Response response;
+    response.setStatusCode(redirectCode);
+    response.setHeader("Location", redirectUrl);
+    response.setBody("Redirecting");
+    response.setHeader("Content-Type", "text/plain");
+    response.setHeader("Content-Length", "11");
+    return response;
+}
+
+std::string generateAutoIndex(std::string &AbsolutePath, std::string &Path)
+{
+    std::string html;
+    DIR *dir = opendir(AbsolutePath.c_str());
+    if (!dir)
+    {
+        //500
+        std::cout << "Couldn't opendir" << std::endl;
+        return NULL;
+    }
+/*     1. abrir diretoria
+    2. para cada entry:
+        - ignorar "." e ".."
+        - construir full path
+        - fazer stat
+        - identificar tipo (dir/file)
+        - extrair tamanho
+        - extrair data
+        - guardar tudo num vector
+
+    3. ordenar vector
+
+    4. gerar HTML:
+        - header
+        - tabela
+        - loop no vector
+        - footer
+
+    5. return HTML */
+}
+
+
 Response Router::handleRequest(const Request& request)
 {
     Response response;
@@ -117,53 +158,70 @@ Response Router::handleRequest(const Request& request)
     if (!validatePath(Path))
         return makeErrorCode(400);
     if (!buildFinalPath(Path))
-    {
-        std::cout << "buildfinalpath" << std::endl;
         return makeErrorCode(403);
-    }
+    t_Location& loc = matchLocation(Path);
+    if (loc.hasRedirect)
+        return redirect(loc.redirectCode, loc.redirectUrl);
+    if (!isValidMethod(loc.allowedMethods, request.getMethod()))
+        return makeErrorCode(405);
+    //setar DocRoot para loc root ou server root caso nao haja loc root
+    if (!loc.root.empty())
+        DocumentRoot = loc.root;
+    else
+        DocumentRoot = "./www"; // trocar server.root;
+    if (loc.cgiPass)    
+        return (cgi->execute(request));
     AbsolutePath = DocumentRoot + Path;
-    if (!isInsideRoot(AbsolutePath))
-    {
-        std::cout << "insideroot" << std::endl;
-        return makeErrorCode(403);
-    }
-    if (isCGI(request.getPath()))
-        return cgi->execute(request);
+    if (!isInsideRoot(AbsolutePath, DocumentRoot))
+       return makeErrorCode(403);
     if (isDirectory(AbsolutePath))
     {
+        //se tiver autoindex on retorna um generateautoindex(absolutepath)
+        //Para listar diretórios quando autoindex = on.
         std::string index = AbsolutePath + "/index.html";
-        std::cout << "Trying index: " << index << std::endl;
         if (checkFile(index))
-        {
             AbsolutePath = index;
-            if (Path == "/")
-                Path = "/index.html";
-            else
-                Path += "/index.html";
-        }
         else
-        {
-            std::cout << "else" << std::endl;
             return makeErrorCode(403);
-        }
     }
+    //try files
     if (!checkFile(AbsolutePath)) //if it's not a directory but the file doens't exist
         return makeErrorCode(404);
     std::string content;
     if (!readFile(AbsolutePath, content))
         return makeErrorCode(500);
     response.setBody(content);
-    std::string MimeType = getMimeType(getExtension(AbsolutePath));
+    std::string MimeType = getMimeType(getExtension(AbsolutePath), MimeTypes.types);
     response.setHeader("Content-Type", MimeType);
     return response;
 }
 
-bool Router::isCGI(const std::string& path)
+
+t_Location& Router::matchLocation(const std::string &path)
 {
-    if (path.empty())
-        return false;
-    //temporario, mais tarde com base no web.conf
-    if (path.compare(0, 9, "/cgi-bin/") == 0)
-        return true;
-    return false;
+    t_Location* bestMatch = NULL;
+    size_t bestLength = 0;
+
+    for (size_t i = 0; i < Locations.size(); i++)
+    {
+        t_Location& loc = Locations[i];
+        if (path.compare(0, loc.path.size(), loc.path) == 0)
+        {
+            if (loc.path.size() > bestLength)
+            {
+                bestLength = loc.path.size();
+                bestMatch = &loc;
+            }
+        }
+    }
+    if (!bestMatch)
+    {
+        for (size_t i = 0; i < Locations.size(); i++)
+        {
+            if (Locations[i].path == "/")
+                return Locations[i];
+        }
+        return Locations[0];
+    }
+    return *bestMatch;
 }
