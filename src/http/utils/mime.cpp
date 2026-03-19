@@ -19,31 +19,10 @@ std::string getExtension(std::string file)
     return extension;
 }
 
-std::string getMimeType(const std::string& extension)
+std::string getMimeType(const std::string& extension, std::map<std::string, std::string> mimeTypes)
 {
-    std::map<std::string, std::string> table;
-    if (table.empty())
-    {
-        table["html"] = "text/html";
-        table["htm"]  = "text/html";
-        table["css"]  = "text/css";
-        table["js"]   = "application/javascript";
-        table["json"] = "application/json";
-        table["png"]  = "image/png";
-        table["jpg"]  = "image/jpeg";
-        table["jpeg"] = "image/jpeg";
-        table["gif"]  = "image/gif";
-        table["ico"]  = "image/x-icon";
-        table["svg"]  = "image/svg+xml";
-        table["txt"]  = "text/plain";
-        table["pdf"]  = "application/pdf";
-        table["zip"]  = "application/zip";
-        table["xml"]  = "application/xml";
-        table["mp4"]  = "video/mp4";
-        table["mp3"]  = "audio/mpeg";
-    }
-    std::map<std::string, std::string>::const_iterator it = table.find(extension);
-    if (it != table.end())
+    std::map<std::string, std::string>::const_iterator it = mimeTypes.find(extension);
+    if (it != mimeTypes.end())
         return it->second;
     return ("application/octet-stream");
 }

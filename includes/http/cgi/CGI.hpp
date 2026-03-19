@@ -44,5 +44,5 @@ class CGI
                                         const Request& req);
         CGIResult parseCGIOutput(const std::string& output);
 
-    };
+};
 #endif
