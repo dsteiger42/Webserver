@@ -41,6 +41,7 @@
 {
     // std::map<std::string, std::vector<std::string>> mime = {};
     // std::map<std::string, t_locations> locations = {}; // store all location blocks
+    std::map<int, std::string> error_pages = {};
     std::string server_name = "";
     std::string root = "";
     std::string ind ex = "";
