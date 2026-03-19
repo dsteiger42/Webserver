@@ -106,7 +106,6 @@ bool Router::buildFinalPath(std::string& path)
     }
     if (hasTrailingSlash && this->Path.size() > 1)
         this->Path += "/";
-
     return true;
 }
 
@@ -121,36 +120,58 @@ Response Router::redirect(int redirectCode, std::string redirectUrl)
     return response;
 }
 
-// std::string generateAutoIndex(std::string &AbsolutePath, std::string &Path)
-// {
-//     std::string html;
-//     DIR *dir = opendir(AbsolutePath.c_str());
-//     if (!dir)
-//     {
-//         //500
-//         std::cout << "Couldn't opendir" << std::endl;
-//         return NULL;
-//     }
-// /*     1. abrir diretoria
-//     2. para cada entry:
-//         - ignorar "." e ".."
-//         - construir full path
-//         - fazer stat
-//         - identificar tipo (dir/file)
-//         - extrair tamanho
-//         - extrair data
-//         - guardar tudo num vector
+static Item createItem(const std::string &name, const struct stat &st)
+{
+    Item current;
+    current.name = name;
+    current.isDir = S_ISDIR(st.st_mode);
+    current.size = st.st_size;
+    current.lastModification = st.st_mtime;
+    return current;
+}
 
-//     3. ordenar vector
+std::string generateAutoIndex(std::string &AbsolutePath, std::string &Path)
+{
+    std::vector<std::string> all;
+    std::vector<Item> items;
+    std::string html;
+    DIR *dir = opendir(AbsolutePath.c_str());
+    if (!dir)
+    {
+        //500
+        std::cout << "<h1>500 Internal Server Error</h1>" << std::endl;
+        return NULL;
+    }
+    struct dirent *entry;
+    while((entry = readdir(dir)) != NULL)
+    {
+        std::string name = entry->d_name;
+        if (name == "." || name == "..")
+            continue;
+        std::string fullPath = AbsolutePath + "/" + name;
+        struct stat st;
+        if (stat(fullPath.c_str(), &st) == -1)
+            continue;
+        items.push_back(createItem(name, st));
+    }
+    /*  1. abrir diretoria
+    2. para cada entry:
+        - ignorar "." e ".."
+        - construir full path
+        - fazer stat
+        - identificar tipo (dir/file)
+        - extrair tamanho
+        - extrair data
+        - guardar tudo num vector
 
-//     4. gerar HTML:
-//         - header
-//         - tabela
-//         - loop no vector
-//         - footer
-
-//     5. return HTML */
-// }
+    3. ordenar vector
+    4. gerar HTML:
+        - header
+        - tabela
+        - loop no vector
+        - footer
+    5. return HTML */
+}
 
 
 Response Router::handleRequest(const Request& request)
