@@ -6,7 +6,7 @@
 /*   By: dsteiger <dsteiger@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/16 15:17:16 by dsteiger          #+#    #+#             */
-/*   Updated: 2026/03/19 16:33:03 by dsteiger         ###   ########.fr       */
+/*   Updated: 2026/03/19 18:21:03 by dsteiger         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,8 +80,6 @@ void	parse_error_page(const std::vector<std::string> &tokens, size_t &i, t_confi
 
 void	parse_server_block(const std::vector<std::string> &tokens, size_t &i, t_config &config)
 {
-	while (i < tokens.size())
-	{
 		if (tokens[i] == "listen" && i + 2 < tokens.size())
 		{
 			config.listen = std::atoi(tokens[i + 1].c_str());
@@ -113,7 +111,6 @@ void	parse_server_block(const std::vector<std::string> &tokens, size_t &i, t_con
 		}
 		else
 			i++;
-	}
 }
 
 static bool count_braces(std::vector<std::string> &tokens)
@@ -129,16 +126,12 @@ static bool count_braces(std::vector<std::string> &tokens)
 	}
 	if(braces_left != braces_right)
 		return false;
-	std::cout << (braces_left + braces_right) % 2 << std::endl;
 	return true;
 }
 
 void	parse_all(const std::string &filename, t_parser &parser)
 {
 	std::vector<std::string> tokens = tokenize(filename);
-	/* std::cout << "All tokens:\n";
-	for (size_t j = 0; j < tokens.size(); j++)
-		std::cout << j << ": [" << tokens[j] << "]\n"; */
 	size_t	i = 0;
 	if(!count_braces(tokens))
 		return ;

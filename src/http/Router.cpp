@@ -199,6 +199,8 @@ Response Router::handleRequest(const Request& request)
 
 t_Location& Router::matchLocation(const std::string &path)
 {
+    if (Locations.empty())
+        throw std::runtime_error("No locations configured");
     t_Location* bestMatch = NULL;
     size_t bestLength = 0;
 
