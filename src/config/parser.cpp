@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   parser.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
+/*   By: raamorim <raamorim@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/16 15:17:16 by dsteiger          #+#    #+#             */
-/*   Updated: 2026/03/18 18:16:23 by rafael           ###   ########.fr       */
+/*   Updated: 2026/03/19 15:31:19 by raamorim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -130,11 +130,9 @@ void	parse_all(const std::string &filename, t_parser &parser)
 				std::cout << j << ": [" << server_tokens[j] << "]\n";
 			parse_server_block(server_tokens); */
 		}
-		if (i + 1 < tokens.size() && tokens[i] == "mime_types" && tokens[i
-			+ 1] == "{")
+		if (i + 1 < tokens.size() && tokens[i] == "mime_types" && tokens[i + 1] == "{")
 			parse_mimeTypes(parser.MimeTypes, i, tokens);
-		if (i + 2 < tokens.size() && tokens[i] == "location" && tokens[i
-			+ 2] == "{")
+		if (i + 2 < tokens.size() && tokens[i] == "location" && tokens[i + 2] == "{")
 		{
 			t_Location loc;
 			parse_location(loc, i, tokens);
@@ -169,6 +167,7 @@ static void	set_AllowedMethods(std::vector<std::string> &tokens, size_t &i,
 	{
 		while (validateMethod(tokens[i]))
 		{
+			//trocar
 			location.allowedMethods.push_back(tokens[i]);
 			i++;
 		}
