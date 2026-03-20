@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   parser.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dsteiger <dsteiger@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/16 15:17:16 by dsteiger          #+#    #+#             */
-/*   Updated: 2026/03/19 18:21:03 by dsteiger         ###   ########.fr       */
+/*   Updated: 2026/03/20 02:41:32 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,7 +72,9 @@ void	parse_error_page(const std::vector<std::string> &tokens, size_t &i, t_confi
 
 	if (i + 3 >= tokens.size())
 		return ;
-	code = std::atoi(tokens[i + 1].c_str());
+	code = std::atol(tokens[i + 1].c_str());
+	if (code > INT_MAX || code < INT_MIN)
+		return ;
 	std::string path = tokens[i + 2];
 	config.error_pages[code] = path;
 	i += 4;
