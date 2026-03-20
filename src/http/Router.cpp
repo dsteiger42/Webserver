@@ -130,17 +130,64 @@ static Item createItem(const std::string &name, const struct stat &st)
     return current;
 }
 
-std::string generateAutoIndex(std::string &AbsolutePath, std::string &Path)
+bool comparaByName(const Item &a, const Item &b)
+{
+    return (a.name < b.name);
+}
+
+void generateHTML(std::string& html, std::string& Path, std::vector<Item> &items)
+{
+    html += "<html>\n";
+    html += "<head><title>Index of " + Path + "</title></head>\n";
+    html += "<body>\n";
+    html += "<h1>Index of " + Path + "</h1>\n";
+    html += "<table>\n";
+     for (size_t i = 0; i < items.size(); i++)
+    {
+        html += "<tr>";
+        // -------- LINK --------
+        html += "<td><a href=\"";
+        html += items[i].name;
+        if (items[i].isDir)
+            html += "/";
+        html += "\">";
+        html += items[i].name;
+        if (items[i].isDir)
+            html += "/";
+        html += "</a></td>";
+        // -------- TAMANHO --------
+        html += "<td>";
+        if (items[i].isDir)
+        {
+            html += "-";
+        }
+        else
+        {
+            std::ostringstream oss;
+            oss << items[i].size;
+            html += oss.str();
+        }
+        html += "</td>";
+        html += "</tr>\n";
+    }
+    // =========================
+    // 5. FECHAR HTML
+    // =========================
+    html += "</table>\n";
+    html += "</body>\n";
+    html += "</html>\n";
+}
+
+
+bool generateAutoIndex(std::string &AbsolutePath, std::string &Path, std::string &html)
 {
     std::vector<std::string> all;
     std::vector<Item> items;
-    std::string html;
     DIR *dir = opendir(AbsolutePath.c_str());
     if (!dir)
     {
-        //500
         std::cout << "<h1>500 Internal Server Error</h1>" << std::endl;
-        return NULL;
+        return false;
     }
     struct dirent *entry;
     while((entry = readdir(dir)) != NULL)
@@ -154,23 +201,9 @@ std::string generateAutoIndex(std::string &AbsolutePath, std::string &Path)
             continue;
         items.push_back(createItem(name, st));
     }
-    /*  1. abrir diretoria
-    2. para cada entry:
-        - ignorar "." e ".."
-        - construir full path
-        - fazer stat
-        - identificar tipo (dir/file)
-        - extrair tamanho
-        - extrair data
-        - guardar tudo num vector
-
-    3. ordenar vector
-    4. gerar HTML:
-        - header
-        - tabela
-        - loop no vector
-        - footer
-    5. return HTML */
+    std::sort(items.begin(), items.end(), comparaByName);
+    generateHTML(html, Path, items);
+    return true;
 }
 
 
@@ -201,11 +234,18 @@ Response Router::handleRequest(const Request& request)
        return makeErrorCode(403);
     if (isDirectory(AbsolutePath))
     {
-        //se tiver autoindex on retorna um generateautoindex(absolutepath)
-        //Para listar diretórios quando autoindex = on.
         std::string index = AbsolutePath + "/index.html";
         if (checkFile(index))
             AbsolutePath = index;
+        else if (loc.autoIndex)
+        {
+            std::string html;
+            if (!generateAutoIndex(AbsolutePath, Path, html))
+                return makeErrorCode(500);
+            response.setBody(html);
+            response.setHeader("Content-Type", getMimeType(getExtension(".html"), MimeTypes.types));
+            return response;
+        }
         else
             return makeErrorCode(403);
     }

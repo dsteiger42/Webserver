@@ -29,8 +29,8 @@ bool isDirectory(const std::string& absolutePath)
         return false;
     if (!S_ISDIR(info.st_mode))
         return false;
-    if (access(absolutePath.c_str(), R_OK) != 0)
-        return false;
+    /* if (access(absolutePath.c_str(), R_OK) != 0)
+        return false; */
     return true;
 }
 
