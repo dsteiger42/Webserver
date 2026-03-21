@@ -1,7 +1,7 @@
 #include <http/Response.hpp>
 
 
-static std::map<int, std::string> createStatusMessages()
+/* static std::map<int, std::string> createStatusMessages()
 {
     std::map<int, std::string> message;
 
@@ -21,9 +21,11 @@ static std::map<int, std::string> createStatusMessages()
     return message;
 }
 
-static const std::map<int, std::string> STATUS_MESSAGES = createStatusMessages();
+static const std::map<int, std::string> STATUS_MESSAGES = createStatusMessages(); */
 
-Response::Response() :  StatusCode(200),  httpVersion("HTTP/1.1"),  StatusMessage("OK") {}
+Response::Response() :  ErrorPages(), StatusCode(200),  httpVersion("HTTP/1.1"),  StatusMessage("OK") {}
+
+Response::Response(t_ErrorPages &errorPages) :  ErrorPages(errorPages), StatusCode(200),  httpVersion("HTTP/1.1"),  StatusMessage("OK") {}
 
 void Response::setHttpVersion(const std::string& version)
 {
@@ -57,8 +59,8 @@ const std::string& Response::getHeader(std::string &key)
 void Response::setStatusCode(int code)
 {
     this->StatusCode = code;
-    std::map<int, std::string>::const_iterator it = STATUS_MESSAGES.find(code);
-    if (it != STATUS_MESSAGES.end())
+    std::map<int, std::string>::const_iterator it = ErrorPages.error_pages.find(code);
+    if (it != ErrorPages.error_pages.end())
         this->StatusMessage = it->second;
     else
         this->StatusMessage = "Unknown";

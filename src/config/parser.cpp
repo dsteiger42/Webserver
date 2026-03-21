@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/16 15:17:16 by dsteiger          #+#    #+#             */
-/*   Updated: 2026/03/20 02:41:32 by rafael           ###   ########.fr       */
+/*   Updated: 2026/03/21 05:08:46 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,18 +66,18 @@ std::vector<std::string> tokenize(const std::string &filename)
 	return (tokens);
 }
 
-void	parse_error_page(const std::vector<std::string> &tokens, size_t &i, t_config &config)
+void	parse_error_page(const std::vector<std::string> &tokens, size_t &i, t_ErrorPages &errorPages)
 {
 	int	code;
 
-	if (i + 3 >= tokens.size())
+	if (i + 2 >= tokens.size())
 		return ;
-	code = std::atol(tokens[i + 1].c_str());
+	code = std::atol(tokens[i].c_str());
 	if (code > INT_MAX || code < INT_MIN)
 		return ;
-	std::string path = tokens[i + 2];
-	config.error_pages[code] = path;
-	i += 4;
+	i++;
+	std::string path = tokens[i];
+	errorPages.error_pages[code] = path;
 }
 
 void	parse_server_block(const std::vector<std::string> &tokens, size_t &i, t_config &config)
@@ -106,10 +106,6 @@ void	parse_server_block(const std::vector<std::string> &tokens, size_t &i, t_con
 		{
 			config.client_body_buffer_size = std::atoi(tokens[i + 1].c_str());
 			i += 3;
-		}
-		else if (tokens[i] == "error_page")
-		{
-			parse_error_page(tokens, i, config);
 		}
 		else
 			i++;
@@ -151,6 +147,10 @@ void	parse_all(const std::string &filename, t_parser &parser)
 			t_Location loc;
 			parse_location(loc, i, tokens);
 			parser.Location.push_back(loc);
+		}
+		else if (tokens[i] == "error_page")
+		{
+			parse_error_page(tokens, i, parser.ErrorPages);
 		}
 		i++;
 	}

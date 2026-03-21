@@ -13,7 +13,6 @@ bool readFile(const std::string& path, std::string& outContent);
 bool isDirectory(const std::string& absolutePath);
 bool isInsideRoot(const std::string& path, const std::string &DocumentRoot);
 bool checkFile(const std::string& index);
-Response makeErrorCode(size_t code);
 bool isExecutable(const std::string& path);
 bool validateMethod(const std::string &method);
 bool isNumber(std::string &string);
