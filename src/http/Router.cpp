@@ -208,9 +208,16 @@ Response Router::makeErrorCode(size_t code)
 {
     Response res(Parser.ErrorPages);
     res.setStatusCode(code);
-    std::stringstream ss;
-    ss << "<h1>" << code << " " << res.getStatusMessage() << "</h1>";
-    res.setBody(ss.str());
+    std::string path = DocumentRoot + res.getStatusMessage();
+    std::string page;
+    if (!readFile(path, page))
+    {
+        std::stringstream ss;
+        ss << "<h1>" << code << " " << "Error Ocurred" << "</h1>";
+        res.setBody(page);
+        return res;
+    }
+    res.setBody(page);
     return res;
 }
 

@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/16 15:17:16 by dsteiger          #+#    #+#             */
-/*   Updated: 2026/03/21 05:08:46 by rafael           ###   ########.fr       */
+/*   Updated: 2026/03/21 07:11:41 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,6 +65,7 @@ std::vector<std::string> tokenize(const std::string &filename)
 	}
 	return (tokens);
 }
+
 
 void	parse_error_page(const std::vector<std::string> &tokens, size_t &i, t_ErrorPages &errorPages)
 {
@@ -150,6 +151,7 @@ void	parse_all(const std::string &filename, t_parser &parser)
 		}
 		else if (tokens[i] == "error_page")
 		{
+			i++;
 			parse_error_page(tokens, i, parser.ErrorPages);
 		}
 		i++;
