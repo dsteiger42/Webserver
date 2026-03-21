@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/16 15:17:16 by dsteiger          #+#    #+#             */
-/*   Updated: 2026/03/21 07:11:41 by rafael           ###   ########.fr       */
+/*   Updated: 2026/03/21 19:35:19 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@ s_config::s_config() : server_name(""), root(""), index(""), client_body_buffer_
 }
 
 s_Location::s_Location() : path(""), root(""), autoIndex(false), cgiPass(false),
-	hasRedirect(false), redirectCode(0), redirectUrl("")
+	hasRedirect(false), has_tryFiles(false), redirectCode(0), redirectUrl("")
 {
 }
 
@@ -290,6 +290,7 @@ void	parse_location(t_Location &Location, size_t &i,
 		{
 			i++;
 			set_tryFiles(tokens, i, Location);
+			Location.has_tryFiles = true;
 		}
 		if (tokens[i] == "cgi_ext" && !tokens[i + 1].empty())
 		{

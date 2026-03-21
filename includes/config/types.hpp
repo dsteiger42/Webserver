@@ -43,6 +43,7 @@ typedef struct s_Location
     bool autoIndex;
     bool cgiPass;
     bool hasRedirect;
+    bool has_tryFiles;
     size_t redirectCode;
     std::string redirectUrl;
     std::vector<std::string> try_files; 
