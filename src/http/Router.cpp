@@ -111,6 +111,8 @@ Response Router::redirect(int redirectCode, std::string redirectUrl)
 {
     Response response(Parser.ErrorPages);
     response.setStatusCode(redirectCode);
+    if (redirectUrl.empty())
+        return makeErrorCode (redirectCode);
     response.setHeader("Location", redirectUrl);
     response.setBody("Redirecting");
     response.setHeader("Content-Type", "text/plain");
