@@ -242,7 +242,7 @@ Response Router::handleRequest(const Request& request)
     if (!loc.root.empty())
         DocumentRoot = loc.root;
     else
-        DocumentRoot = "./www"; // trocar server.root;
+        DocumentRoot = Parser.config.root;
     if (loc.cgiPass)
         return (cgi->execute(request));
     AbsolutePath = DocumentRoot + Path;
