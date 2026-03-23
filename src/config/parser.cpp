@@ -6,27 +6,27 @@
 /*   By: raamorim <raamorim@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/16 15:17:16 by dsteiger          #+#    #+#             */
-/*   Updated: 2026/03/23 17:47:31 by raamorim         ###   ########.fr       */
+/*   Updated: 2026/03/23 19:26:30 by raamorim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <config/parsing/parser.hpp>
-#include <config/parsing/setters.hpp>
+#include <config/parsing/Location_setters.hpp>
 #include <config/parsing/parsing_utils.hpp>
 
-s_config::s_config() : server_name(""), root(""), index(""), client_body_buffer_size(0), listen(0)
+Config::Config() : server_name(""), root(""), index(""), client_body_buffer_size(0), listen(0)
 {
 }
 
-s_Location::s_Location() : path(""), root(""), autoIndex(false), cgiPass(false),
+Location::Location() : path(""), root(""), autoIndex(false), cgiPass(false),
 	hasRedirect(false), has_tryFiles(false), redirectCode(0), redirectUrl("")
 {
 }
 
-s_parser::s_parser() : config(), Location() {}
+parser::parser() : config(), Location() {}
 
 
-void	parse_error_page(const std::vector<std::string> &tokens, size_t &i, t_ErrorPages &errorPages)
+void	parse_error_page(const std::vector<std::string> &tokens, size_t &i, ErrorPages &errorPages)
 {
 	int	code;
 
@@ -40,7 +40,7 @@ void	parse_error_page(const std::vector<std::string> &tokens, size_t &i, t_Error
 	errorPages.error_pages[code] = path;
 }
 
-void	parse_server_block(const std::vector<std::string> &tokens, size_t &i, t_config &config)
+void	parse_server_block(const std::vector<std::string> &tokens, size_t &i, Config &config)
 {
 	//melhorar, o erro era os else ifs
 	if (tokens[i] == "listen" && i + 2 < tokens.size())
@@ -72,7 +72,7 @@ void	parse_server_block(const std::vector<std::string> &tokens, size_t &i, t_con
 		i++;
 }
 
-void	parse_all(const std::string &filename, t_parser &parser)
+void	parse_all(const std::string &filename, parser &parser)
 {
 	std::vector<std::string> tokens = tokenize(filename);
 	size_t	i = 0;
@@ -89,7 +89,7 @@ void	parse_all(const std::string &filename, t_parser &parser)
 			parse_mimeTypes(parser.MimeTypes, i, tokens);
 		if (i + 2 < tokens.size() && tokens[i] == "location" && tokens[i + 2] == "{")
 		{
-			t_Location loc;
+			Location loc;
 			parse_location(loc, i, tokens);
 			parser.Location.push_back(loc);
 		}
@@ -103,7 +103,7 @@ void	parse_all(const std::string &filename, t_parser &parser)
 }
 
 
-void	parse_location(t_Location &Location, size_t &i,
+void	parse_location(Location &Location, size_t &i,
 		std::vector<std::string> &tokens)
 {
 	i++;
@@ -153,7 +153,7 @@ void	parse_location(t_Location &Location, size_t &i,
 	}
 }
 
-void	parse_mimeTypes(t_MimeTypes &MimeTypes, size_t &i,
+void	parse_mimeTypes(MimeTypes &MimeTypes, size_t &i,
 		std::vector<std::string> &tokens)
 {
 	i++;

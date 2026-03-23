@@ -43,7 +43,7 @@ class Server
         Router _router;  
 
     public:
-        Server(int port, t_parser &parser);
+        Server(int port, parser &parser);
         ~Server();
         sockaddr_in create_address();
         int setup_socket();

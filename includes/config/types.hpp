@@ -13,28 +13,27 @@
 #include <cstdlib>
 #include <climits>
 
-typedef struct s_config
+struct Config
 {
     std::string server_name;
     std::string root;
     std::string index;
     int client_body_buffer_size;
     int listen;
-    s_config();
+    Config();
+};
 
-} t_config;
-
-typedef struct s_ErrorPages
+struct ErrorPages
 {
     std::map<int, std::string> error_pages;
-} t_ErrorPages;
+};
 
-typedef struct s_MimeTypes
+struct MimeTypes
 {
     std::map<std::string, std::string> types;
-} t_MimeTypes;
+};
 
-typedef struct s_Location
+struct Location
 {
     std::string path;
     std::string root;
@@ -47,8 +46,8 @@ typedef struct s_Location
     size_t redirectCode;
     std::string redirectUrl;
     std::vector<std::string> try_files; 
-    s_Location();
-} t_Location;
+    Location();
+};
 
 
 #endif

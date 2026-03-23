@@ -7,7 +7,7 @@ which is assign to _port in the constructor. Then _port is called in the struct 
 
 int main(int argc, char **argv)
 {
-    t_parser parser;
+    parser parser;
     if(argc != 2)
     {
         std::cerr << "Error: wrong number of arguments" << std::endl;

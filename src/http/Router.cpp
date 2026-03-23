@@ -1,6 +1,6 @@
 #include <http/Router.hpp>
 
-Router::Router(t_parser& parser) : Parser(parser) 
+Router::Router(parser& parser) : Parser(parser) 
 {   
     Path = "";
     Query = "";
@@ -238,7 +238,7 @@ Response Router::handleRequest(const Request& request)
         return makeErrorCode(400);
     if (!buildFinalPath(Path))
         return makeErrorCode(403);
-    t_Location& loc = matchLocation(Path);
+    Location& loc = matchLocation(Path);
     if (loc.hasRedirect)
         return redirect(loc.redirectCode, loc.redirectUrl);
     if (!isValidMethod(loc.allowedMethods, request.getMethod()))
@@ -281,16 +281,16 @@ Response Router::handleRequest(const Request& request)
 }
 
 
-t_Location& Router::matchLocation(const std::string &path)
+Location& Router::matchLocation(const std::string &path)
 {
     if (Parser.Location.empty())
         throw std::runtime_error("No locations configured");
-    t_Location* bestMatch = NULL;
+    Location* bestMatch = NULL;
     size_t bestLength = 0;
 
     for (size_t i = 0; i < Parser.Location.size(); i++)
     {
-        t_Location& loc = Parser.Location[i];
+        Location& loc = Parser.Location[i];
         if (path.compare(0, loc.path.size(), loc.path) == 0)
         {
             if (loc.path.size() > bestLength)

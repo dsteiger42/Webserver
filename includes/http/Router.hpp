@@ -24,7 +24,7 @@ class CGI; //to remove
 class Router
 {
     private:
-        t_parser &Parser;
+        parser &Parser;
         std::string Path;
         std::string Query;
         std::string Method;
@@ -33,7 +33,7 @@ class Router
     public:
         Response makeErrorCode(size_t code);
         CGI* cgi;
-        Router(t_parser &parser);
+        Router(parser &parser);
         ~Router();
         std::string getPath() const;
         std::string getQuery() const;
@@ -48,7 +48,7 @@ class Router
         bool buildFinalPath(std::string& path);
         bool buildDocumentRoot(std::string& documentRoot);
         Response handleRequest(const Request& request);
-        t_Location& matchLocation(const std::string& path);
+        Location& matchLocation(const std::string& path);
         Response redirect(int redirectCode, std::string redirectUrl);
 
 };

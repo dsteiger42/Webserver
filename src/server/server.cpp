@@ -3,7 +3,7 @@
 #include <http/Router.hpp>
 
 
-Server::Server(int port, t_parser &parser) : _port(port), _router(parser)
+Server::Server(int port, parser &parser) : _port(port), _router(parser)
 {
 }
 

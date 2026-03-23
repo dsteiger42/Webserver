@@ -9,7 +9,7 @@ SRCS =  src/http/Request.cpp \
 		src/server/server.cpp \
 		src/client/client.cpp \
 		src/config/parser.cpp \
-		src/config/parsing/setters.cpp \
+		src/config/parsing/Location_setters.cpp \
 		src/config/parsing/parsing_utils.cpp \
 
 NAME = Webserv
