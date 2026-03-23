@@ -6,7 +6,7 @@
 /*   By: raamorim <raamorim@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/16 15:17:16 by dsteiger          #+#    #+#             */
-/*   Updated: 2026/03/23 19:26:30 by raamorim         ###   ########.fr       */
+/*   Updated: 2026/03/23 20:54:23 by raamorim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,10 +23,10 @@ Location::Location() : path(""), root(""), autoIndex(false), cgiPass(false),
 {
 }
 
-parser::parser() : config(), Location() {}
+Parser::Parser() : config(), Location() {}
 
 
-void	parse_error_page(const std::vector<std::string> &tokens, size_t &i, ErrorPages &errorPages)
+void	parse_ErrorPage(const std::vector<std::string> &tokens, size_t &i, ErrorPages &errorPages)
 {
 	int	code;
 
@@ -40,7 +40,7 @@ void	parse_error_page(const std::vector<std::string> &tokens, size_t &i, ErrorPa
 	errorPages.error_pages[code] = path;
 }
 
-void	parse_server_block(const std::vector<std::string> &tokens, size_t &i, Config &config)
+void	parse_ServerBlock(const std::vector<std::string> &tokens, size_t &i, Config &config)
 {
 	//melhorar, o erro era os else ifs
 	if (tokens[i] == "listen" && i + 2 < tokens.size())
@@ -72,38 +72,38 @@ void	parse_server_block(const std::vector<std::string> &tokens, size_t &i, Confi
 		i++;
 }
 
-void	parse_all(const std::string &filename, parser &parser)
+void	parse_all(const std::string &filename, Parser &Parser)
 {
-	std::vector<std::string> tokens = tokenize(filename);
+	std::vector<std::string> tokens = Tokenize(filename);
 	size_t	i = 0;
-	if(!count_braces(tokens))
+	if(!countBraces(tokens))
 		return ;
 	while (i < tokens.size())
 	{
 		if (tokens[i] == "server" && tokens[i + 1] == "{")
 		{
 			i += 2;
-			parse_server_block(tokens, i, parser.config);
+			parse_ServerBlock(tokens, i, Parser.config);
 		}
 		if (i + 1 < tokens.size() && tokens[i] == "mime_types" && tokens[i + 1] == "{")
-			parse_mimeTypes(parser.MimeTypes, i, tokens);
+			parse_MimeTypes(Parser.MimeTypes, i, tokens);
 		if (i + 2 < tokens.size() && tokens[i] == "location" && tokens[i + 2] == "{")
 		{
 			Location loc;
-			parse_location(loc, i, tokens);
-			parser.Location.push_back(loc);
+			parse_Location(loc, i, tokens);
+			Parser.Location.push_back(loc);
 		}
 		else if (tokens[i] == "error_page")
 		{
 			i++;
-			parse_error_page(tokens, i, parser.ErrorPages);
+			parse_ErrorPage(tokens, i, Parser.ErrorPages);
 		}
 		i++;
 	}
 }
 
 
-void	parse_location(Location &Location, size_t &i,
+void	parse_Location(Location &Location, size_t &i,
 		std::vector<std::string> &tokens)
 {
 	i++;
@@ -131,29 +131,29 @@ void	parse_location(Location &Location, size_t &i,
 		if (tokens[i] == "cgi_pass" && !tokens[i + 1].empty())
 		{
 			i++;
-			set_cgiPass(tokens[i], Location);
+			set_CgiPass(tokens[i], Location);
 		}
 		if (tokens[i] == "return" && !tokens[i + 1].empty())
 		{
 			i++;
-			set_redirection(tokens, i, Location);
+			set_Redirection(tokens, i, Location);
 		}
 		if (tokens[i] == "try_files" && !tokens[i + 1].empty())
 		{
 			i++;
-			set_tryFiles(tokens, i, Location);
+			set_TryFiles(tokens, i, Location);
 			Location.has_tryFiles = true;
 		}
 		if (tokens[i] == "cgi_ext" && !tokens[i + 1].empty())
 		{
 			i++;
-			set_cgiExt(tokens, i, Location);
+			set_CgiExt(tokens, i, Location);
 		}
 		i++;
 	}
 }
 
-void	parse_mimeTypes(MimeTypes &MimeTypes, size_t &i,
+void	parse_MimeTypes(MimeTypes &MimeTypes, size_t &i,
 		std::vector<std::string> &tokens)
 {
 	i++;

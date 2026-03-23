@@ -1,6 +1,6 @@
 #include <http/utils/mime.hpp>
 
-std::string getExtension(std::string file)
+std::string get_Extension(std::string file)
 {
     if (file.empty())
         return "";
@@ -19,7 +19,7 @@ std::string getExtension(std::string file)
     return extension;
 }
 
-std::string getMimeType(const std::string& extension, std::map<std::string, std::string> mimeTypes)
+std::string get_MimeType(const std::string& extension, std::map<std::string, std::string> mimeTypes)
 {
     std::map<std::string, std::string>::const_iterator it = mimeTypes.find(extension);
     if (it != mimeTypes.end())

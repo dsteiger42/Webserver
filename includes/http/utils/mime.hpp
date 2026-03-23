@@ -4,8 +4,8 @@
 #include <string>
 #include <map>
 
-std::string getExtension(std::string file);
-std::string getMimeType(const std::string& extension, std::map<std::string, std::string>);
+std::string get_Extension(std::string file);
+std::string get_MimeType(const std::string& extension, std::map<std::string, std::string>);
 
 
 #endif

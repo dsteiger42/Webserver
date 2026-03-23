@@ -20,45 +20,45 @@ enum	State
 class Request
 {
   private:
-  	CircularBuffer	Buffer;
-	std::string Method;  // GET, POST, DELETE
-	std::string Path;    // /index.html
-	std::string Version; // HTTP/1.1
-	std::string Body;
-	std::string Query;
-	std::map<std::string, std::string> Headers;
-    State state;
-    size_t contentLength;
+  	CircularBuffer	_buffer;
+	std::string _method;  // GET, POST, DELETE
+	std::string _path;    // /index.html
+	std::string _version; // HTTP/1.1
+	std::string _body;
+	std::string _query;
+	std::map<std::string, std::string> _headers;
+    State _state;
+    size_t _contentLength;
 
   public:
 	Request();
-	const std::string& getMethod() const;
-	const std::string& getPath() const;
-	const std::string& getVersion() const;
-	const std::string& getBody() const;
-	const std::string& getHeader(const std::string &key) const;
-    const std::string getQuery() const;
+	const std::string& get_Method() const;
+	const std::string& get_Path() const;
+	const std::string& get_Version() const;
+	const std::string& get_Body() const;
+	const std::string& get_Header(const std::string &key) const;
+    const std::string get_Query() const;
 	
-	bool isDone() const;
+	bool is_Done() const;
 	
 	void reset();
 	
-	void splitPathQuery(const std::string& path);
-	std::string extractHeaderFromBuffer(size_t size);
-	void validateRequest();
+	void split_PathQuery(const std::string& path);
+	std::string extract_HeaderFromBuffer(size_t size);
+	void validate_Request();
 	
-	bool processHeader();
-	bool processBody();
+	bool process_Header();
+	bool process_Body();
 	
-	void determineNextState();
+	void determine_NextState();
 	
-	void parseRequestLine(std::string &line, std::istringstream &split);
-	void parseHeaders(std::string &line, std::istringstream &split);
-    void parseHeader(const std::string &headerStr);
+	void parse_RequestLine(std::string &line, std::istringstream &split);
+	void parse_Headers(std::string &line, std::istringstream &split);
+    void parse_Header(const std::string &headerStr);
     void advanceParsing();
 	void parse(const std::string &request);
 	
-	void fillBuffer(const std::string &request, size_t pos);
+	void fill_Buffer(const std::string &request, size_t pos);
 };
 
 #endif

@@ -11,34 +11,34 @@
 class Response
 {
     private:
-        ErrorPages errorPages;
-        int StatusCode;
-        std::string httpVersion;
-        std::string StatusMessage;
-        std::map<std::string, std::string> Headers;
-        std::string Body;
+        ErrorPages _errorPages;
+        int _statusCode;
+        std::string _httpVersion;
+        std::string _statusMessage;
+        std::map<std::string, std::string> _headers;
+        std::string _body;
     public:
         Response();
         Response(ErrorPages &ErrorPages);
         
-        int getStatusCode() const;
-        const std::string getBody() const;
-        const std::string& getHeader(std::string &key);
-        std::string getStatusMessage() const;
+        int get_StatusCode() const;
+        const std::string get_Body() const;
+        const std::string& get_Header(std::string &key);
+        std::string get_StatusMessage() const;
 
-        void setHttpVersion(const std::string& version);
-        void setStatusCode(int code);
-        void setStatusMessage(std::string message);
-        void setBody(std::string body);
-        void setHeader(std::string key, std::string value);
+        void set_HttpVersion(const std::string& version);
+        void set_StatusCode(int code);
+        void set_StatusMessage(std::string message);
+        void set_Body(std::string body);
+        void set_Header(std::string key, std::string value);
         
-        bool hasHeader(std::string key) const;
+        bool has_Header(std::string key) const;
         
-        void prepareHeaders();
+        void prepare_Headers();
         
-        std::string buildStatusLine();
-        void buildHeader(std::string &result);
-        void buildBody(std::string &result);
+        std::string build_StatusLine();
+        void build_Header(std::string &result);
+        void build_Body(std::string &result);
         std::string serialize();
 
 };

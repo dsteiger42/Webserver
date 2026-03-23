@@ -1,6 +1,6 @@
 #include <config/parsing/parsing_utils.hpp>
 
-std::vector<std::string> tokenize(const std::string &filename)
+std::vector<std::string> Tokenize(const std::string &filename)
 {
 	char	c;
 	std::vector<std::string> tokens;
@@ -44,7 +44,7 @@ std::vector<std::string> tokenize(const std::string &filename)
 }
 
 
-bool count_braces(std::vector<std::string> &tokens)
+bool countBraces(std::vector<std::string> &tokens)
 {
 	int braces_left = 0;
 	int braces_right = 0;

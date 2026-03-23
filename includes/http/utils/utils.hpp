@@ -9,12 +9,12 @@
 #include <http/Response.hpp>
 #include <vector>
 
-bool readFile(const std::string& path, std::string& outContent);
-bool isDirectory(const std::string& absolutePath);
-bool isInsideRoot(const std::string& path, const std::string &DocumentRoot);
-bool checkFile(const std::string& index);
-bool isExecutable(const std::string& path);
-bool validateMethod(const std::string &method);
-bool isNumber(std::string &string);
-bool isValidMethod(std::vector<std::string> &allowedMethods, const std::string &method);
+bool read_File(const std::string& path, std::string& outContent);
+bool is_Directory(const std::string& absolutePath);
+bool is_InsideRoot(const std::string& path, const std::string &DocumentRoot);
+bool check_File(const std::string& index);
+bool is_Executable(const std::string& path);
+bool validate_Method(const std::string &method);
+bool is_Number(std::string &string);
+bool is_ValidMethod(std::vector<std::string> &allowedMethods, const std::string &method);
 #endif

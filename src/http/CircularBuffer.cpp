@@ -1,38 +1,38 @@
 #include <http/CircularBuffer.hpp>
 
-CircularBuffer::CircularBuffer(size_t cap) : buffer(cap), head(0), tail(0),
-	size(0), capacity(cap)
+CircularBuffer::CircularBuffer(size_t cap) : _buffer(cap), _head(0), _tail(0),
+	_size(0), _capacity(cap)
 {
 }
 
-bool CircularBuffer::isEmpty()
+bool CircularBuffer::is_Empty()
 {
-	return (this->size == 0);
+	return (this->_size == 0);
 }
 
-bool CircularBuffer::isFull()
+bool CircularBuffer::is_Full()
 {
-	return (this->size == capacity);
+	return (this->_size == _capacity);
 }
 
-size_t CircularBuffer::getSize()
+size_t CircularBuffer::get_Size()
 {
-	return (this->size);
+	return (this->_size);
 }
 
 size_t CircularBuffer::write(const char *data, size_t len)
 {
-    if (size == capacity)
+    if (_size == _capacity)
         return 0;
-    size_t freeSpace = capacity - size;
+    size_t freeSpace = (_capacity - _size);
     size_t toWrite = std::min(len, freeSpace);
-    size_t firstChunk = std::min(toWrite, capacity - head);
-    std::memcpy(&buffer[head], data, firstChunk); // trocar
+    size_t firstChunk = std::min(toWrite, _capacity - _head);
+    std::memcpy(&_buffer[_head], data, firstChunk); // trocar
     size_t secondChunk = toWrite - firstChunk;
     if (secondChunk)
-        std::memcpy(&buffer[0], data + firstChunk, secondChunk); //trocar
-    head = (head + toWrite) % capacity;
-    size += toWrite;
+        std::memcpy(&_buffer[0], data + firstChunk, secondChunk); //trocar
+    _head = (_head + toWrite) % _capacity;
+    _size += toWrite;
     return toWrite;
 }
 
@@ -40,32 +40,32 @@ size_t CircularBuffer::read(char *out, size_t len)
 {
 	size_t	toRead;
 
-	if (isEmpty())
+	if (is_Empty())
 		return (0);
-	toRead = std::min(len, size);
+	toRead = std::min(len, _size);
 	for (size_t i = 0; i < toRead; i++)
 	{
-		out[i] = buffer[tail];
-		tail = (tail + 1) % capacity;
+		out[i] = _buffer[_tail];
+		_tail = (_tail + 1) % _capacity;
 	}
-	size -= toRead;
+	_size -= toRead;
 	return (toRead);
 }
 
 size_t CircularBuffer::peek(char *temp, size_t len) const
 {
-	size_t bytesToCopy = std::min(len, this->size);
-	size_t firstChunk = std::min(bytesToCopy, capacity - tail);
+	size_t bytesToCopy = std::min(len, this->_size);
+	size_t firstChunk = std::min(bytesToCopy, _capacity - _tail);
 	for (size_t i = 0; i < firstChunk; i++)
 	{
-		temp[i] = buffer[(tail + i) % capacity];
+		temp[i] = _buffer[(_tail + i) % _capacity];
 	}
 	if (bytesToCopy > firstChunk)
 	{
 		size_t secondChunk = bytesToCopy - firstChunk;
 		for (size_t i = 0; i < secondChunk; i++)
 		{
-			temp[firstChunk + i] = buffer[i];
+			temp[firstChunk + i] = _buffer[i];
 		}
 	}
 	return (bytesToCopy);
@@ -73,16 +73,16 @@ size_t CircularBuffer::peek(char *temp, size_t len) const
 
 size_t CircularBuffer::find(const std::string &pattern) const
 {
-	if (pattern.empty() || size < pattern.size())
+	if (pattern.empty() || _size < pattern.size())
 		return (std::string::npos);
-	size_t limit = size - pattern.size();
+	size_t limit = _size - pattern.size();
 	for (size_t i = 0; i <= limit; ++i)
 	{
 		bool match = true;
 		for (size_t j = 0; j < pattern.size(); ++j)
 		{
-			size_t index = (tail + i + j) % capacity;
-			if (buffer[index] != pattern[j])
+			size_t index = (_tail + i + j) % _capacity;
+			if (_buffer[index] != pattern[j])
 			{
 				match = false;
 				break ;
@@ -97,7 +97,7 @@ size_t CircularBuffer::find(const std::string &pattern) const
 
 void CircularBuffer::consume(size_t bytes)
 {
-	bytes = std::min(bytes, size);
-	tail = (tail + bytes) % capacity;
-	size -= bytes;
+	bytes = std::min(bytes, _size);
+	_tail = (_tail + bytes) % _capacity;
+	_size -= bytes;
 }

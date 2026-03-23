@@ -3,7 +3,7 @@
 #include <http/Router.hpp>
 
 
-Server::Server(int port, parser &parser) : _port(port), _router(parser)
+Server::Server(int port, Parser &Parser) : _port(port), _router(Parser)
 {
 }
 
@@ -35,7 +35,7 @@ I need to translate the Port and Ip Address to network order,
 And, if needed, IP address will be used with htonl.
 */
 // sockaddr_in represents the adress of a socket
-sockaddr_in Server::create_address()
+sockaddr_in Server::create_Address()
 {
 	sockaddr_in	addr;
 
@@ -47,7 +47,7 @@ sockaddr_in Server::create_address()
 	return (addr);
 }
 
-int Server::setup_socket()
+int Server::setup_Socket()
 {
 	sockaddr_in	addr;
 	int			opt;
@@ -78,7 +78,7 @@ int Server::setup_socket()
 		std::cerr << "Error: fcntl F_SETFL O_NONBLOCK" << std::endl;
 		return (-1);
 	}
-	addr = create_address();
+	addr = create_Address();
 	if (bind(_server_fd, (struct sockaddr *)&addr, sizeof(addr)) == -1)
 	{
 		std::cerr << "Error: failed to bind socket" << std::endl;
@@ -92,7 +92,7 @@ int Server::setup_socket()
 	return (0);
 }
 
-int Server::accept_new_client(std::vector<pollfd> &fds)
+int Server::accept_NewClient(std::vector<pollfd> &fds)
 {
 	pollfd		poll;
 	sockaddr_in	client_addr;
@@ -118,7 +118,7 @@ int Server::accept_new_client(std::vector<pollfd> &fds)
 	return (client_fd);
 }
 
-bool Server::receive_from_client(std::vector<pollfd> &fds, size_t index)
+bool Server::receive_FromClient(std::vector<pollfd> &fds, size_t index)
 {
 	int		client_fd;
 	int		bytes_received;
@@ -136,12 +136,12 @@ bool Server::receive_from_client(std::vector<pollfd> &fds, size_t index)
 		std::cout << "Client " << client_fd << ": " << buffer << "\n";
 		n = client.readBuffer.read(temp, sizeof(temp));
 		std::string chunk(temp, n);
-		client.request.fillBuffer(chunk, chunk.size());
+		client.request.fill_Buffer(chunk, chunk.size());
 		std::cout << "BEFORE DONE" << std::endl;
- 		if (client.request.isDone())
+ 		if (client.request.is_Done())
 		{
 			std::cout << "INSIDE DONE" << std::endl;
-			client.response = _router.handleRequest(client.request);
+			client.response = _router.handle_Request(client.request);
 			std::string rawResponse = client.response.serialize();
 			std::cout << "=== RAW RESPONSE BEGIN ===\n";
 			std::cout << rawResponse << "\n";
@@ -165,11 +165,11 @@ bool Server::receive_from_client(std::vector<pollfd> &fds, size_t index)
 	}
 }
 
-SendStatus Server::send_to_client(std::vector<pollfd> &fds, size_t index)
+SendStatus Server::send_ToClient(std::vector<pollfd> &fds, size_t index)
 {
 	int fd = fds[index].fd;
 	Client &client = _allClients[fd];
-	size_t available = client.writeBuffer.getSize();
+	size_t available = client.writeBuffer.get_Size();
 	if(available == 0)
 		return SEND_DONE;
 	char temp[1024];
@@ -179,12 +179,12 @@ SendStatus Server::send_to_client(std::vector<pollfd> &fds, size_t index)
 	if(sent <= 0)
 		return SEND_ERROR;
 	client.writeBuffer.consume(sent);
-	if(client.writeBuffer.getSize() == 0)
+	if(client.writeBuffer.get_Size() == 0)
 		return SEND_DONE;
 	return SEND_OK;
 }
 
-void Server::handle_clients()
+void Server::handle_Clients()
 {
 	int		ret;
 	pollfd	listen_fd;
@@ -206,13 +206,13 @@ void Server::handle_clients()
 			if (fds[i].revents & POLLIN)
 			{
 				if (fds[i].fd == _server_fd)
-					accept_new_client(fds);
+					accept_NewClient(fds);
 				else
-					receive_from_client(fds, i);
+					receive_FromClient(fds, i);
 			}
 			if (fds[i].revents & POLLOUT)
 			{
-				SendStatus status = send_to_client(fds, i);
+				SendStatus status = send_ToClient(fds, i);
 				if (status == SEND_DONE || status == SEND_ERROR)
 				{
 					close(fds[i].fd);

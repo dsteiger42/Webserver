@@ -23,110 +23,110 @@
 
 static const std::map<int, std::string> STATUS_MESSAGES = createStatusMessages(); */
 
-Response::Response() :  errorPages(), StatusCode(200),  httpVersion("HTTP/1.1"),  StatusMessage("OK") {}
+Response::Response() :  _errorPages(), _statusCode(200),  _httpVersion("HTTP/1.1"),  _statusMessage("OK") {}
 
-Response::Response(ErrorPages &ErrorPages) :  errorPages(ErrorPages), StatusCode(200),  httpVersion("HTTP/1.1"),  StatusMessage("OK") {}
+Response::Response(ErrorPages &ErrorPages) :  _errorPages(ErrorPages), _statusCode(200),  _httpVersion("HTTP/1.1"),  _statusMessage("OK") {}
 
-void Response::setHttpVersion(const std::string& version)
+int Response::get_StatusCode() const
 {
-    this->httpVersion = version;
+    return (this->_statusCode);
 }
 
-
-int Response::getStatusCode() const
+std::string Response::get_StatusMessage() const
 {
-    return this->StatusCode;
+    return (this->_statusMessage);
 }
 
-std::string Response::getStatusMessage() const
+const std::string Response::get_Body() const
 {
-    return this->StatusMessage;
+    return (this->_body);
 }
 
-const std::string Response::getBody() const
-{
-    return this->Body;
-}
-
-const std::string& Response::getHeader(std::string &key)
+const std::string& Response::get_Header(std::string &key)
 {
     static const std::string empty = "";
-    if (Headers.find(key) != Headers.end())
-        return Headers[key];
+    if (_headers.find(key) != _headers.end())
+        return _headers[key];
     return empty;
 }
 
-void Response::setStatusCode(int code)
+void Response::set_StatusCode(int code)
 {
-    this->StatusCode = code;
-    std::map<int, std::string>::const_iterator it = errorPages.error_pages.find(code);
-    if (it != errorPages.error_pages.end())
-        this->StatusMessage = it->second;
+    this->_statusCode = code;
+    std::map<int, std::string>::const_iterator it = _errorPages.error_pages.find(code);
+    if (it != _errorPages.error_pages.end())
+        this->_statusMessage = it->second;
     else
-        this->StatusMessage = "Unknown";
-}
-void Response::setStatusMessage(std::string message)
-{
-    this->StatusMessage = message;
-}
-void Response::setBody(std::string body)
-{
-    this->Body = body;
-}
-void Response::setHeader(std::string key, std::string value)
-{
-    this->Headers[key] = value;
+        this->_statusMessage = "Unknown";
 }
 
-bool Response::hasHeader(std::string key) const
+void Response::set_HttpVersion(const std::string& version)
 {
-    if (Headers.find(key) != Headers.end())
+    this->_httpVersion = version;
+}
+
+void Response::set_StatusMessage(std::string message)
+{
+    this->_statusMessage = message;
+}
+void Response::set_Body(std::string body)
+{
+    this->_body = body;
+}
+void Response::set_Header(std::string key, std::string value)
+{
+    this->_headers[key] = value;
+}
+
+bool Response::has_Header(std::string key) const
+{
+    if (_headers.find(key) != _headers.end())
         return true;
     return false;
 }
 
-void Response::prepareHeaders()
+void Response::prepare_Headers()
 {
-    if (!hasHeader("Content-Length"))
+    if (!has_Header("Content-Length"))
     {
-        size_t size = this->Body.length();
+        size_t size = this->_body.length();
         std::stringstream ss;
         ss << size;
         std::string length = ss.str();
-        setHeader("Content-Length", length);
+        set_Header("Content-Length", length);
     }
-    if (!hasHeader("Connection"))
-        setHeader("Connection", "close");
+    if (!has_Header("Connection"))
+        set_Header("Connection", "close");
 }
 
-std::string Response::buildStatusLine()
+std::string Response::build_StatusLine()
 {
     std::stringstream ss;
 
-    ss << this->httpVersion << " " << this->StatusCode << " " << this->StatusMessage << "\r\n";
+    ss << this->_httpVersion << " " << this->_statusCode << " " << this->_statusMessage << "\r\n";
     return ss.str();
 }
 
-void Response::buildHeader(std::string &result)
+void Response::build_Header(std::string &result)
 {
-    for (std::map<std::string, std::string>::iterator it = Headers.begin(); it != Headers.end(); it++)
+    for (std::map<std::string, std::string>::iterator it = _headers.begin(); it != _headers.end(); it++)
     {
         result += it->first + ": " + it->second + "\r\n";
     }
     result += "\r\n";
 }
 
-void Response::buildBody(std::string &result)
+void Response::build_Body(std::string &result)
 {
-    result += this->Body;
+    result += this->_body;
 }
 
 std::string Response::serialize()
 {
-    prepareHeaders();
+    prepare_Headers();
     std::string response;
-    response = buildStatusLine();
-    buildHeader(response);
-    buildBody(response);
+    response = build_StatusLine();
+    build_Header(response);
+    build_Body(response);
     return (response);
 }

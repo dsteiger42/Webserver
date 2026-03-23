@@ -7,19 +7,19 @@ which is assign to _port in the constructor. Then _port is called in the struct 
 
 int main(int argc, char **argv)
 {
-    parser parser;
+    Parser Parser;
     if(argc != 2)
     {
         std::cerr << "Error: wrong number of arguments" << std::endl;
         return -1;
     }
-    parse_all(argv[1], parser);
+    parse_all(argv[1], Parser);
     //int port = parseListenPort(); -> parse the "listen" in webserver.conf
     //server myServer(port);
 
     // used for testing a connection
-    Server myServer(8080, parser);
-    myServer.setup_socket();
-    myServer.handle_clients();
+    Server myServer(8080, Parser);
+    myServer.setup_Socket();
+    myServer.handle_Clients();
     return 0;
 }

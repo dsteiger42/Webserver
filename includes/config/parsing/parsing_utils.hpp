@@ -6,7 +6,7 @@
 /*   By: raamorim <raamorim@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/23 17:43:15 by raamorim          #+#    #+#             */
-/*   Updated: 2026/03/23 17:47:02 by raamorim         ###   ########.fr       */
+/*   Updated: 2026/03/23 20:19:24 by raamorim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@
 #include <iostream>
 #include <fstream>
 
-std::vector<std::string> tokenize(const std::string &filename);
-bool count_braces(std::vector<std::string> &tokens);
+std::vector<std::string> Tokenize(const std::string &filename);
+bool countBraces(std::vector<std::string> &tokens);
 
 #endif

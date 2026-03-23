@@ -43,14 +43,14 @@ class Server
         Router _router;  
 
     public:
-        Server(int port, parser &parser);
+        Server(int port, Parser &Parser);
         ~Server();
-        sockaddr_in create_address();
-        int setup_socket();
-        int accept_new_client(std::vector<pollfd> &fds);
-        bool receive_from_client(std::vector<pollfd> &fds, size_t index);
-        SendStatus send_to_client(std::vector<pollfd> &fds, size_t index);
-        void handle_clients();
+        sockaddr_in create_Address();
+        int setup_Socket();
+        int accept_NewClient(std::vector<pollfd> &fds);
+        bool receive_FromClient(std::vector<pollfd> &fds, size_t index);
+        SendStatus send_ToClient(std::vector<pollfd> &fds, size_t index);
+        void handle_Clients();
 };
 
 #endif

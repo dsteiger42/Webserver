@@ -11,16 +11,16 @@
 class CircularBuffer
 {
     private:
-        std::vector<char>buffer;
-        size_t head; //write pos 
-        size_t tail; //read pos
-        size_t size; // numbber of bytes in the buffer
-        size_t capacity; // max size of the buffer
+        std::vector<char> _buffer;
+        size_t _head; //write pos 
+        size_t _tail; //read pos
+        size_t _size; // numbber of bytes in the buffer
+        size_t _capacity; // max size of the buffer
     public:
         CircularBuffer(size_t cap);
-        bool isEmpty();
-        bool isFull();
-        size_t getSize();
+        bool is_Empty();
+        bool is_Full();
+        size_t get_Size();
         size_t write(const char *data, size_t len);
         size_t read(char *out, size_t len);
         size_t peek(char *temp, size_t len) const;

@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   setters.cpp                                        :+:      :+:    :+:   */
+/*   Location_setters.cpp                               :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: raamorim <raamorim@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/23 17:33:01 by raamorim          #+#    #+#             */
-/*   Updated: 2026/03/23 19:15:14 by raamorim         ###   ########.fr       */
+/*   Updated: 2026/03/23 20:54:34 by raamorim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,7 @@ void	set_AllowedMethods(std::vector<std::string> &tokens, size_t &i,
 {
 	if (!tokens[i].empty())
 	{
-		while (validateMethod(tokens[i]))
+		while (validate_Method(tokens[i]))
 		{
 			//trocar
 			location.allowedMethods.push_back(tokens[i]);
@@ -52,7 +52,7 @@ void	set_Root(std::string &value, Location &location)
 		location.root = "";
 }
 
-void	set_cgiPass(std::string &value, Location &location)
+void	set_CgiPass(std::string &value, Location &location)
 {
 	if (value == "on")
 		location.cgiPass = true;
@@ -60,12 +60,12 @@ void	set_cgiPass(std::string &value, Location &location)
 		location.cgiPass = false;
 }
 
-void	set_redirection(std::vector<std::string> &tokens, size_t &i,
+void	set_Redirection(std::vector<std::string> &tokens, size_t &i,
 		Location &location)
 {
 	long	code;
 
-	if (!isNumber(tokens[i]))
+	if (!is_Number(tokens[i]))
 		return ;
 	location.hasRedirect = true;
 	code = std::atol(tokens[i].c_str());
@@ -80,7 +80,7 @@ void	set_redirection(std::vector<std::string> &tokens, size_t &i,
 		location.redirectUrl = "";
 }
 
-void	set_tryFiles(std::vector<std::string> &tokens, size_t &i,
+void	set_TryFiles(std::vector<std::string> &tokens, size_t &i,
 		Location &location)
 {
 	if (!tokens[i].empty())
@@ -93,7 +93,7 @@ void	set_tryFiles(std::vector<std::string> &tokens, size_t &i,
 	}
 }
 
-void set_cgiExt(std::vector<std::string> &tokens, size_t &i, Location &location)
+void set_CgiExt(std::vector<std::string> &tokens, size_t &i, Location &location)
 {
 	if (!tokens[i].empty())
 	{

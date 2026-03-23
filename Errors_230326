@@ -2,3 +2,8 @@ curl -X POST http://localhost:8080/cgi-bin/test.py \ -H "Content-Type: applicati
 curl -X POST http://localhost:8080/cgi-bin/test.py \ -H "Transfer-Encoding: chunked" \ -d "hello world"
 HTTP/1.1 403 /error_pages/403.html
 erros que por vezes printam msg e outras nao
+
+
+classes letra grande -> ex: MimeTypes
+private -> _routerTeste
+funcoes -> parse_MimeTypes

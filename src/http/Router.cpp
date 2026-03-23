@@ -1,12 +1,12 @@
 #include <http/Router.hpp>
 
-Router::Router(parser& parser) : Parser(parser) 
+Router::Router(Parser& Parser) : _parser(Parser) 
 {   
-    Path = "";
-    Query = "";
-    Method = "";
-    DocumentRoot = "./www/";
-    AbsolutePath = "";
+    _path = "";
+    _query = "";
+    _method = "";
+    _documentRoot = "./www/";
+    _absolutePath = "";
     cgi = new CGI();
     cgi->setRouter(this);
 }
@@ -14,30 +14,30 @@ Router::~Router()
 {
     delete cgi;
 }
-std::string Router::getPath() const
+std::string Router::get_Path() const
 {
-    return (this->Path);
+    return (this->_path);
 }
 
-std::string Router::getQuery() const
+std::string Router::get_Query() const
 {
-    return this->Query;
+    return (this->_query);
 }
-std::string Router::getMethod() const
+std::string Router::get_Method() const
 {
-    return this->Method;
+    return (this->_method);
 }
-std::string Router::getAbsolutePath() const
+std::string Router::get_AbsolutePath() const
 {
-    return this->AbsolutePath;
-}
-
-std::string Router::getDocumentRoot() const
-{
-    return this->DocumentRoot;
+    return (this->_absolutePath);
 }
 
-bool Router::validatePath(const std::string &path)
+std::string Router::get_DocumentRoot() const
+{
+    return (this->_documentRoot);
+}
+
+bool Router::validate_Path(const std::string &path)
 {
     if (path.empty())
         return false; 
@@ -48,24 +48,24 @@ bool Router::validatePath(const std::string &path)
     return true;
 }
 
-void Router::splitPathQuery(const std::string& path)
+void Router::split_PathQuery(const std::string& path)
 {
     size_t pos = path.find("?");
     if (pos != std::string::npos && pos + 1 <= path.size())
     {
         std::string Path1;
         Path1 = path.substr(0, pos);
-        Query = path.substr(pos + 1);
-        Path = Path1;
+        _query = path.substr(pos + 1);
+        _path = Path1;
     }
     else
     {
-        Path = path;    
-        Query = "";
+        _path = path;    
+        _query = "";
     }
 }
 
-std::vector<std::string> Router::splitPath(const std::string& path)
+std::vector<std::string> Router::split_Path(const std::string& path)
 {
     std::vector<std::string> tokens;
     size_t start = 0;
@@ -81,9 +81,9 @@ std::vector<std::string> Router::splitPath(const std::string& path)
     return tokens;
 }
 
-bool Router::buildFinalPath(std::string& path)
+bool Router::build_FinalPath(std::string& path)
 {
-    std::vector<std::string> tokens = splitPath(path);
+    std::vector<std::string> tokens = split_Path(path);
     std::vector<std::string> final;
 
     bool hasTrailingSlash = (path.size() > 0 && path[path.size() - 1] == '/');
@@ -100,28 +100,28 @@ bool Router::buildFinalPath(std::string& path)
         else
             final.push_back(tokens[i]);
     }
-    this->Path = "/";
+    this->_path = "/";
     for (size_t i = 0; i < final.size(); i++)
     {
-        this->Path += final[i];
+        this->_path += final[i];
         if (i + 1 < final.size())
-            this->Path += "/";
+            this->_path += "/";
     }
-    if (hasTrailingSlash && this->Path.size() > 1)
-        this->Path += "/";
+    if (hasTrailingSlash && this->_path.size() > 1)
+        this->_path += "/";
     return true;
 }
 
 Response Router::redirect(int redirectCode, std::string redirectUrl)
 {
-    Response response(Parser.ErrorPages);
-    response.setStatusCode(redirectCode);
+    Response response(_parser.ErrorPages);
+    response.set_StatusCode(redirectCode);
     if (redirectUrl.empty())
-        return makeErrorCode (redirectCode);
-    response.setHeader("Location", redirectUrl);
-    response.setBody("Redirecting");
-    response.setHeader("Content-Type", "text/plain");
-    response.setHeader("Content-Length", "11");
+        return make_ErrorCode (redirectCode);
+    response.set_Header("Location", redirectUrl);
+    response.set_Body("Redirecting");
+    response.set_Header("Content-Type", "text/plain");
+    response.set_Header("Content-Length", "11");
     return response;
 }
 
@@ -211,86 +211,86 @@ bool generateAutoIndex(std::string &AbsolutePath, std::string &Path, std::string
     return true;
 }
 
-Response Router::makeErrorCode(size_t code)
+Response Router::make_ErrorCode(size_t code)
 {
-    Response res(Parser.ErrorPages);
-    res.setStatusCode(code);
-    std::string path = DocumentRoot + res.getStatusMessage();
+    Response res(_parser.ErrorPages);
+    res.set_StatusCode(code);
+    std::string path = _documentRoot + res.get_StatusMessage();
     std::string page;
-    if (!readFile(path, page))
+    if (!read_File(path, page))
     {
         std::stringstream ss;
         ss << "<h1>" << code << " " << "Error Ocurred" << "</h1>";
-        res.setBody(page);
+        res.set_Body(page);
         return res;
     }
-    res.setBody(page);
+    res.set_Body(page);
     return res;
 }
 
-Response Router::handleRequest(const Request& request)
+Response Router::handle_Request(const Request& request)
 {
-    Response response(Parser.ErrorPages);
-    if (!validateMethod(request.getMethod()))
-        return makeErrorCode(405);
-    splitPathQuery(request.getPath());
-    if (!validatePath(Path))
-        return makeErrorCode(400);
-    if (!buildFinalPath(Path))
-        return makeErrorCode(403);
-    Location& loc = matchLocation(Path);
+    Response response(_parser.ErrorPages);
+    if (!validate_Method(request.get_Method()))
+        return make_ErrorCode(405);
+    split_PathQuery(request.get_Path());
+    if (!validate_Path(_path))
+        return make_ErrorCode(400);
+    if (!build_FinalPath(_path))
+        return make_ErrorCode(403);
+    Location& loc = matchLocation(_path);
     if (loc.hasRedirect)
         return redirect(loc.redirectCode, loc.redirectUrl);
-    if (!isValidMethod(loc.allowedMethods, request.getMethod()))
-        return makeErrorCode(405);
+    if (!is_ValidMethod(loc.allowedMethods, request.get_Method()))
+        return make_ErrorCode(405);
     if (!loc.root.empty())
-        DocumentRoot = loc.root;
+        _documentRoot = loc.root;
     else
-        DocumentRoot = Parser.config.root;
+        _documentRoot = _parser.config.root;
     if (loc.cgiPass)
         return (cgi->execute(request));
-    AbsolutePath = DocumentRoot + Path;
-    if (!isInsideRoot(AbsolutePath, DocumentRoot))
-       return makeErrorCode(403);
-    if (isDirectory(AbsolutePath))
+    _absolutePath = _documentRoot + _path;
+    if (!is_InsideRoot(_absolutePath, _documentRoot))
+       return make_ErrorCode(403);
+    if (is_Directory(_absolutePath))
     {
-        std::string index = AbsolutePath + Parser.config.index;
-        if (checkFile(index))
-            AbsolutePath = index;
+        std::string index = _absolutePath + _parser.config.index;
+        if (check_File(index))
+            _absolutePath = index;
         else if (loc.autoIndex)
         {
             std::string html;
-            if (!generateAutoIndex(AbsolutePath, Path, html))
-                return makeErrorCode(500);
-            response.setBody(html);
-            response.setHeader("Content-Type", getMimeType(getExtension(".html"), Parser.MimeTypes.types));
+            if (!generateAutoIndex(_absolutePath, _path, html))
+                return make_ErrorCode(500);
+            response.set_Body(html);
+            response.set_Header("Content-Type", get_MimeType(get_Extension(".html"), _parser.MimeTypes.types));
             return response;
         }
         else
-            return makeErrorCode(403);
+            return make_ErrorCode(403);
     }
-    if (!checkFile(AbsolutePath)) //if it's not a directory but the file doens't exist
-        return makeErrorCode(404);
+    if (!check_File(_absolutePath)) //if it's not a directory but the file doens't exist
+        return make_ErrorCode(404);
     std::string content;
-    if (!readFile(AbsolutePath, content))
-        return makeErrorCode(500);
-    response.setBody(content);
-    std::string MimeType = getMimeType(getExtension(AbsolutePath), Parser.MimeTypes.types);
-    response.setHeader("Content-Type", MimeType);
+    if (!read_File(_absolutePath, content))
+        return make_ErrorCode(500);
+    response.set_Body(content);
+    std::string MimeType = get_MimeType(get_Extension(_absolutePath), _parser.MimeTypes.types);
+    response.set_Header("Content-Type", MimeType);
     return response;
 }
 
 
 Location& Router::matchLocation(const std::string &path)
 {
-    if (Parser.Location.empty())
+    if (_parser.Location.empty())
         throw std::runtime_error("No locations configured");
     Location* bestMatch = NULL;
     size_t bestLength = 0;
 
-    for (size_t i = 0; i < Parser.Location.size(); i++)
+    for (size_t i = 0; i < _parser.Location.size(); i++)
     {
-        Location& loc = Parser.Location[i];
+        Location& loc = _parser.Location[i];
         if (path.compare(0, loc.path.size(), loc.path) == 0)
         {
             if (loc.path.size() > bestLength)
@@ -302,12 +302,12 @@ Location& Router::matchLocation(const std::string &path)
     }
     if (!bestMatch)
     {
-        for (size_t i = 0; i < Parser.Location.size(); i++)
+        for (size_t i = 0; i < _parser.Location.size(); i++)
         {
-            if (Parser.Location[i].path == "/")
-                return Parser.Location[i];
+            if (_parser.Location[i].path == "/")
+                return _parser.Location[i];
         }
-        return Parser.Location[0];
+        return _parser.Location[0];
     }
     return (*bestMatch);
 }

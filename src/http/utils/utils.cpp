@@ -1,6 +1,6 @@
 #include <http/utils/utils.hpp>
 
-bool readFile(const std::string& path, std::string& outContent)
+bool read_File(const std::string& path, std::string& outContent)
 {
     outContent.clear(); //limpa a string
     std::ifstream file(path.c_str(), std::ios::in | std::ios::binary);
@@ -20,7 +20,7 @@ bool readFile(const std::string& path, std::string& outContent)
 }
 
 
-bool isDirectory(const std::string& absolutePath)
+bool is_Directory(const std::string& absolutePath)
 {
     struct stat info;
 
@@ -33,13 +33,13 @@ bool isDirectory(const std::string& absolutePath)
     return true;
 }
 
-bool isInsideRoot(const std::string& path, const std::string &DocumentRoot)
+bool is_InsideRoot(const std::string& path, const std::string &DocumentRoot)
 {
     if (path.compare(0, DocumentRoot.size(), DocumentRoot) != 0)
         return false;
     return true;
 }
-bool checkFile(const std::string& index)
+bool check_File(const std::string& index)
 {
     struct stat info;
     if (stat(index.c_str(), &info) == 0 && S_ISREG(info.st_mode) && access(index.c_str(), R_OK | F_OK) == 0)
@@ -48,17 +48,17 @@ bool checkFile(const std::string& index)
 }
 
 
-bool isExecutable(const std::string& path)
+bool is_Executable(const std::string& path)
 {
     return access(path.c_str(), X_OK) == 0;
 }
 
-bool validateMethod(const std::string &method)
+bool validate_Method(const std::string &method)
 {
     return method == "GET" || method == "POST" || method == "DELETE";
 }
 
-bool isNumber(std::string &string)
+bool is_Number(std::string &string)
 {
     if (string.empty())
         return false;
@@ -72,7 +72,7 @@ bool isNumber(std::string &string)
     return true;
 }
 
-bool isValidMethod(std::vector<std::string> &allowedMethods, const std::string &method)
+bool is_ValidMethod(std::vector<std::string> &allowedMethods, const std::string &method)
 {
     for (size_t i = 0; i < allowedMethods.size(); i++)
     {

@@ -24,30 +24,30 @@ class CGI; //to remove
 class Router
 {
     private:
-        parser &Parser;
-        std::string Path;
-        std::string Query;
-        std::string Method;
-        std::string DocumentRoot; //in the future will be at .conf
-        std::string AbsolutePath;
+        Parser &_parser;
+        std::string _path;
+        std::string _query;
+        std::string _method;
+        std::string _documentRoot; //in the future will be at .conf
+        std::string _absolutePath;
     public:
-        Response makeErrorCode(size_t code);
+        Response make_ErrorCode(size_t code);
         CGI* cgi;
-        Router(parser &parser);
+        Router(Parser &Parser);
         ~Router();
-        std::string getPath() const;
-        std::string getQuery() const;
-        std::string getMethod() const;
-        std::string getAbsolutePath() const;
-        std::string getDocumentRoot() const;
+        std::string get_Path() const;
+        std::string get_Query() const;
+        std::string get_Method() const;
+        std::string get_AbsolutePath() const;
+        std::string get_DocumentRoot() const;
     
-        //bool validateMethod(const std::string &method);
-        bool validatePath(const std::string &path);
-        void splitPathQuery(const std::string& path);
-        std::vector<std::string> splitPath(const std::string& path);
-        bool buildFinalPath(std::string& path);
-        bool buildDocumentRoot(std::string& documentRoot);
-        Response handleRequest(const Request& request);
+        //bool validate_Method(const std::string &method);
+        bool validate_Path(const std::string &path);
+        void split_PathQuery(const std::string& path);
+        std::vector<std::string> split_Path(const std::string& path);
+        bool build_FinalPath(std::string& path);
+        bool build_DocumentRoot(std::string& documentRoot);
+        Response handle_Request(const Request& request);
         Location& matchLocation(const std::string& path);
         Response redirect(int redirectCode, std::string redirectUrl);
 
