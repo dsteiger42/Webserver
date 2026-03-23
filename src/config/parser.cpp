@@ -3,14 +3,16 @@
 /*                                                        :::      ::::::::   */
 /*   parser.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
+/*   By: raamorim <raamorim@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/16 15:17:16 by dsteiger          #+#    #+#             */
-/*   Updated: 2026/03/23 01:54:57 by rafael           ###   ########.fr       */
+/*   Updated: 2026/03/23 17:47:31 by raamorim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <config/parser.hpp>
+#include <config/parsing/parser.hpp>
+#include <config/parsing/setters.hpp>
+#include <config/parsing/parsing_utils.hpp>
 
 s_config::s_config() : server_name(""), root(""), index(""), client_body_buffer_size(0), listen(0)
 {
@@ -22,49 +24,6 @@ s_Location::s_Location() : path(""), root(""), autoIndex(false), cgiPass(false),
 }
 
 s_parser::s_parser() : config(), Location() {}
-
-std::vector<std::string> tokenize(const std::string &filename)
-{
-	char	c;
-	std::vector<std::string> tokens;
-	std::string line;
-	std::ifstream file(filename.c_str());
-	if (!file.is_open())
-		throw std::runtime_error("Error: Cannot open config file");
-	while (std::getline(file, line))
-	{
-		std::string current;
-		for (size_t i = 0; i < line.size(); i++)
-		{
-			c = line[i];
-			if (c == '#')
-				break ;
-			if (std::isspace(c))
-			{
-				if (!current.empty())
-				{
-					tokens.push_back(current);
-					current.clear();
-				}
-				continue ;
-			}
-			if (c == '{' || c == '}' || c == ';')
-			{
-				if (!current.empty())
-				{
-					tokens.push_back(current);
-					current.clear();
-				}
-				tokens.push_back(std::string(1, c));
-				continue ;
-			}
-			current += c;
-		}
-		if (!current.empty())
-			tokens.push_back(current);
-	}
-	return (tokens);
-}
 
 
 void	parse_error_page(const std::vector<std::string> &tokens, size_t &i, t_ErrorPages &errorPages)
@@ -113,22 +72,6 @@ void	parse_server_block(const std::vector<std::string> &tokens, size_t &i, t_con
 		i++;
 }
 
-static bool count_braces(std::vector<std::string> &tokens)
-{
-	int braces_left = 0;
-	int braces_right = 0;
-	for (size_t i = 0; i < tokens.size(); i++)
-	{
-		if(tokens[i] == "{")
-			braces_left++;
-		if(tokens[i] == "}")
-			braces_right++;
-	}
-	if(braces_left != braces_right)
-		return false;
-	return true;
-}
-
 void	parse_all(const std::string &filename, t_parser &parser)
 {
 	std::vector<std::string> tokens = tokenize(filename);
@@ -159,98 +102,6 @@ void	parse_all(const std::string &filename, t_parser &parser)
 	}
 }
 
-static void	set_Path(std::vector<std::string> &tokens, size_t &i,
-		t_Location &location)
-{
-	if (tokens[i].empty())
-		return ;
-	if (!tokens[i].empty())
-		location.path = tokens[i];
-	else 
-		location.path = "/";
-}
-static void	set_Autoindex(std::string &value, t_Location &location)
-{
-	if (value == "on")
-		location.autoIndex = true;
-	else
-		location.autoIndex = false;
-}
-
-static void	set_AllowedMethods(std::vector<std::string> &tokens, size_t &i,
-		t_Location &location)
-{
-	if (!tokens[i].empty())
-	{
-		while (validateMethod(tokens[i]))
-		{
-			//trocar
-			location.allowedMethods.push_back(tokens[i]);
-			i++;
-		}
-	}
-}
-
-static void	set_Root(std::string &value, t_Location &location)
-{
-	if (!value.empty() && value != ";")
-		location.root = value;
-	else
-		location.root = "";
-}
-
-static void	set_cgiPass(std::string &value, t_Location &location)
-{
-	if (value == "on")
-		location.cgiPass = true;
-	else
-		location.cgiPass = false;
-}
-
-static void	set_redirection(std::vector<std::string> &tokens, size_t &i,
-		t_Location &location)
-{
-	long	code;
-
-	if (!isNumber(tokens[i]))
-		return ;
-	location.hasRedirect = true;
-	code = std::atol(tokens[i].c_str());
-	if (code > INT_MAX || code < INT_MIN)
-		location.redirectCode = 0;
-	else
-		location.redirectCode = code;
-	i++;
-	if (tokens[i] != ";")
-		location.redirectUrl = tokens[i];
-	else
-		location.redirectUrl = "";
-}
-
-static void	set_tryFiles(std::vector<std::string> &tokens, size_t &i,
-		t_Location &location)
-{
-	if (!tokens[i].empty())
-	{
-		while (tokens[i] != ";")
-		{
-			location.try_files.push_back(tokens[i]);
-			i++;
-		}
-	}
-}
-
-static void set_cgiExt(std::vector<std::string> &tokens, size_t &i, t_Location &location)
-{
-	if (!tokens[i].empty())
-	{
-		while(tokens[i] != ";")
-		{
-			location.cgiExt.push_back(tokens[i]);
-			i++;
-		}
-	}
-}
 
 void	parse_location(t_Location &Location, size_t &i,
 		std::vector<std::string> &tokens)

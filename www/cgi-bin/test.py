@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
+
 import os
-import sys
 
-# Headers
-print("Content-Type: text/plain")
-print("X-Test: 123")
-print()  # linha em branco obrigatória entre headers e body
+print("Content-Type: text/plain\n")
+print("Hello from CGI!\n")
 
-# Body
-print("Hello")
+print("Method:", os.environ.get("REQUEST_METHOD"))
+print("Query:", os.environ.get("QUERY_STRING"))
