@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/16 15:17:16 by dsteiger          #+#    #+#             */
-/*   Updated: 2026/03/21 19:35:19 by rafael           ###   ########.fr       */
+/*   Updated: 2026/03/23 01:54:57 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,33 +83,34 @@ void	parse_error_page(const std::vector<std::string> &tokens, size_t &i, t_Error
 
 void	parse_server_block(const std::vector<std::string> &tokens, size_t &i, t_config &config)
 {
-		if (tokens[i] == "listen" && i + 2 < tokens.size())
-		{
-			config.listen = std::atoi(tokens[i + 1].c_str());
-			i += 3;
-		}
-		else if (tokens[i] == "server_name" && i + 2 < tokens.size())
-		{
-			config.server_name = tokens[i + 1].c_str();
-			i += 3;
-		}
-		else if (tokens[i] == "root" && i + 2 < tokens.size())
-		{
-			config.root = tokens[i + 1].c_str();
-			i += 3;
-		}
-		else if (tokens[i] == "index" && i + 2 < tokens.size())
-		{
-			config.index = tokens[i + 1].c_str();
-			i += 3;
-		}
-		else if (tokens[i] == "client_body_buffer_size" && i + 2 < tokens.size())
-		{
-			config.client_body_buffer_size = std::atoi(tokens[i + 1].c_str());
-			i += 3;
-		}
-		else
-			i++;
+	//melhorar, o erro era os else ifs
+	if (tokens[i] == "listen" && i + 2 < tokens.size())
+	{
+		config.listen = std::atoi(tokens[i + 1].c_str());
+		i += 3;
+	}
+	if (tokens[i] == "server_name" && i + 2 < tokens.size())
+	{
+		config.server_name = tokens[i + 1].c_str();
+		i += 3;
+	}
+	if (tokens[i] == "root" && i + 2 < tokens.size())
+	{
+		config.root = tokens[i + 1].c_str();
+		i += 3;
+	}
+	if (tokens[i] == "index" && i + 2 < tokens.size())
+	{
+		config.index = tokens[i + 1].c_str();
+		i += 3;
+	}
+	if (tokens[i] == "client_body_buffer_size" && i + 2 < tokens.size())
+	{
+		config.client_body_buffer_size = std::atoi(tokens[i + 1].c_str());
+		i += 3;
+	}
+	else
+		i++;
 }
 
 static bool count_braces(std::vector<std::string> &tokens)

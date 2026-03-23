@@ -238,7 +238,6 @@ Response Router::handleRequest(const Request& request)
         return redirect(loc.redirectCode, loc.redirectUrl);
     if (!isValidMethod(loc.allowedMethods, request.getMethod()))
         return makeErrorCode(405);
-    //setar DocRoot para loc root ou server root caso nao haja loc root
     if (!loc.root.empty())
         DocumentRoot = loc.root;
     else
@@ -250,7 +249,7 @@ Response Router::handleRequest(const Request& request)
        return makeErrorCode(403);
     if (isDirectory(AbsolutePath))
     {
-        std::string index = AbsolutePath + "/index.html";
+        std::string index = AbsolutePath + Parser.config.index;
         if (checkFile(index))
             AbsolutePath = index;
         else if (loc.autoIndex)
@@ -265,7 +264,6 @@ Response Router::handleRequest(const Request& request)
         else
             return makeErrorCode(403);
     }
-    //try files
     if (!checkFile(AbsolutePath)) //if it's not a directory but the file doens't exist
         return makeErrorCode(404);
     std::string content;
@@ -306,5 +304,5 @@ t_Location& Router::matchLocation(const std::string &path)
         }
         return Parser.Location[0];
     }
-    return *bestMatch;
+    return (*bestMatch);
 }
