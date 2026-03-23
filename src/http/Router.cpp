@@ -51,13 +51,18 @@ bool Router::validatePath(const std::string &path)
 void Router::splitPathQuery(const std::string& path)
 {
     size_t pos = path.find("?");
-    if (pos != std::string::npos)
+    if (pos != std::string::npos && pos + 1 <= path.size())
     {
-        Path = path.substr(0, pos);
+        std::string Path1;
+        Path1 = path.substr(0, pos);
         Query = path.substr(pos + 1);
+        Path = Path1;
     }
     else
+    {
         Path = path;    
+        Query = "";
+    }
 }
 
 std::vector<std::string> Router::splitPath(const std::string& path)
