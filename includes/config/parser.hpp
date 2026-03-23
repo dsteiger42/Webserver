@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   parser.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dsteiger <dsteiger@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/16 15:18:48 by dsteiger          #+#    #+#             */
-/*   Updated: 2026/03/19 16:21:00 by dsteiger         ###   ########.fr       */
+/*   Updated: 2026/03/21 05:07:54 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,43 +25,15 @@
 #include <http/utils/utils.hpp>
 #include <cstdlib>
 #include <climits>
+#include <config/types.hpp>
 
-typedef struct s_config
-{
-    std::map<int, std::string> error_pages;
-    std::string server_name;
-    std::string root;
-    std::string index;
-    int client_body_buffer_size;
-    int listen;
-    s_config();
 
-} t_config;
-
-typedef struct s_MimeTypes
-{
-    std::map<std::string, std::string> types;
-} t_MimeTypes;
-
-typedef struct s_Location
-{
-    std::string path;
-    std::string root;
-    std::vector<std::string> allowedMethods;
-    std::vector<std::string> cgiExt;
-    bool autoIndex;
-    bool cgiPass;
-    bool hasRedirect;
-    size_t redirectCode;
-    std::string redirectUrl;
-    std::vector<std::string> try_files; 
-    s_Location();
-} t_Location;
 
 typedef struct s_parser
 {
     
     t_config config;
+    t_ErrorPages ErrorPages;
     t_MimeTypes MimeTypes;
     std::vector<t_Location> Location;
     s_parser();

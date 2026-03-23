@@ -177,18 +177,18 @@ Response CGI::execute(const Request &req)
 	std::string output;
 	std::string scriptPath = resolveScriptPath(req.getPath());
 	if (!isInsideRoot(scriptPath, router->getDocumentRoot()))
-		return (makeErrorCode(403));
+		return (router->makeErrorCode(403));
 	if (!checkFile(scriptPath))
-		return (makeErrorCode(404));
+		return (router->makeErrorCode(404));
 	if (!isExecutable(scriptPath))
-		return (makeErrorCode(403));
+		return (router->makeErrorCode(403));
 	argv = buildArguments(scriptPath);
 	buildEnvironment(req, scriptPath);
 	std::vector<char *> envp = convertEnv(env);
 	createPipes(inPipe, outPipe);
 	pid = fork();
 	if (pid == -1)
-		return (makeErrorCode(500));
+		return (router->makeErrorCode(500));
 	if (pid == 0)
 		executeChildProcess(inPipe, outPipe, scriptPath, &argv[0], &envp[0]);
 	if (pid > 0)

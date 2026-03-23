@@ -43,7 +43,7 @@ class Server
         Router _router; //Rafael  
 
     public:
-        Server(int port, const t_parser &parser);
+        Server(int port, t_parser &parser);
         ~Server();
         sockaddr_in create_address();
         int setup_socket();

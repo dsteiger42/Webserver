@@ -8,23 +8,34 @@
 #include <http/cgi/CGI.hpp>
 #include <config/parser.hpp>
 #include <dirent.h>
+#include <algorithm>
 
 //serve para analisar um Request HTTP e decidir qual recurso devolver, construindo a Response adequada (ficheiro ou erro).
+
+struct Item
+{
+    std::string name;
+    bool isDir;
+    size_t size;
+    time_t lastModification;
+};
 
 class CGI; //to remove
 class Router
 {
     private:
-        t_MimeTypes MimeTypes;
-        std::vector<t_Location> Locations;
+        /* t_MimeTypes MimeTypes;
+        std::vector<t_Location> Locations; */
+        t_parser &Parser;
         std::string Path;
         std::string Query;
         std::string Method;
         std::string DocumentRoot; //in the future will be at .conf
         std::string AbsolutePath;
     public:
+        Response makeErrorCode(size_t code);
         CGI* cgi;
-        Router(const t_parser &parser);
+        Router(t_parser &parser);
         ~Router();
         std::string getPath() const;
         std::string getQuery() const;

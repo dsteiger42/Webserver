@@ -1,9 +1,7 @@
 #include <http/Router.hpp>
 
-Router::Router(const t_parser& parser) 
+Router::Router(t_parser& parser) : Parser(parser) 
 {   
-    MimeTypes = parser.MimeTypes;
-    Locations = parser.Location;
     Path = "";
     Query = "";
     Method = "";
@@ -82,14 +80,15 @@ bool Router::buildFinalPath(std::string& path)
 {
     std::vector<std::string> tokens = splitPath(path);
     std::vector<std::string> final;
+
+    bool hasTrailingSlash = (path.size() > 0 && path[path.size() - 1] == '/');
     for (size_t i = 0; i < tokens.size(); i++)
     {
         if (tokens[i] == "..")
         {
             if (final.size() == 0)
                 return false;
-            else
-                final.pop_back();
+            final.pop_back();
         }
         else if (tokens[i] == "" || tokens[i] == ".")
             continue;
@@ -103,13 +102,17 @@ bool Router::buildFinalPath(std::string& path)
         if (i + 1 < final.size())
             this->Path += "/";
     }
+    if (hasTrailingSlash && this->Path.size() > 1)
+        this->Path += "/";
     return true;
 }
 
 Response Router::redirect(int redirectCode, std::string redirectUrl)
 {
-    Response response;
+    Response response(Parser.ErrorPages);
     response.setStatusCode(redirectCode);
+    if (redirectUrl.empty())
+        return makeErrorCode (redirectCode);
     response.setHeader("Location", redirectUrl);
     response.setBody("Redirecting");
     response.setHeader("Content-Type", "text/plain");
@@ -117,41 +120,112 @@ Response Router::redirect(int redirectCode, std::string redirectUrl)
     return response;
 }
 
-// std::string generateAutoIndex(std::string &AbsolutePath, std::string &Path)
-// {
-//     std::string html;
-//     DIR *dir = opendir(AbsolutePath.c_str());
-//     if (!dir)
-//     {
-//         //500
-//         std::cout << "Couldn't opendir" << std::endl;
-//         return NULL;
-//     }
-// /*     1. abrir diretoria
-//     2. para cada entry:
-//         - ignorar "." e ".."
-//         - construir full path
-//         - fazer stat
-//         - identificar tipo (dir/file)
-//         - extrair tamanho
-//         - extrair data
-//         - guardar tudo num vector
+static Item createItem(const std::string &name, const struct stat &st)
+{
+    Item current;
+    current.name = name;
+    current.isDir = S_ISDIR(st.st_mode);
+    current.size = st.st_size;
+    current.lastModification = st.st_mtime;
+    return current;
+}
 
-//     3. ordenar vector
+bool comparaByName(const Item &a, const Item &b)
+{
+    return (a.name < b.name);
+}
 
-//     4. gerar HTML:
-//         - header
-//         - tabela
-//         - loop no vector
-//         - footer
+void generateHTML(std::string& html, std::string& Path, std::vector<Item> &items)
+{
+    html += "<html>\n";
+    html += "<head><title>Index of " + Path + "</title></head>\n";
+    html += "<body>\n";
+    html += "<h1>Index of " + Path + "</h1>\n";
+    html += "<table>\n";
+     for (size_t i = 0; i < items.size(); i++)
+    {
+        html += "<tr>";
+        // -------- LINK --------
+        html += "<td><a href=\"";
+        html += items[i].name;
+        if (items[i].isDir)
+            html += "/";
+        html += "\">";
+        html += items[i].name;
+        if (items[i].isDir)
+            html += "/";
+        html += "</a></td>";
+        // -------- TAMANHO --------
+        html += "<td>";
+        if (items[i].isDir)
+        {
+            html += "-";
+        }
+        else
+        {
+            std::ostringstream oss;
+            oss << items[i].size;
+            html += oss.str();
+        }
+        html += "</td>";
+        html += "</tr>\n";
+    }
+    // =========================
+    // 5. FECHAR HTML
+    // =========================
+    html += "</table>\n";
+    html += "</body>\n";
+    html += "</html>\n";
+}
 
-//     5. return HTML */
-// }
 
+bool generateAutoIndex(std::string &AbsolutePath, std::string &Path, std::string &html)
+{
+    std::vector<std::string> all;
+    std::vector<Item> items;
+    DIR *dir = opendir(AbsolutePath.c_str());
+    if (!dir)
+    {
+        std::cout << "<h1>500 Internal Server Error</h1>" << std::endl;
+        return false;
+    }
+    struct dirent *entry;
+    while((entry = readdir(dir)) != NULL)
+    {
+        std::string name = entry->d_name;
+        if (name == "." || name == "..")
+            continue;
+        std::string fullPath = AbsolutePath + "/" + name;
+        struct stat st;
+        if (stat(fullPath.c_str(), &st) == -1)
+            continue;
+        items.push_back(createItem(name, st));
+    }
+    std::sort(items.begin(), items.end(), comparaByName);
+    generateHTML(html, Path, items);
+    return true;
+}
+
+Response Router::makeErrorCode(size_t code)
+{
+    Response res(Parser.ErrorPages);
+    res.setStatusCode(code);
+    std::string path = DocumentRoot + res.getStatusMessage();
+    std::string page;
+    if (!readFile(path, page))
+    {
+        std::stringstream ss;
+        ss << "<h1>" << code << " " << "Error Ocurred" << "</h1>";
+        res.setBody(page);
+        return res;
+    }
+    res.setBody(page);
+    return res;
+}
 
 Response Router::handleRequest(const Request& request)
 {
-    Response response;
+    Response response(Parser.ErrorPages);
     if (!validateMethod(request.getMethod()))
         return makeErrorCode(405);
     splitPathQuery(request.getPath());
@@ -164,34 +238,39 @@ Response Router::handleRequest(const Request& request)
         return redirect(loc.redirectCode, loc.redirectUrl);
     if (!isValidMethod(loc.allowedMethods, request.getMethod()))
         return makeErrorCode(405);
-    //setar DocRoot para loc root ou server root caso nao haja loc root
     if (!loc.root.empty())
         DocumentRoot = loc.root;
     else
-        DocumentRoot = "./www"; // trocar server.root;
-    if (loc.cgiPass)    
+        DocumentRoot = Parser.config.root;
+    if (loc.cgiPass)
         return (cgi->execute(request));
     AbsolutePath = DocumentRoot + Path;
     if (!isInsideRoot(AbsolutePath, DocumentRoot))
        return makeErrorCode(403);
     if (isDirectory(AbsolutePath))
     {
-        //se tiver autoindex on retorna um generateautoindex(absolutepath)
-        //Para listar diretórios quando autoindex = on.
-        std::string index = AbsolutePath + "/index.html";
+        std::string index = AbsolutePath + Parser.config.index;
         if (checkFile(index))
             AbsolutePath = index;
+        else if (loc.autoIndex)
+        {
+            std::string html;
+            if (!generateAutoIndex(AbsolutePath, Path, html))
+                return makeErrorCode(500);
+            response.setBody(html);
+            response.setHeader("Content-Type", getMimeType(getExtension(".html"), Parser.MimeTypes.types));
+            return response;
+        }
         else
             return makeErrorCode(403);
     }
-    //try files
     if (!checkFile(AbsolutePath)) //if it's not a directory but the file doens't exist
         return makeErrorCode(404);
     std::string content;
     if (!readFile(AbsolutePath, content))
         return makeErrorCode(500);
     response.setBody(content);
-    std::string MimeType = getMimeType(getExtension(AbsolutePath), MimeTypes.types);
+    std::string MimeType = getMimeType(getExtension(AbsolutePath), Parser.MimeTypes.types);
     response.setHeader("Content-Type", MimeType);
     return response;
 }
@@ -199,14 +278,14 @@ Response Router::handleRequest(const Request& request)
 
 t_Location& Router::matchLocation(const std::string &path)
 {
-    if (Locations.empty())
+    if (Parser.Location.empty())
         throw std::runtime_error("No locations configured");
     t_Location* bestMatch = NULL;
     size_t bestLength = 0;
 
-    for (size_t i = 0; i < Locations.size(); i++)
+    for (size_t i = 0; i < Parser.Location.size(); i++)
     {
-        t_Location& loc = Locations[i];
+        t_Location& loc = Parser.Location[i];
         if (path.compare(0, loc.path.size(), loc.path) == 0)
         {
             if (loc.path.size() > bestLength)
@@ -218,12 +297,12 @@ t_Location& Router::matchLocation(const std::string &path)
     }
     if (!bestMatch)
     {
-        for (size_t i = 0; i < Locations.size(); i++)
+        for (size_t i = 0; i < Parser.Location.size(); i++)
         {
-            if (Locations[i].path == "/")
-                return Locations[i];
+            if (Parser.Location[i].path == "/")
+                return Parser.Location[i];
         }
-        return Locations[0];
+        return Parser.Location[0];
     }
-    return *bestMatch;
+    return (*bestMatch);
 }

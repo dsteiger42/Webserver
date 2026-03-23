@@ -3,7 +3,6 @@
 bool readFile(const std::string& path, std::string& outContent)
 {
     outContent.clear(); //limpa a string
-
     std::ifstream file(path.c_str(), std::ios::in | std::ios::binary);
     if (!file.is_open())
         return false;
@@ -29,8 +28,8 @@ bool isDirectory(const std::string& absolutePath)
         return false;
     if (!S_ISDIR(info.st_mode))
         return false;
-    if (access(absolutePath.c_str(), R_OK) != 0)
-        return false;
+    /* if (access(absolutePath.c_str(), R_OK) != 0)
+        return false; */
     return true;
 }
 
@@ -48,14 +47,6 @@ bool checkFile(const std::string& index)
     return false;
 }
 
-Response makeErrorCode(size_t code)
-{
-    Response res;
-    res.setStatusCode(code);
-    std::stringstream ss;
-    ss << "<h1>" << code << " " << res.getStatusMessage() << "</h1>";    res.setBody(ss.str());
-    return res;
-}
 
 bool isExecutable(const std::string& path)
 {

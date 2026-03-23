@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   parser.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dsteiger <dsteiger@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/16 15:17:16 by dsteiger          #+#    #+#             */
-/*   Updated: 2026/03/19 18:21:03 by dsteiger         ###   ########.fr       */
+/*   Updated: 2026/03/23 01:54:57 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@ s_config::s_config() : server_name(""), root(""), index(""), client_body_buffer_
 }
 
 s_Location::s_Location() : path(""), root(""), autoIndex(false), cgiPass(false),
-	hasRedirect(false), redirectCode(0), redirectUrl("")
+	hasRedirect(false), has_tryFiles(false), redirectCode(0), redirectUrl("")
 {
 }
 
@@ -66,51 +66,51 @@ std::vector<std::string> tokenize(const std::string &filename)
 	return (tokens);
 }
 
-void	parse_error_page(const std::vector<std::string> &tokens, size_t &i, t_config &config)
+
+void	parse_error_page(const std::vector<std::string> &tokens, size_t &i, t_ErrorPages &errorPages)
 {
 	int	code;
 
-	if (i + 3 >= tokens.size())
+	if (i + 2 >= tokens.size())
 		return ;
-	code = std::atoi(tokens[i + 1].c_str());
-	std::string path = tokens[i + 2];
-	config.error_pages[code] = path;
-	i += 4;
+	code = std::atol(tokens[i].c_str());
+	if (code > INT_MAX || code < INT_MIN)
+		return ;
+	i++;
+	std::string path = tokens[i];
+	errorPages.error_pages[code] = path;
 }
 
 void	parse_server_block(const std::vector<std::string> &tokens, size_t &i, t_config &config)
 {
-		if (tokens[i] == "listen" && i + 2 < tokens.size())
-		{
-			config.listen = std::atoi(tokens[i + 1].c_str());
-			i += 3;
-		}
-		else if (tokens[i] == "server_name" && i + 2 < tokens.size())
-		{
-			config.server_name = tokens[i + 1].c_str();
-			i += 3;
-		}
-		else if (tokens[i] == "root" && i + 2 < tokens.size())
-		{
-			config.root = tokens[i + 1].c_str();
-			i += 3;
-		}
-		else if (tokens[i] == "index" && i + 2 < tokens.size())
-		{
-			config.index = tokens[i + 1].c_str();
-			i += 3;
-		}
-		else if (tokens[i] == "client_body_buffer_size" && i + 2 < tokens.size())
-		{
-			config.client_body_buffer_size = std::atoi(tokens[i + 1].c_str());
-			i += 3;
-		}
-		else if (tokens[i] == "error_page")
-		{
-			parse_error_page(tokens, i, config);
-		}
-		else
-			i++;
+	//melhorar, o erro era os else ifs
+	if (tokens[i] == "listen" && i + 2 < tokens.size())
+	{
+		config.listen = std::atoi(tokens[i + 1].c_str());
+		i += 3;
+	}
+	if (tokens[i] == "server_name" && i + 2 < tokens.size())
+	{
+		config.server_name = tokens[i + 1].c_str();
+		i += 3;
+	}
+	if (tokens[i] == "root" && i + 2 < tokens.size())
+	{
+		config.root = tokens[i + 1].c_str();
+		i += 3;
+	}
+	if (tokens[i] == "index" && i + 2 < tokens.size())
+	{
+		config.index = tokens[i + 1].c_str();
+		i += 3;
+	}
+	if (tokens[i] == "client_body_buffer_size" && i + 2 < tokens.size())
+	{
+		config.client_body_buffer_size = std::atoi(tokens[i + 1].c_str());
+		i += 3;
+	}
+	else
+		i++;
 }
 
 static bool count_braces(std::vector<std::string> &tokens)
@@ -149,6 +149,11 @@ void	parse_all(const std::string &filename, t_parser &parser)
 			t_Location loc;
 			parse_location(loc, i, tokens);
 			parser.Location.push_back(loc);
+		}
+		else if (tokens[i] == "error_page")
+		{
+			i++;
+			parse_error_page(tokens, i, parser.ErrorPages);
 		}
 		i++;
 	}
@@ -286,6 +291,7 @@ void	parse_location(t_Location &Location, size_t &i,
 		{
 			i++;
 			set_tryFiles(tokens, i, Location);
+			Location.has_tryFiles = true;
 		}
 		if (tokens[i] == "cgi_ext" && !tokens[i + 1].empty())
 		{

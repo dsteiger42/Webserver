@@ -4,6 +4,7 @@
 Create a port variable that will read the conf.file. then call the constructor with that port variable,
 which is assign to _port in the constructor. Then _port is called in the struct sockaddr_in and assigned in bind().
 */
+
 int main(int argc, char **argv)
 {
     t_parser parser;
@@ -12,7 +13,7 @@ int main(int argc, char **argv)
         std::cerr << "Error: wrong number of arguments" << std::endl;
         return -1;
     }
-    parse_all(argv[1], parser);
+    parse_all(argv[1], parser);   
     //int port = parseListenPort(); -> parse the "listen" in webserver.conf
     //server myServer(port);
 

@@ -6,10 +6,12 @@
 #include <map>
 #include <string>
 #include <sstream>
+#include <config/types.hpp>
 
 class Response
 {
     private:
+        t_ErrorPages ErrorPages;
         int StatusCode;
         std::string httpVersion;
         std::string StatusMessage;
@@ -17,6 +19,7 @@ class Response
         std::string Body;
     public:
         Response();
+        Response(t_ErrorPages &errorPages);
         
         int getStatusCode() const;
         const std::string getBody() const;
