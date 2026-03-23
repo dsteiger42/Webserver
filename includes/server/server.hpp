@@ -40,10 +40,10 @@ class Server
         int _server_fd;
         int _port;
         std::map<int, Client> _allClients; // store each fd to each client
-        Router _router; //Rafael  
+        Router _router;  
 
     public:
-        Server(int port, t_parser &parser);
+        Server(int port, parser &parser);
         ~Server();
         sockaddr_in create_address();
         int setup_socket();

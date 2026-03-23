@@ -207,11 +207,16 @@ void Request::parse(const std::string &request)
 void Request::splitPathQuery(const std::string& path)
 {
     size_t pos = path.find("?");
-    if (pos != std::string::npos)
+    if (pos != std::string::npos && pos + 1 <= path.size())
     {
-        Path = path.substr(0, pos);
+		std::string path1;
+        path1 = path.substr(0, pos);
         Query = path.substr(pos + 1);
+		Path = path1;
     }
     else
+	{
         Path = path;    
+		Query = "";
+	}
 }

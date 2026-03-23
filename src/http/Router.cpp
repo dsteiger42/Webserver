@@ -1,6 +1,6 @@
 #include <http/Router.hpp>
 
-Router::Router(t_parser& parser) : Parser(parser) 
+Router::Router(parser& parser) : Parser(parser) 
 {   
     Path = "";
     Query = "";
@@ -51,13 +51,18 @@ bool Router::validatePath(const std::string &path)
 void Router::splitPathQuery(const std::string& path)
 {
     size_t pos = path.find("?");
-    if (pos != std::string::npos)
+    if (pos != std::string::npos && pos + 1 <= path.size())
     {
-        Path = path.substr(0, pos);
+        std::string Path1;
+        Path1 = path.substr(0, pos);
         Query = path.substr(pos + 1);
+        Path = Path1;
     }
     else
+    {
         Path = path;    
+        Query = "";
+    }
 }
 
 std::vector<std::string> Router::splitPath(const std::string& path)
@@ -233,7 +238,7 @@ Response Router::handleRequest(const Request& request)
         return makeErrorCode(400);
     if (!buildFinalPath(Path))
         return makeErrorCode(403);
-    t_Location& loc = matchLocation(Path);
+    Location& loc = matchLocation(Path);
     if (loc.hasRedirect)
         return redirect(loc.redirectCode, loc.redirectUrl);
     if (!isValidMethod(loc.allowedMethods, request.getMethod()))
@@ -276,16 +281,16 @@ Response Router::handleRequest(const Request& request)
 }
 
 
-t_Location& Router::matchLocation(const std::string &path)
+Location& Router::matchLocation(const std::string &path)
 {
     if (Parser.Location.empty())
         throw std::runtime_error("No locations configured");
-    t_Location* bestMatch = NULL;
+    Location* bestMatch = NULL;
     size_t bestLength = 0;
 
     for (size_t i = 0; i < Parser.Location.size(); i++)
     {
-        t_Location& loc = Parser.Location[i];
+        Location& loc = Parser.Location[i];
         if (path.compare(0, loc.path.size(), loc.path) == 0)
         {
             if (loc.path.size() > bestLength)

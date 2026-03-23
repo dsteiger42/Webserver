@@ -11,7 +11,7 @@
 class Response
 {
     private:
-        t_ErrorPages ErrorPages;
+        ErrorPages errorPages;
         int StatusCode;
         std::string httpVersion;
         std::string StatusMessage;
@@ -19,7 +19,7 @@ class Response
         std::string Body;
     public:
         Response();
-        Response(t_ErrorPages &errorPages);
+        Response(ErrorPages &ErrorPages);
         
         int getStatusCode() const;
         const std::string getBody() const;
@@ -40,7 +40,6 @@ class Response
         void buildHeader(std::string &result);
         void buildBody(std::string &result);
         std::string serialize();
-
 
 };
 

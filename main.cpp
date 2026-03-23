@@ -1,5 +1,5 @@
 #include <server/server.hpp>
-#include <config/parser.hpp>
+#include <config/parsing/parser.hpp>
 /*
 Create a port variable that will read the conf.file. then call the constructor with that port variable,
 which is assign to _port in the constructor. Then _port is called in the struct sockaddr_in and assigned in bind().
@@ -7,13 +7,13 @@ which is assign to _port in the constructor. Then _port is called in the struct 
 
 int main(int argc, char **argv)
 {
-    t_parser parser;
+    parser parser;
     if(argc != 2)
     {
         std::cerr << "Error: wrong number of arguments" << std::endl;
         return -1;
     }
-    parse_all(argv[1], parser);   
+    parse_all(argv[1], parser);
     //int port = parseListenPort(); -> parse the "listen" in webserver.conf
     //server myServer(port);
 

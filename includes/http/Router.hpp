@@ -6,7 +6,7 @@
 #include <http/utils/utils.hpp>
 #include <http/utils/mime.hpp>
 #include <http/cgi/CGI.hpp>
-#include <config/parser.hpp>
+#include <config/parsing/parser.hpp>
 #include <dirent.h>
 #include <algorithm>
 
@@ -24,9 +24,7 @@ class CGI; //to remove
 class Router
 {
     private:
-        /* t_MimeTypes MimeTypes;
-        std::vector<t_Location> Locations; */
-        t_parser &Parser;
+        parser &Parser;
         std::string Path;
         std::string Query;
         std::string Method;
@@ -35,7 +33,7 @@ class Router
     public:
         Response makeErrorCode(size_t code);
         CGI* cgi;
-        Router(t_parser &parser);
+        Router(parser &parser);
         ~Router();
         std::string getPath() const;
         std::string getQuery() const;
@@ -50,7 +48,7 @@ class Router
         bool buildFinalPath(std::string& path);
         bool buildDocumentRoot(std::string& documentRoot);
         Response handleRequest(const Request& request);
-        t_Location& matchLocation(const std::string& path);
+        Location& matchLocation(const std::string& path);
         Response redirect(int redirectCode, std::string redirectUrl);
 
 };
