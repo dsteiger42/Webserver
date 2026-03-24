@@ -6,7 +6,7 @@
 #include <http/utils/utils.hpp>
 #include <http/utils/mime.hpp>
 #include <http/cgi/CGI.hpp>
-#include <config/parsing/parser.hpp>
+#include <config/parser/parser.hpp>
 #include <dirent.h>
 #include <algorithm>
 

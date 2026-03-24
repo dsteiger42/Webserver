@@ -10,7 +10,11 @@ SRCS =  src/http/Request.cpp \
 		main.cpp \
 		src/server/server.cpp \
 		src/client/client.cpp \
-		src/config/parser.cpp \
+		src/config/parser/parser.cpp \
+		src/config/parser/parse_server.cpp \
+		src/config/parser/parse_location.cpp \
+		src/config/parser/parse_mime.cpp \
+		src/config/parser/parse_error.cpp \
 		src/config/parsing/Location_setters.cpp \
 		src/config/parsing/parsing_utils.cpp \
 
