@@ -33,7 +33,6 @@ class Router
         std::string get_AbsolutePath() const;
         std::string get_DocumentRoot() const;
     
-        //bool validate_Method(const std::string &method);
         bool validate_Path(const std::string &path);
         void split_PathQuery(const std::string& path);
         std::vector<std::string> split_Path(const std::string& path);

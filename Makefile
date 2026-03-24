@@ -4,7 +4,9 @@ SRCS =  src/http/Request.cpp \
 		src/http/router/Router.cpp \
 		src/http/router/autoindex.cpp \
 		src/http/router/file_handler.cpp \
-		src/http/utils/utils.cpp \
+		src/http/utils/file_utils.cpp \
+		src/http/utils/path_utils.cpp \
+		src/http/utils/validation_utils.cpp \
 		src/http/utils/mime.cpp \
 		main.cpp \
 		src/server/server.cpp \

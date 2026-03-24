@@ -33,12 +33,6 @@ bool is_Directory(const std::string& absolutePath)
     return true;
 }
 
-bool is_InsideRoot(const std::string& path, const std::string &DocumentRoot)
-{
-    if (path.compare(0, DocumentRoot.size(), DocumentRoot) != 0)
-        return false;
-    return true;
-}
 bool check_File(const std::string& index)
 {
     struct stat info;
@@ -47,37 +41,8 @@ bool check_File(const std::string& index)
     return false;
 }
 
-
 bool is_Executable(const std::string& path)
 {
     return access(path.c_str(), X_OK) == 0;
 }
 
-bool validate_Method(const std::string &method)
-{
-    return method == "GET" || method == "POST" || method == "DELETE";
-}
-
-bool is_Number(std::string &string)
-{
-    if (string.empty())
-        return false;
-    for (size_t i = 0; i < string.size(); i++)
-    {
-        if (string[i] == '+')
-            i++;
-        if (!std::isdigit(string[i]))
-            return false;
-    }
-    return true;
-}
-
-bool is_ValidMethod(std::vector<std::string> &allowedMethods, const std::string &method)
-{
-    for (size_t i = 0; i < allowedMethods.size(); i++)
-    {
-        if (allowedMethods[i] == method)
-            return true;
-    }
-    return false;
-}
