@@ -5,11 +5,11 @@
 #include <vector>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <http/Request.hpp>
-#include <http/Response.hpp>
-#include <http/Router.hpp>
-#include <http/utils/utils.hpp>
-#include <http/Router.hpp>
+#include <http/request/Request.hpp>
+#include <http/response/Response.hpp>
+#include <http/routing/Router.hpp>
+#include <utils/utils.hpp>
+#include <http/routing/Router.hpp>
 
 class Router; //to remove
 class CGI
@@ -28,21 +28,21 @@ class CGI
         Response execute(const Request& req);
 
     private:
-        std::vector<std::string> args;
+        std::vector<std::string> _args;
         std::vector<std::string> env;
         Router *router; // To remove
-        std::string resolveScriptPath(const std::string& path);
-        std::vector<char*> buildArguments(const std::string& scriptPath);
-        void buildEnvironment(const Request& req, const std::string& scriptPath);
-        std::vector<char*> convertEnv(const std::vector<std::string>& env);
-        void createPipes(int inPipe[2], int outPipe[2]);
-        void executeChildProcess(int inPipe[2], int outPipe[2],
+        std::string resolve_ScriptPath(const std::string& path);
+        std::vector<char*> build_Arguments(const std::string& scriptPath);
+        void build_Environment(const Request& req, const std::string& scriptPath);
+        std::vector<char*> convert_Env(const std::vector<std::string>& env);
+        void create_Pipes(int inPipe[2], int outPipe[2]);
+        void execute_ChildProcess(int inPipe[2], int outPipe[2],
                                  const std::string& scriptPath,
                                  char* const argv[],
                                  char* const envp[]);
-        std::string handleParentProcess(int inPipe[2], int outPipe[2],
+        std::string handle_ParentProcess(int inPipe[2], int outPipe[2],
                                         const Request& req);
-        CGIResult parseCGIOutput(const std::string& output);
+        CGIResult parse_CGIOutput(const std::string& output);
 
 };
 #endif
