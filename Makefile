@@ -6,7 +6,6 @@ SRCS =  src/http/Request.cpp \
 		src/http/router/file_handler.cpp \
 		src/http/utils/utils.cpp \
 		src/http/utils/mime.cpp \
-		src/http/cgi/CGI.cpp \
 		main.cpp \
 		src/server/server.cpp \
 		src/client/client.cpp \
@@ -16,6 +15,10 @@ SRCS =  src/http/Request.cpp \
 		src/config/parser/parse_mime.cpp \
 		src/config/parser/parse_error.cpp \
 		src/config/parsing/Location_setters.cpp \
+		src/http/cgi/CGI.cpp \
+		src/http/cgi/cgi_exec.cpp \
+		src/http/cgi/cgi_env.cpp \
+		src/http/cgi/cgi_parse.cpp \
 		src/config/parsing/parsing_utils.cpp \
 
 NAME = Webserv
