@@ -1,4 +1,5 @@
 #include <http/router/Router.hpp>
+#include <http/router/autoindex.hpp>
 
 Router::Router(Parser& Parser) : _parser(Parser) 
 {   

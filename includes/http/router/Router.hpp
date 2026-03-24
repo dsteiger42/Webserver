@@ -12,14 +12,6 @@
 
 //serve para analisar um Request HTTP e decidir qual recurso devolver, construindo a Response adequada (ficheiro ou erro).
 
-struct Item
-{
-    std::string name;
-    bool isDir;
-    size_t size;
-    time_t lastModification;
-};
-
 class CGI; //to remove
 class Router
 {
