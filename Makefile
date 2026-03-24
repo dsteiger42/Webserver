@@ -2,6 +2,8 @@ SRCS =  src/http/Request.cpp \
 		src/http/Response.cpp \
 		src/http/CircularBuffer.cpp \
 		src/http/router/Router.cpp \
+		src/http/router/autoindex.cpp \
+		src/http/router/file_handler.cpp \
 		src/http/utils/utils.cpp \
 		src/http/utils/mime.cpp \
 		src/http/cgi/CGI.cpp \

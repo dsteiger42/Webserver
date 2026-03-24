@@ -62,9 +62,6 @@ static void generateHTML(std::string& html, std::string& Path, std::vector<Item>
     html += "</html>\n";
 }
 
-// ==========================
-// FUNÇÃO PÚBLICA
-// ==========================
 bool generateAutoIndex(std::string &AbsolutePath, std::string &Path, std::string &html)
 {
     std::vector<Item> items;
