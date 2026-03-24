@@ -6,12 +6,12 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 00:53:07 by rafael            #+#    #+#             */
-/*   Updated: 2026/03/24 00:53:19 by rafael           ###   ########.fr       */
+/*   Updated: 2026/03/24 03:05:02 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <config/parser/parser.hpp>
-#include <config/parsing/Location_setters.hpp>
+#include <config/parser/Location_setters.hpp>
 
 void	parse_Location(Location &Location, size_t &i,
 		std::vector<std::string> &tokens)

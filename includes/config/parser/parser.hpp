@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/16 15:18:48 by dsteiger          #+#    #+#             */
-/*   Updated: 2026/03/24 01:06:29 by rafael           ###   ########.fr       */
+/*   Updated: 2026/03/24 03:02:01 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,9 +16,9 @@
 #include <string>
 #include <vector>
 #include <map>
-#include <http/utils/utils.hpp>
-#include <config/types.hpp>
-#include <config/parsing/parsing_utils.hpp>
+#include <utils/utils.hpp>
+#include <config/model/types.hpp>
+#include <config/parser/parsing_utils.hpp>
 // #include <iostream>
 // #include <fstream>
 // #include <sstream>

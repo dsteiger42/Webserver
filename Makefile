@@ -1,28 +1,35 @@
-SRCS =  src/http/Request.cpp \
-		src/http/Response.cpp \
-		src/http/CircularBuffer.cpp \
-		src/http/router/Router.cpp \
-		src/http/router/autoindex.cpp \
-		src/http/router/file_handler.cpp \
-		src/http/utils/file_utils.cpp \
-		src/http/utils/path_utils.cpp \
-		src/http/utils/validation_utils.cpp \
-		src/http/utils/mime.cpp \
-		main.cpp \
-		src/server/server.cpp \
-		src/client/client.cpp \
-		src/config/parser/parser.cpp \
-		src/config/parser/parse_server.cpp \
-		src/config/parser/parse_location.cpp \
-		src/config/parser/parse_mime.cpp \
-		src/config/parser/parse_error.cpp \
-		src/config/parsing/Location_setters.cpp \
-		src/http/cgi/CGI.cpp \
-		src/http/cgi/cgi_exec.cpp \
-		src/http/cgi/cgi_env.cpp \
-		src/http/cgi/cgi_parse.cpp \
-		src/config/parsing/parsing_utils.cpp \
-
+SRCS = \
+	main.cpp \
+	\
+	src/core/client.cpp \
+	src/core/server.cpp \
+	\
+	src/http/request/Request.cpp \
+	src/http/response/Response.cpp \
+	src/http/buffer/CircularBuffer.cpp \
+	\
+	src/routing/Router.cpp \
+	src/routing/autoindex.cpp \
+	src/routing/file_handler.cpp \
+	\
+	src/cgi/CGI.cpp \
+	src/cgi/cgi_exec.cpp \
+	src/cgi/cgi_env.cpp \
+	src/cgi/cgi_parse.cpp \
+	\
+	src/config/parser/parser.cpp \
+	src/config/parser/parse_server.cpp \
+	src/config/parser/parse_location.cpp \
+	src/config/parser/parse_mime.cpp \
+	src/config/parser/parse_error.cpp \
+	src/config/parser/Location_setters.cpp \
+	src/config/parser/parsing_utils.cpp \
+	\
+	src/utils/filesystem/file_utils.cpp \
+	src/utils/filesystem/path_utils.cpp \
+	src/utils/validation/validation_utils.cpp \
+	src/utils/http/mime.cpp
+	
 NAME = Webserv
 
 COMPRESS = ar rcs

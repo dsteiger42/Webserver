@@ -5,11 +5,11 @@
 #include <vector>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <http/Request.hpp>
-#include <http/Response.hpp>
-#include <http/router/Router.hpp>
-#include <http/utils/utils.hpp>
-#include <http/router/Router.hpp>
+#include <http/request/Request.hpp>
+#include <http/response/Response.hpp>
+#include <http/routing/Router.hpp>
+#include <utils/utils.hpp>
+#include <http/routing/Router.hpp>
 
 class Router; //to remove
 class CGI

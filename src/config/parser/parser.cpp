@@ -6,13 +6,13 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/16 15:17:16 by dsteiger          #+#    #+#             */
-/*   Updated: 2026/03/24 01:05:17 by rafael           ###   ########.fr       */
+/*   Updated: 2026/03/24 03:05:02 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <config/parser/parser.hpp>
-#include <config/parsing/Location_setters.hpp>
-#include <config/parsing/parsing_utils.hpp>
+#include <config/parser/Location_setters.hpp>
+#include <config/parser/parsing_utils.hpp>
 
 Config::Config() : server_name(""), root(""), index(""), client_body_buffer_size(0), listen(0)
 {
