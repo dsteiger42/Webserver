@@ -30,7 +30,7 @@ class Request
 	std::map<std::string, std::string> _headers;
     State _state;
     size_t _contentLength;
-
+	bool _validRequest;
   public:
 	Request();
 	const std::string& get_Method() const;
@@ -39,7 +39,7 @@ class Request
 	const std::string& get_Body() const;
 	const std::string& get_Header(const std::string &key) const;
     const std::string get_Query() const;
-	
+	bool get_validRequest() const;
 	bool is_Done() const;
 	
 	void reset();

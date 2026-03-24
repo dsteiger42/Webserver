@@ -129,8 +129,13 @@ Response Router::redirect(int redirectCode, std::string redirectUrl)
 Response Router::handle_Request(const Request& request)
 {
     Response response(_parser.errorPages);
+    if (!request.get_validRequest())
+        return make_ErrorCode(400);
     if (!validate_Method(request.get_Method()))
+    {
+        std::cout << "sHITE\n";
         return make_ErrorCode(405);
+    }
     split_PathQuery(request.get_Path());
     if (!validate_Path(_path))
         return make_ErrorCode(400);
@@ -140,7 +145,10 @@ Response Router::handle_Request(const Request& request)
     if (loc.hasRedirect)
         return redirect(loc.redirectCode, loc.redirectUrl);
     if (!is_ValidMethod(loc.allowedMethods, request.get_Method()))
+    {
+        std::cout << "sHITE1\n";
         return make_ErrorCode(405);
+    }
     if (!loc.root.empty())
         _documentRoot = loc.root;
     else

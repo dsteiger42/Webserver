@@ -1,6 +1,6 @@
 #include <http/request/Request.hpp>
 
-Request::Request() : _buffer(4096), _state(READING_HEADER)
+Request::Request() : _buffer(4096), _method(""), _path(""), _version(""), _body(""), _query(""), _state(READING_HEADER), _contentLength(0), _validRequest(false)
 {
 }
 
@@ -36,6 +36,11 @@ const std::string& Request::get_Header(const std::string &key) const
     if (it != _headers.end())
         return it->second;
     return empty;
+}
+
+bool Request::get_validRequest() const
+{
+	return (this->_validRequest);
 }
 
 void Request::reset()
@@ -149,7 +154,8 @@ void Request::parse_RequestLine(std::string &line, std::istringstream &split)
 			line.erase(line.size() - 1);
 		std::istringstream rl(line);
 		if (!(rl >> _method >> _path >> _version))
-			throw std::runtime_error("Invalid request line");
+			return ;	
+		_validRequest = true;
 		split_PathQuery(_path);
 	}
 }
