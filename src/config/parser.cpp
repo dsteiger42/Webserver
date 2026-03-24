@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   parser.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: raamorim <raamorim@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/16 15:17:16 by dsteiger          #+#    #+#             */
-/*   Updated: 2026/03/23 20:54:23 by raamorim         ###   ########.fr       */
+/*   Updated: 2026/03/24 00:25:32 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@ Location::Location() : path(""), root(""), autoIndex(false), cgiPass(false),
 {
 }
 
-Parser::Parser() : config(), Location() {}
+Parser::Parser() : config(), location() {}
 
 
 void	parse_ErrorPage(const std::vector<std::string> &tokens, size_t &i, ErrorPages &errorPages)
@@ -86,17 +86,17 @@ void	parse_all(const std::string &filename, Parser &Parser)
 			parse_ServerBlock(tokens, i, Parser.config);
 		}
 		if (i + 1 < tokens.size() && tokens[i] == "mime_types" && tokens[i + 1] == "{")
-			parse_MimeTypes(Parser.MimeTypes, i, tokens);
+			parse_MimeTypes(Parser.mimeTypes, i, tokens);
 		if (i + 2 < tokens.size() && tokens[i] == "location" && tokens[i + 2] == "{")
 		{
 			Location loc;
 			parse_Location(loc, i, tokens);
-			Parser.Location.push_back(loc);
+			Parser.location.push_back(loc);
 		}
 		else if (tokens[i] == "error_page")
 		{
 			i++;
-			parse_ErrorPage(tokens, i, Parser.ErrorPages);
+			parse_ErrorPage(tokens, i, Parser.errorPages);
 		}
 		i++;
 	}

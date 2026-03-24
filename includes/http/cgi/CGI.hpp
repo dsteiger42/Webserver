@@ -7,9 +7,9 @@
 #include <sys/wait.h>
 #include <http/Request.hpp>
 #include <http/Response.hpp>
-#include <http/Router.hpp>
+#include <http/router/Router.hpp>
 #include <http/utils/utils.hpp>
-#include <http/Router.hpp>
+#include <http/router/Router.hpp>
 
 class Router; //to remove
 class CGI

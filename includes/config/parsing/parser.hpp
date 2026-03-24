@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   parser.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: raamorim <raamorim@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/16 15:18:48 by dsteiger          #+#    #+#             */
-/*   Updated: 2026/03/23 20:18:25 by raamorim         ###   ########.fr       */
+/*   Updated: 2026/03/24 00:23:18 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,9 +33,9 @@ struct Parser
 {
     
     Config config;
-    ErrorPages ErrorPages;
-    MimeTypes MimeTypes;
-    std::vector<Location> Location;
+    ErrorPages errorPages;
+    MimeTypes mimeTypes;
+    std::vector<Location> location;
     Parser();
 };
 

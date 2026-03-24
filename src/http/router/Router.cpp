@@ -1,4 +1,4 @@
-#include <http/Router.hpp>
+#include <http/router/Router.hpp>
 
 Router::Router(Parser& Parser) : _parser(Parser) 
 {   
@@ -114,7 +114,7 @@ bool Router::build_FinalPath(std::string& path)
 
 Response Router::redirect(int redirectCode, std::string redirectUrl)
 {
-    Response response(_parser.ErrorPages);
+    Response response(_parser.errorPages);
     response.set_StatusCode(redirectCode);
     if (redirectUrl.empty())
         return make_ErrorCode (redirectCode);
@@ -213,7 +213,7 @@ bool generateAutoIndex(std::string &AbsolutePath, std::string &Path, std::string
 
 Response Router::make_ErrorCode(size_t code)
 {
-    Response res(_parser.ErrorPages);
+    Response res(_parser.errorPages);
     res.set_StatusCode(code);
     std::string path = _documentRoot + res.get_StatusMessage();
     std::string page;
@@ -230,7 +230,7 @@ Response Router::make_ErrorCode(size_t code)
 
 Response Router::handle_Request(const Request& request)
 {
-    Response response(_parser.ErrorPages);
+    Response response(_parser.errorPages);
     if (!validate_Method(request.get_Method()))
         return make_ErrorCode(405);
     split_PathQuery(request.get_Path());
@@ -263,7 +263,7 @@ Response Router::handle_Request(const Request& request)
             if (!generateAutoIndex(_absolutePath, _path, html))
                 return make_ErrorCode(500);
             response.set_Body(html);
-            response.set_Header("Content-Type", get_MimeType(get_Extension(".html"), _parser.MimeTypes.types));
+            response.set_Header("Content-Type", get_MimeType(get_Extension(".html"), _parser.mimeTypes.types));
             return response;
         }
         else
@@ -275,7 +275,7 @@ Response Router::handle_Request(const Request& request)
     if (!read_File(_absolutePath, content))
         return make_ErrorCode(500);
     response.set_Body(content);
-    std::string MimeType = get_MimeType(get_Extension(_absolutePath), _parser.MimeTypes.types);
+    std::string MimeType = get_MimeType(get_Extension(_absolutePath), _parser.mimeTypes.types);
     response.set_Header("Content-Type", MimeType);
     return response;
 }
@@ -283,14 +283,14 @@ Response Router::handle_Request(const Request& request)
 
 Location& Router::matchLocation(const std::string &path)
 {
-    if (_parser.Location.empty())
+    if (_parser.location.empty())
         throw std::runtime_error("No locations configured");
     Location* bestMatch = NULL;
     size_t bestLength = 0;
 
-    for (size_t i = 0; i < _parser.Location.size(); i++)
+    for (size_t i = 0; i < _parser.location.size(); i++)
     {
-        Location& loc = _parser.Location[i];
+        Location& loc = _parser.location[i];
         if (path.compare(0, loc.path.size(), loc.path) == 0)
         {
             if (loc.path.size() > bestLength)
@@ -302,12 +302,12 @@ Location& Router::matchLocation(const std::string &path)
     }
     if (!bestMatch)
     {
-        for (size_t i = 0; i < _parser.Location.size(); i++)
+        for (size_t i = 0; i < _parser.location.size(); i++)
         {
-            if (_parser.Location[i].path == "/")
-                return _parser.Location[i];
+            if (_parser.location[i].path == "/")
+                return _parser.location[i];
         }
-        return _parser.Location[0];
+        return _parser.location[0];
     }
     return (*bestMatch);
 }
