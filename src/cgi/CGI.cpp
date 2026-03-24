@@ -1,4 +1,5 @@
 #include <http/cgi/CGI.hpp>
+#include <http/routing/Router.hpp>
 
 CGI::CGI()
 {
@@ -41,6 +42,7 @@ Response CGI::execute(const Request &req)
 	Response res;
 	int inPipe[2];
 	int outPipe[2];
+	int status;
 	std::vector<char *> argv;
 	pid_t pid;
 	std::string output;
@@ -63,8 +65,10 @@ Response CGI::execute(const Request &req)
 	if (pid > 0)
     {
 		output = handle_ParentProcess(inPipe, outPipe, req);
-        waitpid(pid, NULL, 0);
+        waitpid(pid, &status, 0);
     }
+	if (!WIFEXITED(status) || WEXITSTATUS(status) != 0)
+		return (router->make_ErrorCode(500));
 	CGIResult result = parse_CGIOutput(output);
 	res.set_StatusCode(result.status);
 	res.set_Header("Content-Type", result.contentType);
