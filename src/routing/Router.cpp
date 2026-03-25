@@ -126,18 +126,18 @@ Response Router::redirect(int redirectCode, std::string redirectUrl)
     return response;
 }
 
-Response Router::handle_GET(const Request& request, Location& loc)
+Response Router::handle_GET(const Request& request, Location& location)
 {
     Response response(_parser.errorPages);
-    if (loc.hasRedirect)
-        return redirect(loc.redirectCode, loc.redirectUrl);
-    if (!is_ValidMethod(loc.allowedMethods, request.get_Method()))
+    if (location.hasRedirect)
+        return redirect(location.redirectCode, location.redirectUrl);
+    if (!is_ValidMethod(location.allowedMethods, request.get_Method()))
         return make_ErrorCode(405);
-    if (!loc.root.empty())
-        _documentRoot = loc.root;
+    if (!location.root.empty())
+        _documentRoot = location.root;
     else
         _documentRoot = _parser.config.root;
-    if (loc.cgiPass)
+    if (location.cgiPass)
         return (cgi->execute(request));
     _absolutePath = _documentRoot + _path;
     if (!is_InsideRoot(_absolutePath, _documentRoot))
@@ -151,7 +151,7 @@ Response Router::handle_GET(const Request& request, Location& loc)
         std::string index = _absolutePath + _parser.config.index;
         if (check_File(index))
             _absolutePath = index;
-        else if (loc.autoIndex)
+        else if (location.autoIndex)
         {
             std::string html;
             if (!generateAutoIndex(_absolutePath, _path, html))
@@ -181,14 +181,54 @@ Response Router::handle_GET(const Request& request, Location& loc)
 Response Router::handle_DELETE(const Request& request, Location& location)
 {
     (void)request;
-    (void)location;
-    return (make_ErrorCode(899));
+    Response response(_parser.errorPages);
+    if (!location.root.empty())
+        _documentRoot = location.root;
+    else
+        _documentRoot = _parser.config.root;
+    _absolutePath = _documentRoot + _path;
+    if (!is_InsideRoot(_absolutePath, _documentRoot))
+        return make_ErrorCode(403);
+    if (!check_File(_absolutePath))
+        return make_ErrorCode(404);
+    if (is_Directory(_absolutePath))
+        return make_ErrorCode(403);
+    if (std::remove(_absolutePath.c_str()) != 0)
+        return make_ErrorCode(500);
+    response.set_StatusCode(200);
+    response.set_Body("File deleted");
+    std::string MimeType = get_MimeType(get_Extension(_absolutePath), _parser.mimeTypes.types);
+    response.set_Header("Content-Type", MimeType);
+    response.set_Header("Content-Length", "12");
+    return response;
 }
 Response Router::handle_POST(const Request& request, Location& location)
 {
-    (void)request;
-    (void)location;
-    return (make_ErrorCode(900));
+    Response response(_parser.errorPages);
+    if (!location.root.empty())
+        _documentRoot = location.root;
+    else
+        _documentRoot = _parser.config.root;
+    if (location.cgiPass)
+        return (cgi->execute(request));
+    size_t maxSize = _parser.config.client_max_body_size;
+    if (request.get_Body().size() > maxSize)
+        return make_ErrorCode(413);
+    _absolutePath = _documentRoot + _path;
+    if (!is_InsideRoot(_absolutePath, _documentRoot))
+        return make_ErrorCode(403);
+    if (is_Directory(_absolutePath))
+        return make_ErrorCode(403);
+    std::ofstream file(_absolutePath.c_str(), std::ios::binary);
+    if (!file.is_open())
+        return make_ErrorCode(500);
+    file << request.get_Body();
+    file.close();
+    response.set_StatusCode(201);
+    response.set_Body("File uploaded");
+    std::string MimeType = get_MimeType(get_Extension(_absolutePath), _parser.mimeTypes.types);
+    response.set_Header("Content-Type", MimeType);
+    return response;
 }
 Response Router::handle_Request(const Request& request)
 {

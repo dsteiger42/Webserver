@@ -18,7 +18,8 @@ struct Config
     std::string server_name;
     std::string root;
     std::string index;
-    int client_body_buffer_size;
+    size_t client_body_buffer_size;
+    size_t client_max_body_size;
     int listen;
     Config();
 };

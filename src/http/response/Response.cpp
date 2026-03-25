@@ -31,6 +31,8 @@ std::string Response::get_StatusMessage(int code) const
             return "Not Found";
         case 405: 
             return "Method Not Allowed";
+        case 413: 
+            return "Payload Too Large";
         case 500: 
             return "Internal Server Error";
         case 502: 
