@@ -12,7 +12,7 @@
 
 #include <utils/utils.hpp>
 
-bool is_Number(std::string &string)
+bool is_Number(const std::string &string)
 {
     if (string.empty())
         return false;

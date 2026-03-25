@@ -23,36 +23,28 @@ Location::Location() : path(""), root(""), autoIndex(false), cgiPass(false),
 {
 }
 
-Parser::Parser() : config(), location() {}
-
-
-void	parse_all(const std::string &filename, Parser &Parser)
+Parser::Parser() : servers()
 {
-	std::vector<std::string> tokens = Tokenize(filename);
-	size_t	i = 0;
-	if(!countBraces(tokens))
-		return ;
-	while (i < tokens.size())
-	{
-		if (tokens[i] == "server" && tokens[i + 1] == "{")
-		{
-			i += 2;
-			parse_ServerBlock(tokens, i, Parser.config);
-		}
-		if (i + 1 < tokens.size() && tokens[i] == "mime_types" && tokens[i + 1] == "{")
-			parse_MimeTypes(Parser.mimeTypes, i, tokens);
-		if (i + 2 < tokens.size() && tokens[i] == "location" && tokens[i + 2] == "{")
-		{
-			Location loc;
-			parse_Location(loc, i, tokens);
-			Parser.location.push_back(loc);
-		}
-		else if (tokens[i] == "error_page")
-		{
-			i++;
-			parse_ErrorPage(tokens, i, Parser.errorPages);
-		}
-		i++;
-	}
 }
 
+
+void parse_all(const std::string &filename, Parser &parser)
+{
+    std::vector<std::string> tokens = Tokenize(filename);
+    if (!countBraces(tokens))
+        return;
+
+    size_t i = 0;
+    while (i < tokens.size())
+    {
+        if (tokens[i] == "server" && i + 1 < tokens.size() && tokens[i + 1] == "{")
+        {
+            i += 2; // skip "server" and "{"
+            ServerConfig sc;
+            parse_ServerBlock(tokens, i, sc); // i will be left past the closing "}"
+            parser.servers.push_back(sc);
+        }
+        else
+            i++;
+    }
+}

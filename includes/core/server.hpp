@@ -36,21 +36,20 @@ enum SendStatus
 class Server
 {
     private:
-
         int _server_fd;
         int _port;
         std::map<int, Client> _allClients; // store each fd to each client
         Router _router;  
 
     public:
-        Server(int port, Parser &Parser);
+        Server(int port, ServerConfig &sc);
         ~Server();
         sockaddr_in create_Address();
         int setup_Socket();
         int accept_NewClient(std::vector<pollfd> &fds);
         bool receive_FromClient(std::vector<pollfd> &fds, size_t index);
         SendStatus send_ToClient(std::vector<pollfd> &fds, size_t index);
-        void handle_Clients();
+        static void handle_Clients(std::vector<Server> &servers);
 };
 
 #endif
