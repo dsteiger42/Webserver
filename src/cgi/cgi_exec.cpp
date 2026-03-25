@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:18:06 by rafael            #+#    #+#             */
-/*   Updated: 2026/03/24 01:19:51 by rafael           ###   ########.fr       */
+/*   Updated: 2026/03/25 20:26:47 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,8 @@ void CGI::create_Pipes(int inPipe[2], int outPipe[2])
 	}
 	if (pipe(outPipe) == -1)
 	{
+		close(inPipe[0]);
+		close(inPipe[1]);
 		std::cerr << "Error creating inPipe" << std::endl;
 		return ;
 	}
@@ -32,11 +34,26 @@ void CGI::execute_ChildProcess(int inPipe[2], int outPipe[2],
 	close(inPipe[1]);
 	close(outPipe[0]);
 	if (dup2(inPipe[0], STDIN_FILENO) == -1)
+	{
+		close(inPipe[0]);
+		close(outPipe[1]);
 		return ;
+	}
 	if (dup2(outPipe[1], STDOUT_FILENO) == -1)
+	{
+		close(inPipe[0]);
+		close(outPipe[1]);
 		return ;
+	}
 	if (execve(scriptPath.c_str(), argv, envp) == -1)
+	{
+		close(inPipe[0]);
+		close(inPipe[1]);
+		close(outPipe[0]);
+		close(outPipe[1]);
 		exit(1);
+	}
+	//exit(1);
 }
 
 std::string CGI::handle_ParentProcess(int inPipe[2], int outPipe[2],
