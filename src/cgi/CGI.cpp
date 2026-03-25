@@ -70,7 +70,10 @@ Response CGI::execute(const Request &req)
 	if (!WIFEXITED(status) || WEXITSTATUS(status) != 0)
 		return (router->make_ErrorCode(500));
 	if (!is_ValidCGIOutput(output))
+	{
+		std::cout << "aqui\n";
 		return (router->make_ErrorCode(502));
+	}
 	CGIResult result = parse_CGIOutput(output);
 	res.set_StatusCode(result.status);
 	res.set_Header("Content-Type", result.contentType);

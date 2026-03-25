@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:18:09 by rafael            #+#    #+#             */
-/*   Updated: 2026/03/25 00:01:33 by rafael           ###   ########.fr       */
+/*   Updated: 2026/03/25 19:52:46 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,13 +66,23 @@ CGI::CGIResult CGI::parse_CGIOutput(const std::string& output)
 
 bool CGI::is_ValidCGIOutput(const std::string& output)
 {
+	std::cout << output << "DEEE\n";
 	if (output.empty())
+	{
+		std::cout << "wtf\n";
 		return false;
+	}
 	size_t pos = output.find("\r\n\r\n");
-	if (pos == std::string::npos)
+	/* if (pos == std::string::npos)
+	{
+		std::cout << "wtf1\n";
 		return false;
+	} */
 	std::string headers = output.substr(0, pos);
 	if (headers.find("Content-Type:") == std::string::npos)
+	{
+		std::cout << "wtf3\n";
 		return false;
+	}
 	return true;
 }
