@@ -43,6 +43,6 @@ class CGI
         std::string handle_ParentProcess(int inPipe[2], int outPipe[2],
                                         const Request& req);
         CGIResult parse_CGIOutput(const std::string& output);
-
+        bool is_ValidCGIOutput(const std::string& output);
 };
 #endif

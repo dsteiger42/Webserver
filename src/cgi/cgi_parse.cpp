@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:18:09 by rafael            #+#    #+#             */
-/*   Updated: 2026/03/24 01:21:59 by rafael           ###   ########.fr       */
+/*   Updated: 2026/03/25 00:01:33 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,4 +62,17 @@ CGI::CGIResult CGI::parse_CGIOutput(const std::string& output)
 		}
     }
     return result;	
+}
+
+bool CGI::is_ValidCGIOutput(const std::string& output)
+{
+	if (output.empty())
+		return false;
+	size_t pos = output.find("\r\n\r\n");
+	if (pos == std::string::npos)
+		return false;
+	std::string headers = output.substr(0, pos);
+	if (headers.find("Content-Type:") == std::string::npos)
+		return false;
+	return true;
 }
