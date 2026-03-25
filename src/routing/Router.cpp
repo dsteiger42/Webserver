@@ -6,7 +6,7 @@ Router::Router(Parser& Parser) : _parser(Parser)
     _path = "";
     _query = "";
     _method = "";
-    _documentRoot = "./www/";
+    _documentRoot = _parser.config.root; //"./www/"
     _absolutePath = "";
     cgi = new CGI();
     cgi->setRouter(this);
@@ -126,19 +126,9 @@ Response Router::redirect(int redirectCode, std::string redirectUrl)
     return response;
 }
 
-Response Router::handle_Request(const Request& request)
+Response Router::handle_GET(const Request& request, Location& loc)
 {
     Response response(_parser.errorPages);
-    if (!request.get_validRequest())
-        return make_ErrorCode(400);
-    if (!validate_Method(request.get_Method()))
-        return make_ErrorCode(405);
-    split_PathQuery(request.get_Path());
-    if (!validate_Path(_path))
-        return make_ErrorCode(400);
-    if (!build_FinalPath(_path))
-        return make_ErrorCode(403);
-    Location& loc = matchLocation(_path);
     if (loc.hasRedirect)
         return redirect(loc.redirectCode, loc.redirectUrl);
     if (!is_ValidMethod(loc.allowedMethods, request.get_Method()))
@@ -151,7 +141,11 @@ Response Router::handle_Request(const Request& request)
         return (cgi->execute(request));
     _absolutePath = _documentRoot + _path;
     if (!is_InsideRoot(_absolutePath, _documentRoot))
-       return make_ErrorCode(403);
+    {
+        std::cout << "aqui\n";
+        return make_ErrorCode(403);
+    }
+    std::cout << "aqui1\n";
     if (is_Directory(_absolutePath))
     {
         std::string index = _absolutePath + _parser.config.index;
@@ -167,13 +161,14 @@ Response Router::handle_Request(const Request& request)
             return response;
         }
         else
+        {
+            std::cout << "n me digas\n";
             return make_ErrorCode(403);
+        }
     }
+    std::cout << "absolutP: " << _absolutePath << std::endl;    
     if (!check_File(_absolutePath)) //if it's not a directory but the file doens't exist
-    {
-        std::cout << "aquiii\n";
         return make_ErrorCode(404);
-    }
     std::string content;
     if (!read_File(_absolutePath, content))
         return make_ErrorCode(500);
@@ -181,6 +176,41 @@ Response Router::handle_Request(const Request& request)
     std::string MimeType = get_MimeType(get_Extension(_absolutePath), _parser.mimeTypes.types);
     response.set_Header("Content-Type", MimeType);
     return response;
+}
+
+Response Router::handle_DELETE(const Request& request, Location& location)
+{
+    (void)request;
+    (void)location;
+    return (make_ErrorCode(899));
+}
+Response Router::handle_POST(const Request& request, Location& location)
+{
+    (void)request;
+    (void)location;
+    return (make_ErrorCode(900));
+}
+Response Router::handle_Request(const Request& request)
+{
+    if (!request.get_validRequest())
+        return make_ErrorCode(400);
+    if (!validate_Method(request.get_Method()))
+        return make_ErrorCode(405);
+    split_PathQuery(request.get_Path());
+    if (!validate_Path(_path))
+        return make_ErrorCode(400);
+    if (!build_FinalPath(_path))
+        return make_ErrorCode(403);
+    Location& loc = matchLocation(_path);
+    if (!is_ValidMethod(loc.allowedMethods, request.get_Method()))
+        return make_ErrorCode(405);
+    if (request.get_Method() == "GET")
+        return handle_GET(request, loc);
+    else if (request.get_Method() == "DELETE")
+        return handle_DELETE(request, loc);
+    else if (request.get_Method() == "POST")
+        return handle_POST(request, loc);
+    return make_ErrorCode(405);
 }
 
 

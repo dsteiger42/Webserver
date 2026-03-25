@@ -8,9 +8,10 @@ Response Router::make_ErrorCode(size_t code)
     std::string page;
     if (!read_File(path, page))
     {
+        std::cout << "aqui11111\n";
         std::stringstream ss;
         ss << "<h1>" << code << " " << "Error Ocurred" << "</h1>";
-        res.set_Body(page);
+        res.set_Body(ss.str());
         return res;
     }
     res.set_Body(page);
