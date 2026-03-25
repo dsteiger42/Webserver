@@ -132,10 +132,7 @@ Response Router::handle_Request(const Request& request)
     if (!request.get_validRequest())
         return make_ErrorCode(400);
     if (!validate_Method(request.get_Method()))
-    {
-        std::cout << "sHITE\n";
         return make_ErrorCode(405);
-    }
     split_PathQuery(request.get_Path());
     if (!validate_Path(_path))
         return make_ErrorCode(400);
@@ -145,10 +142,7 @@ Response Router::handle_Request(const Request& request)
     if (loc.hasRedirect)
         return redirect(loc.redirectCode, loc.redirectUrl);
     if (!is_ValidMethod(loc.allowedMethods, request.get_Method()))
-    {
-        std::cout << "sHITE1\n";
         return make_ErrorCode(405);
-    }
     if (!loc.root.empty())
         _documentRoot = loc.root;
     else
@@ -176,7 +170,10 @@ Response Router::handle_Request(const Request& request)
             return make_ErrorCode(403);
     }
     if (!check_File(_absolutePath)) //if it's not a directory but the file doens't exist
+    {
+        std::cout << "aquiii\n";
         return make_ErrorCode(404);
+    }
     std::string content;
     if (!read_File(_absolutePath, content))
         return make_ErrorCode(500);
