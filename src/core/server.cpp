@@ -2,8 +2,7 @@
 #include <http/request/Request.hpp>
 #include <http/routing/Router.hpp>
 
-
-Server::Server(int port, Parser &Parser) : _port(port), _router(Parser)
+Server::Server(int port, ServerConfig &sc) : _port(port), _router(sc)
 {
 }
 
@@ -183,44 +182,72 @@ SendStatus Server::send_ToClient(std::vector<pollfd> &fds, size_t index)
 		return SEND_DONE;
 	return SEND_OK;
 }
-
-void Server::handle_Clients()
+void Server::handle_Clients(std::vector<Server> &servers)
 {
-	int		ret;
-	pollfd	listen_fd;
-	std::vector<pollfd> fds;
-	listen_fd.fd = _server_fd;
-	listen_fd.events = POLLIN; // the listening socket only cares about POLLIN
-	fds.push_back(listen_fd);
-	while (true)
-	{
-		ret = poll(fds.data(), fds.size(), -1);
-		if (ret == -1)
-		{
-			std::cerr << "Error: poll failed\n";
-			continue ;
-		}
-		for (size_t i = 0; i < fds.size(); ++i)
-		{
-			// if the POLLIN bit is inside revents (int containing bit flags)
-			if (fds[i].revents & POLLIN)
-			{
-				if (fds[i].fd == _server_fd)
-					accept_NewClient(fds);
-				else
-					receive_FromClient(fds, i);
-			}
-			if (fds[i].revents & POLLOUT)
-			{
-				SendStatus status = send_ToClient(fds, i);
-				if (status == SEND_DONE || status == SEND_ERROR)
-				{
-					close(fds[i].fd);
-					_allClients.erase(fds[i].fd);
-					fds.erase(fds.begin() + i);
-					break;
-				}
-			}
-		}
-	}
+    int                 ret;
+    std::vector<pollfd> fds;
+
+    // Register all server listening fds
+    for (size_t s = 0; s < servers.size(); s++)
+    {
+        pollfd listen_fd;
+        listen_fd.fd = servers[s]._server_fd;
+        listen_fd.events = POLLIN;
+        fds.push_back(listen_fd);
+    }
+
+    while (true)
+    {
+        ret = poll(fds.data(), fds.size(), -1);
+        if (ret == -1)
+        {
+            std::cerr << "Error: poll failed\n";
+            continue;
+        }
+        for (size_t i = 0; i < fds.size(); i++)
+        {
+            if (fds[i].revents & POLLIN)
+            {
+                bool is_server_fd = false;
+                for (size_t s = 0; s < servers.size(); s++)
+                {
+                    if (fds[i].fd == servers[s]._server_fd)
+                    {
+                        servers[s].accept_NewClient(fds);
+                        is_server_fd = true;
+                        break;
+                    }
+                }
+                if (!is_server_fd)
+                {
+                    for (size_t s = 0; s < servers.size(); s++)
+                    {
+                        if (servers[s]._allClients.count(fds[i].fd))
+                        {
+                            servers[s].receive_FromClient(fds, i);
+                            break;
+                        }
+                    }
+                }
+            }
+            if (fds[i].revents & POLLOUT)
+            {
+                for (size_t s = 0; s < servers.size(); s++)
+                {
+                    if (servers[s]._allClients.count(fds[i].fd))
+                    {
+                        SendStatus status = servers[s].send_ToClient(fds, i);
+                        if (status == SEND_DONE || status == SEND_ERROR)
+                        {
+                            close(fds[i].fd);
+                            servers[s]._allClients.erase(fds[i].fd);
+                            fds.erase(fds.begin() + i);
+                            break;
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+    }
 }

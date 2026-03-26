@@ -14,7 +14,7 @@
 #include <config/parser/Location_setters.hpp>
 
 void	parse_Location(Location &Location, size_t &i,
-		std::vector<std::string> &tokens)
+		const std::vector<std::string> &tokens)
 {
 	i++;
 	set_Path(tokens, i, Location);
@@ -61,4 +61,5 @@ void	parse_Location(Location &Location, size_t &i,
 		}
 		i++;
 	}
+    i++;
 }

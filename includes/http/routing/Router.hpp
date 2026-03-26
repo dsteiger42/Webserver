@@ -12,11 +12,11 @@
 
 //serve para analisar um Request HTTP e decidir qual recurso devolver, construindo a Response adequada (ficheiro ou erro).
 
-class CGI; //to remove
+//class CGI; //to remove
 class Router
 {
     private:
-        Parser &_parser;
+        ServerConfig _config;
         std::string _path;
         std::string _query;
         std::string _method;
@@ -24,9 +24,11 @@ class Router
         std::string _absolutePath;
     public:
         Response make_ErrorCode(size_t code);
-        CGI* cgi;
-        Router(Parser &Parser);
+        CGI cgi;
+        Router(ServerConfig &sc);
         ~Router();
+        Router(const Router& other);
+        Router &operator=(const Router& other);
         std::string get_Path() const;
         std::string get_Query() const;
         std::string get_Method() const;

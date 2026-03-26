@@ -1,19 +1,45 @@
 #include <http/routing/Router.hpp>
 #include <http/routing/autoindex.hpp>
 
-Router::Router(Parser& Parser) : _parser(Parser) 
+Router::Router(ServerConfig &sc) : _config(sc)
 {   
     _path = "";
     _query = "";
     _method = "";
     _documentRoot = _parser.config.root; //"./www/"
     _absolutePath = "";
-    cgi = new CGI();
-    cgi->setRouter(this);
+    cgi.setRouter(this);
 }
 Router::~Router()
 {
-    delete cgi;
+}
+
+Router::Router(const Router& other)
+    : _config(other._config),
+      _path(other._path),
+      _query(other._query),
+      _method(other._method),
+      _documentRoot(other._documentRoot),
+      _absolutePath(other._absolutePath),
+      cgi(other.cgi)
+{
+    cgi.setRouter(this);
+}
+
+Router& Router::operator=(const Router& other)
+{
+    if (this != &other)
+    {
+        _config = other._config;
+        _path = other._path;
+        _query = other._query;
+        _method = other._method;
+        _documentRoot = other._documentRoot;
+        _absolutePath = other._absolutePath;
+        cgi = other.cgi;
+        cgi.setRouter(this);
+    }
+    return *this;
 }
 std::string Router::get_Path() const
 {
@@ -115,7 +141,7 @@ bool Router::build_FinalPath(std::string& path)
 
 Response Router::redirect(int redirectCode, std::string redirectUrl)
 {
-    Response response(_parser.errorPages);
+    Response response(_config.errorPages);
     response.set_StatusCode(redirectCode);
     if (redirectUrl.empty())
         return make_ErrorCode (redirectCode);
@@ -128,7 +154,7 @@ Response Router::redirect(int redirectCode, std::string redirectUrl)
 
 Response Router::handle_GET(const Request& request, Location& location)
 {
-    Response response(_parser.errorPages);
+    Response response(_config.errorPages);
     if (location.hasRedirect)
         return redirect(location.redirectCode, location.redirectUrl);
     if (!is_ValidMethod(location.allowedMethods, request.get_Method()))
@@ -136,9 +162,9 @@ Response Router::handle_GET(const Request& request, Location& location)
     if (!location.root.empty())
         _documentRoot = location.root;
     else
-        _documentRoot = _parser.config.root;
-    if (location.cgiPass)
-        return (cgi->execute(request));
+        _documentRoot = _config.config.root;
+    if (loc.cgiPass)
+        return (cgi.execute(request));
     _absolutePath = _documentRoot + _path;
     if (!is_InsideRoot(_absolutePath, _documentRoot))
     {
@@ -148,7 +174,7 @@ Response Router::handle_GET(const Request& request, Location& location)
     std::cout << "aqui1\n";
     if (is_Directory(_absolutePath))
     {
-        std::string index = _absolutePath + _parser.config.index;
+        std::string index = _absolutePath + _config.config.index;
         if (check_File(index))
             _absolutePath = index;
         else if (location.autoIndex)
@@ -157,7 +183,7 @@ Response Router::handle_GET(const Request& request, Location& location)
             if (!generateAutoIndex(_absolutePath, _path, html))
                 return make_ErrorCode(500);
             response.set_Body(html);
-            response.set_Header("Content-Type", get_MimeType(get_Extension(".html"), _parser.mimeTypes.types));
+            response.set_Header("Content-Type", get_MimeType(get_Extension(".html"), _config.mimeTypes.types));
             return response;
         }
         else
@@ -174,7 +200,7 @@ Response Router::handle_GET(const Request& request, Location& location)
         return make_ErrorCode(500);
     response.set_StatusCode(200);
     response.set_Body(content);
-    std::string MimeType = get_MimeType(get_Extension(_absolutePath), _parser.mimeTypes.types);
+    std::string MimeType = get_MimeType(get_Extension(_absolutePath), _config.mimeTypes.types);
     response.set_Header("Content-Type", MimeType);
     return response;
 }
@@ -259,14 +285,14 @@ Response Router::handle_Request(const Request& request)
 
 Location& Router::matchLocation(const std::string &path)
 {
-    if (_parser.location.empty())
+    if (_config.location.empty())
         throw std::runtime_error("No locations configured");
     Location* bestMatch = NULL;
     size_t bestLength = 0;
 
-    for (size_t i = 0; i < _parser.location.size(); i++)
+    for (size_t i = 0; i < _config.location.size(); i++)
     {
-        Location& loc = _parser.location[i];
+        Location& loc = _config.location[i];
         if (path.compare(0, loc.path.size(), loc.path) == 0)
         {
             if (loc.path.size() > bestLength)
@@ -278,12 +304,12 @@ Location& Router::matchLocation(const std::string &path)
     }
     if (!bestMatch)
     {
-        for (size_t i = 0; i < _parser.location.size(); i++)
+        for (size_t i = 0; i < _config.location.size(); i++)
         {
-            if (_parser.location[i].path == "/")
-                return _parser.location[i];
+            if (_config.location[i].path == "/")
+                return _config.location[i];
         }
-        return _parser.location[0];
+        return _config.location[0];
     }
     return (*bestMatch);
 }
