@@ -237,6 +237,8 @@ Response Router::handle_Request(const Request& request)
         return make_ErrorCode(400);
     if (!validate_Method(request.get_Method()))
         return make_ErrorCode(405);
+    if (request.get_Body().size() > _parser.config.client_body_buffer_size)
+        return make_ErrorCode(413);
     split_PathQuery(request.get_Path());
     if (!validate_Path(_path))
         return make_ErrorCode(400);
