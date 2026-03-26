@@ -176,6 +176,13 @@ void Request::parse_RequestLine(std::string &line, std::istringstream &split)
 	}
 }
 
+static bool is_UniqueHeader(const std::string& key)
+{
+    return (key == "Content-Length" ||
+            key == "Host" ||
+            key == "Transfer-Encoding");
+}
+
 void Request::parse_Headers(std::string &line, std::istringstream &split)
 {
 	size_t	pos;
@@ -201,6 +208,11 @@ void Request::parse_Headers(std::string &line, std::istringstream &split)
 		std::string value = line.substr(pos + 1);
 		while (!value.empty() && (value[0] == ' ' || value[0] == '\t'))
 			value.erase(value.begin());
+		if (_headers.count(key) && is_UniqueHeader(key))
+		{
+    		_validRequest = false;
+    		return;
+	}
 		_headers[key] = value;
 	}
 }
