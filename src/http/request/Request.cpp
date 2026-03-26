@@ -85,12 +85,24 @@ void Request::fill_Buffer(const std::string &request, size_t len)
     }
 }
 
+/* size_t count_Headers(std::map<std::string, std::string> &header, std::string &key)
+{
+	size_t count = 0;
+	for (size_t i = 0; i < header.size(); i++)
+	{
+		if (header)
+	}
+	
+} */
+
+
 void Request::validate_Request()
 {
 	if (_version == "" || _headers.find("Host") == _headers.end())
 		_validRequest = false;
 	if (_headers.find("Content-Length") != _headers.end() && _headers.find("Transfer-Encoding") != _headers.end())
 		_validRequest = false;
+
 }
 
 std::string Request::extract_HeaderFromBuffer(size_t size)
@@ -98,7 +110,7 @@ std::string Request::extract_HeaderFromBuffer(size_t size)
     std::string header(size, '\0');        // aloca string do tamanho exato
     _buffer.peek(reinterpret_cast<char*>(&header[0]), size); // copia direto para string
     _buffer.consume(size);                  // remove do buffer
-    return header;
+	return header;
 }
 void Request::determine_NextState()
 {

@@ -1,6 +1,9 @@
-curl -X POST http://localhost:8080/cgi-bin/test.py \ -H "Content-Type: application/json" \ -d '{"a":1}'
-curl -X POST http://localhost:8080/cgi-bin/test.py \ -H "Transfer-Encoding: chunked" \ -d "hello world"
-erros que por vezes printam msg e outras nao
+printf "GET / HTTP/1.1\r\nHost: localhost\r\nX-Test: hello\nInjected: evil\r\n\r\n" | nc localhost 8080
+printf "GET / HTTP/1.1\r\nHost: a\r\nHost: b\r\n\r\n" | nc localhost 8080 should return 400 -> 200
+printf "POST / HTTP/1.1\r\nHost: localhost\r\nContent-Length: 5\r\nContent-Length: 10\r\n\r\nHello" | nc localhost 8080
+printf "GET / HTTP/1.1\r\nhost: localhost\r\n\r\n" | nc localhost 8080 -> letras maiusculas aceite
+printf "POST / HTTP/1.1\r\nHost: localhost\r\nContent-Length: abc\r\n\r\n" | nc localhost 8080 -> devia 400 -> 403
+
 
 
 classes letra grande -> ex: MimeTypes
