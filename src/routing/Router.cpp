@@ -6,7 +6,7 @@ Router::Router(ServerConfig &sc) : _config(sc)
     _path = "";
     _query = "";
     _method = "";
-    _documentRoot = _parser.config.root; //"./www/"
+    _documentRoot = sc.config.root; //"./www/"
     _absolutePath = "";
     cgi.setRouter(this);
 }
@@ -163,7 +163,7 @@ Response Router::handle_GET(const Request& request, Location& location)
         _documentRoot = location.root;
     else
         _documentRoot = _config.config.root;
-    if (loc.cgiPass)
+    if (location.cgiPass)
         return (cgi.execute(request));
     _absolutePath = _documentRoot + _path;
     if (!is_InsideRoot(_absolutePath, _documentRoot))
@@ -208,11 +208,11 @@ Response Router::handle_GET(const Request& request, Location& location)
 Response Router::handle_DELETE(const Request& request, Location& location)
 {
     (void)request;
-    Response response(_parser.errorPages);
+    Response response(_config.errorPages);
     if (!location.root.empty())
         _documentRoot = location.root;
     else
-        _documentRoot = _parser.config.root;
+        _documentRoot = _config.config.root;
     _absolutePath = _documentRoot + _path;
     if (!is_InsideRoot(_absolutePath, _documentRoot))
         return make_ErrorCode(403);
@@ -224,21 +224,21 @@ Response Router::handle_DELETE(const Request& request, Location& location)
         return make_ErrorCode(500);
     response.set_StatusCode(204);
     response.set_Body("File deleted");
-    std::string MimeType = get_MimeType(get_Extension(_absolutePath), _parser.mimeTypes.types);
+    std::string MimeType = get_MimeType(get_Extension(_absolutePath), _config.mimeTypes.types);
     response.set_Header("Content-Type", MimeType);
     response.set_Header("Content-Length", "12");
     return response;
 }
 Response Router::handle_POST(const Request& request, Location& location)
 {
-    Response response(_parser.errorPages);
+    Response response(_config.errorPages);
     if (!location.root.empty())
         _documentRoot = location.root;
     else
-        _documentRoot = _parser.config.root;
+        _documentRoot = _config.config.root;
     if (location.cgiPass)
-        return (cgi->execute(request));
-    size_t maxSize = _parser.config.client_max_body_size;
+        return (cgi.execute(request));
+    size_t maxSize = _config.config.client_max_body_size;
     if (request.get_Body().size() > maxSize)
         return make_ErrorCode(413);
     _absolutePath = _documentRoot + _path;
@@ -253,7 +253,7 @@ Response Router::handle_POST(const Request& request, Location& location)
     file.close();
     response.set_StatusCode(201);
     response.set_Body("File uploaded");
-    std::string MimeType = get_MimeType(get_Extension(_absolutePath), _parser.mimeTypes.types);
+    std::string MimeType = get_MimeType(get_Extension(_absolutePath), _config.mimeTypes.types);
     response.set_Header("Content-Type", MimeType);
     return response;
 }
@@ -263,7 +263,7 @@ Response Router::handle_Request(const Request& request)
         return make_ErrorCode(400);
     if (!validate_Method(request.get_Method()))
         return make_ErrorCode(405);
-    if (request.get_Body().size() > _parser.config.client_body_buffer_size)
+    if (request.get_Body().size() > _config.config.client_body_buffer_size)
         return make_ErrorCode(413);
     split_PathQuery(request.get_Path());
     if (!validate_Path(_path))
