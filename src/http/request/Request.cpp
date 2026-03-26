@@ -85,6 +85,8 @@ void Request::validate_Request()
 {
 	if (_version == "" || _headers.find("Host") == _headers.end())
 		_validRequest = false;
+	if (_headers.find("Content-Length") != _headers.end() && _headers.find("Transfer-Encoding") != _headers.end())
+		_validRequest = false;
 	return ;
 }
 
