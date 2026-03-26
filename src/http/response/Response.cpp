@@ -136,6 +136,7 @@ void Response::build_Body(std::string &result)
 
 std::string Response::serialize()
 {
+    std::cout << "OI?\n";
     prepare_Headers();
     std::string response;
     response = build_StatusLine();

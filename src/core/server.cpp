@@ -138,7 +138,7 @@ bool Server::receive_FromClient(std::vector<pollfd> &fds, size_t index)
 		std::string chunk(temp, n);
 		client.request.fill_Buffer(chunk, chunk.size());
 		std::cout << "BEFORE DONE" << std::endl;
- 		if (client.request.is_Done())
+		if (client.request.is_Done() || !client.request.get_validRequest())
 		{
 			std::cout << "INSIDE DONE" << std::endl;
 			client.response = _router.handle_Request(client.request);

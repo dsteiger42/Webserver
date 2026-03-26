@@ -62,9 +62,13 @@ bool Request::is_Done() const
 void Request::fill_Buffer(const std::string &request, size_t len)
 {
     size_t written = 0;
-
     while (written < len)
     {
+		if (_state == READING_HEADER && _buffer.get_Size() + (len - written) > MAX_HEADER_SIZE)
+		{
+			_validRequest = false;
+			return ;
+		}
         size_t bytesWritten = _buffer.write(request.data() + written, len - written);
 
         if (bytesWritten == 0)
@@ -87,7 +91,6 @@ void Request::validate_Request()
 		_validRequest = false;
 	if (_headers.find("Content-Length") != _headers.end() && _headers.find("Transfer-Encoding") != _headers.end())
 		_validRequest = false;
-	return ;
 }
 
 std::string Request::extract_HeaderFromBuffer(size_t size)
@@ -103,7 +106,14 @@ void Request::determine_NextState()
 		std::string>::iterator it = _headers.find("Content-Length");
 	if (it != _headers.end())
 	{
-		_contentLength = std::strtoul(it->second.c_str(), NULL, 10);
+		long length = std::atol(it->second.c_str());
+		if (length > MAX_BODY_SIZE)
+		{
+			//413
+			_validRequest = false;
+			return ;
+		}
+		_contentLength = length;
 		if (_contentLength > 0)
 		{
 			_state = READING_BODY;
@@ -173,7 +183,17 @@ void Request::parse_Headers(std::string &line, std::istringstream &split)
 			line.erase(line.size() - 1);
 		if (line.empty())
 			break ;
+		if (line.size() > MAX_HEADER_SIZE)
+        {
+            _validRequest = false;
+            return;
+        }
 		pos = line.find(':');
+		if (pos == std::string::npos)
+		{
+			_validRequest = false;
+			return ;
+		}
 		std::string key = line.substr(0, pos);
 		std::string value = line.substr(pos + 1);
 		while (!value.empty() && (value[0] == ' ' || value[0] == '\t'))

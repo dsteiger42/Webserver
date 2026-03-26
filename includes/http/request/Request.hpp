@@ -3,6 +3,7 @@
 
 # include <cstring>
 #include <http/buffer/CircularBuffer.hpp>
+#include <config/model/types.hpp>
 
 # include <iostream>
 # include <map>
@@ -17,6 +18,9 @@ enum	State
 	READING_BODY,
 	DONE
 };
+
+#define MAX_BODY_SIZE 4096
+#define MAX_HEADER_SIZE 8192
 
 class Request
 {
