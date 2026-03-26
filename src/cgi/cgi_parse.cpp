@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:18:09 by rafael            #+#    #+#             */
-/*   Updated: 2026/03/26 23:01:56 by rafael           ###   ########.fr       */
+/*   Updated: 2026/03/26 23:41:50 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,13 +55,22 @@ CGI::CGIResult CGI::parse_CGIOutput(const std::string& output)
         }
 		if (key == "Location")
 		{
-			result.headers["Location"] = value;
+			result.headers[key] = value;
 			//se cgi nao enviou o status troca para 302
 			if (result.status == 200)
 				result.status = 302;
 		}
     }
     return result;	
+}
+
+static void transform(std::string &headers)
+{
+	for (size_t i = 0; i < headers.length(); i++)
+	{
+		if (headers[i] >= 65 && headers[i] <= 90)
+		  	headers[i] += 32;
+	}
 }
 
 bool CGI::is_ValidCGIOutput(const std::string& output)
@@ -75,8 +84,8 @@ bool CGI::is_ValidCGIOutput(const std::string& output)
 		return false;
 	} */
 	std::string headers = output.substr(0, pos);
-	if (headers.find("Content-Type:") == std::string::npos)
-
+	transform(headers);
+	if (headers.find("content-type:") == std::string::npos) //noralizar letra grande e pequena
 		return false;
 	return true;
 }

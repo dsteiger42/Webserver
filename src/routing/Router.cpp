@@ -183,12 +183,8 @@ Response Router::handle_GET(const Request& request, Location& location)
             return response;
         }
         else
-        {
-            std::cout << "n me digas\n";
             return make_ErrorCode(403);
-        }
-    }
-    std::cout << "absolutP: " << _absolutePath << std::endl;    
+    }    
     if (!check_File(_absolutePath)) //if it's not a directory but the file doens't exist
         return make_ErrorCode(404);
     std::string content;
