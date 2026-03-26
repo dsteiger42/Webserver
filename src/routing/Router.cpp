@@ -172,6 +172,7 @@ Response Router::handle_GET(const Request& request, Location& location)
     std::string content;
     if (!read_File(_absolutePath, content))
         return make_ErrorCode(500);
+    response.set_StatusCode(200);
     response.set_Body(content);
     std::string MimeType = get_MimeType(get_Extension(_absolutePath), _parser.mimeTypes.types);
     response.set_Header("Content-Type", MimeType);
@@ -195,7 +196,7 @@ Response Router::handle_DELETE(const Request& request, Location& location)
         return make_ErrorCode(403);
     if (std::remove(_absolutePath.c_str()) != 0)
         return make_ErrorCode(500);
-    response.set_StatusCode(200);
+    response.set_StatusCode(204);
     response.set_Body("File deleted");
     std::string MimeType = get_MimeType(get_Extension(_absolutePath), _parser.mimeTypes.types);
     response.set_Header("Content-Type", MimeType);
