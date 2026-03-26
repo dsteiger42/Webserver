@@ -167,11 +167,7 @@ Response Router::handle_GET(const Request& request, Location& location)
         return (cgi.execute(request));
     _absolutePath = _documentRoot + _path;
     if (!is_InsideRoot(_absolutePath, _documentRoot))
-    {
-        std::cout << "aqui\n";
         return make_ErrorCode(403);
-    }
-    std::cout << "aqui1\n";
     if (is_Directory(_absolutePath))
     {
         std::string index = _absolutePath + _config.config.index;
