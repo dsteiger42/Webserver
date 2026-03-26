@@ -3,6 +3,7 @@
 
 # include <cstring>
 #include <http/buffer/CircularBuffer.hpp>
+#include <config/model/types.hpp>
 
 # include <iostream>
 # include <map>
@@ -18,6 +19,9 @@ enum	State
 	DONE
 };
 
+#define MAX_BODY_SIZE 4096
+#define MAX_HEADER_SIZE 8192
+
 class Request
 {
   private:
@@ -30,7 +34,7 @@ class Request
 	std::map<std::string, std::string> _headers;
     State _state;
     size_t _contentLength;
-
+	bool _validRequest;
   public:
 	Request();
 	const std::string& get_Method() const;
@@ -39,7 +43,7 @@ class Request
 	const std::string& get_Body() const;
 	const std::string& get_Header(const std::string &key) const;
     const std::string get_Query() const;
-	
+	bool get_validRequest() const;
 	bool is_Done() const;
 	
 	void reset();

@@ -15,6 +15,7 @@ class Response
         int _statusCode;
         std::string _httpVersion;
         std::string _statusMessage;
+        std::string _filePath;
         std::map<std::string, std::string> _headers;
         std::string _body;
     public:
@@ -24,7 +25,8 @@ class Response
         int get_StatusCode() const;
         const std::string get_Body() const;
         const std::string& get_Header(std::string &key);
-        std::string get_StatusMessage() const;
+        std::string get_StatusMessage(int code) const;
+        std::string get_FilePath() const;
 
         void set_HttpVersion(const std::string& version);
         void set_StatusCode(int code);

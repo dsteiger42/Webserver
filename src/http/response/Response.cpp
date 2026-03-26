@@ -1,40 +1,52 @@
 #include <http/response/Response.hpp>
 
+Response::Response() :  _errorPages(), _statusCode(200),  _httpVersion("HTTP/1.1"),  _statusMessage("OK"), _filePath("") {}
 
-/* static std::map<int, std::string> createStatusMessages()
-{
-    std::map<int, std::string> message;
-
-    message[200] = "OK";
-    message[201] = "Created";
-    message[204] = "No Content";
-    message[301] = "Moved Permanently";
-    message[302] = "Found";
-    message[400] = "Bad Request";
-    message[403] = "Forbidden";
-    message[404] = "Not Found";
-    message[405] = "Method Not Allowed";
-    message[500] = "Internal Server Error";
-    message[502] = "Bad Gateway";
-    message[503] = "Service Unavailable";
-
-    return message;
-}
-
-static const std::map<int, std::string> STATUS_MESSAGES = createStatusMessages(); */
-
-Response::Response() :  _errorPages(), _statusCode(200),  _httpVersion("HTTP/1.1"),  _statusMessage("OK") {}
-
-Response::Response(ErrorPages &ErrorPages) :  _errorPages(ErrorPages), _statusCode(200),  _httpVersion("HTTP/1.1"),  _statusMessage("OK") {}
+Response::Response(ErrorPages &ErrorPages) :  _errorPages(ErrorPages), _statusCode(200),  _httpVersion("HTTP/1.1"),  _statusMessage("OK"),  _filePath("") {}
 
 int Response::get_StatusCode() const
 {
     return (this->_statusCode);
 }
 
-std::string Response::get_StatusMessage() const
+std::string Response::get_StatusMessage(int code) const
 {
-    return (this->_statusMessage);
+    switch (code)
+    {
+        case 200: 
+            return "OK";
+        case 201: 
+            return "Created";
+        case 204: 
+            return "No Content";
+        case 301: 
+            return "Moved Permanently";
+        case 302: 
+            return "Found";
+        case 400: 
+            return "Bad Request";
+        case 403: 
+            return "Forbidden";
+        case 404: 
+            return "Not Found";
+        case 405: 
+            return "Method Not Allowed";
+        case 413: 
+            return "Payload Too Large";
+        case 500: 
+            return "Internal Server Error";
+        case 502: 
+            return "Bad Gateway";
+        case 503: 
+            return "Service Unavailable";
+        default: 
+            return "Unknown";
+    }
+}
+
+std::string Response::get_FilePath() const
+{
+    return (this->_filePath);
 }
 
 const std::string Response::get_Body() const
@@ -53,11 +65,12 @@ const std::string& Response::get_Header(std::string &key)
 void Response::set_StatusCode(int code)
 {
     this->_statusCode = code;
+    this->_statusMessage = get_StatusMessage(code);
     std::map<int, std::string>::const_iterator it = _errorPages.error_pages.find(code);
     if (it != _errorPages.error_pages.end())
-        this->_statusMessage = it->second;
+        this->_filePath = it->second;
     else
-        this->_statusMessage = "Unknown";
+        this->_filePath = "Unknown";
 }
 
 void Response::set_HttpVersion(const std::string& version)
@@ -123,6 +136,7 @@ void Response::build_Body(std::string &result)
 
 std::string Response::serialize()
 {
+    std::cout << "OI?\n";
     prepare_Headers();
     std::string response;
     response = build_StatusLine();
