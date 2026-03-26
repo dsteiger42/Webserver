@@ -1,24 +1,28 @@
 #include <core/server.hpp>
-#include <config/parser/parser.hpp>/*
-Create a port variable that will read the conf.file. then call the constructor with that port variable,
-which is assign to _port in the constructor. Then _port is called in the struct sockaddr_in and assigned in bind().
-*/
+#include <config/parser/parser.hpp>
 
 int main(int argc, char **argv)
 {
-    Parser Parser;
-    if(argc != 2)
+    if (argc != 2)
     {
         std::cerr << "Error: wrong number of arguments" << std::endl;
         return -1;
     }
-    parse_all(argv[1], Parser);
-    //int port = parseListenPort(); -> parse the "listen" in webserver.conf
-    //server myServer(port);
-
-    // used for testing a connection
-    Server myServer(8080, Parser);
-    myServer.setup_Socket();
-    myServer.handle_Clients();
+    Parser parser;
+    parse_all(argv[1], parser);
+    if (parser.servers.empty())
+    {
+        std::cerr << "Error: no server blocks found in config" << std::endl;
+        return -1;
+    }
+    std::vector<Server> servers;
+    for (size_t i = 0; i < parser.servers.size(); i++)
+        servers.push_back(Server(parser.servers[i].config.listen, parser.servers[i]));
+    for (size_t i = 0; i < servers.size(); i++)
+    {
+        if (servers[i].setup_Socket() == -1)
+            return -1;
+    }
+    Server::handle_Clients(servers);
     return 0;
 }

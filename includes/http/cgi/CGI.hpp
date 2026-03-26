@@ -7,17 +7,18 @@
 #include <sys/wait.h>
 #include <http/request/Request.hpp>
 #include <http/response/Response.hpp>
-#include <http/routing/Router.hpp>
 #include <utils/utils.hpp>
-#include <http/routing/Router.hpp>
+#include <map>
 
-class Router; //to remove
+class Router; // forward declaration
+
 class CGI
 {
     public:
         CGI();
         ~CGI();
         void setRouter(Router* r);
+
         struct CGIResult 
         {
             int status;
@@ -25,12 +26,13 @@ class CGI
             std::string body;
             std::map<std::string,std::string> headers;
         };
+
         Response execute(const Request& req);
 
     private:
         std::vector<std::string> _args;
         std::vector<std::string> env;
-        Router *router; // To remove
+        Router *router;
         std::string resolve_ScriptPath(const std::string& path);
         std::vector<char*> build_Arguments(const std::string& scriptPath);
         void build_Environment(const Request& req, const std::string& scriptPath);
@@ -43,6 +45,6 @@ class CGI
         std::string handle_ParentProcess(int inPipe[2], int outPipe[2],
                                         const Request& req);
         CGIResult parse_CGIOutput(const std::string& output);
-
 };
+
 #endif

@@ -11,7 +11,7 @@
 /* ************************************************************************** */
 
 #include <config/parser/parser.hpp>
-void	set_Path(std::vector<std::string> &tokens, size_t &i,
+void	set_Path(const std::vector<std::string> &tokens, size_t &i,
 		Location &location)
 {
 	if (tokens[i].empty())
@@ -21,7 +21,7 @@ void	set_Path(std::vector<std::string> &tokens, size_t &i,
 	else 
 		location.path = "/";
 }
-void	set_Autoindex(std::string &value, Location &location)
+void	set_Autoindex(const std::string &value, Location &location)
 {
 	if (value == "on")
 		location.autoIndex = true;
@@ -29,7 +29,7 @@ void	set_Autoindex(std::string &value, Location &location)
 		location.autoIndex = false;
 }
 
-void	set_AllowedMethods(std::vector<std::string> &tokens, size_t &i,
+void	set_AllowedMethods(const std::vector<std::string> &tokens, size_t &i,
 		Location &location)
 {
 	if (!tokens[i].empty())
@@ -43,7 +43,7 @@ void	set_AllowedMethods(std::vector<std::string> &tokens, size_t &i,
 	}
 }
 
-void	set_Root(std::string &value, Location &location)
+void	set_Root(const std::string &value, Location &location)
 {
 	if (!value.empty() && value != ";")
 		location.root = value;
@@ -51,7 +51,7 @@ void	set_Root(std::string &value, Location &location)
 		location.root = "";
 }
 
-void	set_CgiPass(std::string &value, Location &location)
+void	set_CgiPass(const std::string &value, Location &location)
 {
 	if (value == "on")
 		location.cgiPass = true;
@@ -59,7 +59,7 @@ void	set_CgiPass(std::string &value, Location &location)
 		location.cgiPass = false;
 }
 
-void	set_Redirection(std::vector<std::string> &tokens, size_t &i,
+void	set_Redirection(const std::vector<std::string> &tokens, size_t &i,
 		Location &location)
 {
 	long	code;
@@ -79,7 +79,7 @@ void	set_Redirection(std::vector<std::string> &tokens, size_t &i,
 		location.redirectUrl = "";
 }
 
-void	set_TryFiles(std::vector<std::string> &tokens, size_t &i,
+void	set_TryFiles(const std::vector<std::string> &tokens, size_t &i,
 		Location &location)
 {
 	if (!tokens[i].empty())
@@ -92,7 +92,7 @@ void	set_TryFiles(std::vector<std::string> &tokens, size_t &i,
 	}
 }
 
-void set_CgiExt(std::vector<std::string> &tokens, size_t &i, Location &location)
+void set_CgiExt(const std::vector<std::string> &tokens, size_t &i, Location &location)
 {
 	if (!tokens[i].empty())
 	{

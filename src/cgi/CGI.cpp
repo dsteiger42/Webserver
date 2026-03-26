@@ -1,4 +1,5 @@
 #include <http/cgi/CGI.hpp>
+#include <http/routing/Router.hpp>
 
 CGI::CGI()
 {

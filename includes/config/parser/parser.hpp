@@ -29,21 +29,26 @@
 // #include <climits>
 
 
-struct Parser
+struct ServerConfig
 {
-    
     Config config;
     ErrorPages errorPages;
     MimeTypes mimeTypes;
     std::vector<Location> location;
+};
+
+struct Parser
+{
+    std::vector<ServerConfig> servers;
     Parser();
+
 };
 
 
 void parse_all(const std::string &filename, Parser &parse);
-void parse_ServerBlock(const std::vector<std::string> &tokens, size_t &i, Config &config);
+void parse_ServerBlock(const std::vector<std::string> &tokens, size_t &i, ServerConfig &sc);
 void parse_ErrorPage(const std::vector<std::string> &tokens, size_t &i, ErrorPages &errorPages);
-void parse_MimeTypes(MimeTypes& MimeTypes, size_t &i, std::vector<std::string> &tokens);
-void parse_Location(Location &Location, size_t &i, std::vector<std::string> &tokens);
+void parse_MimeTypes(MimeTypes& MimeTypes, size_t &i, const std::vector<std::string> &tokens);
+void parse_Location(Location &Location, size_t &i, const std::vector<std::string> &tokens);
 
 #endif
