@@ -83,8 +83,9 @@ void Request::fill_Buffer(const std::string &request, size_t len)
 
 void Request::validate_Request()
 {
-	if (_version == "HTTP/1.1" && _headers.find("Host") == _headers.end())
-		throw std::runtime_error("400 Bad Request: Missing Host header");
+	if (_version == "" || _headers.find("Host") == _headers.end())
+		_validRequest = false;
+	return ;
 }
 
 std::string Request::extract_HeaderFromBuffer(size_t size)
