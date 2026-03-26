@@ -157,7 +157,12 @@ bool Request::process_Body() // read the Body
 	size_t oldSize = _body.size();
     _body.resize(oldSize + toRead);
     _buffer.read(&_body[oldSize], toRead);
-    if (_body.size() >= _contentLength)
+    if (_body.size() > _contentLength)
+	{
+        _validRequest = false;
+		return true;
+	}
+	if (_body.size() == _contentLength)
         _state = DONE;
     return true;
 }
