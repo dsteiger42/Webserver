@@ -85,16 +85,6 @@ void Request::fill_Buffer(const std::string &request, size_t len)
     }
 }
 
-/* size_t count_Headers(std::map<std::string, std::string> &header, std::string &key)
-{
-	size_t count = 0;
-	for (size_t i = 0; i < header.size(); i++)
-	{
-		if (header)
-	}
-	
-} */
-
 
 void Request::validate_Request()
 {
@@ -102,7 +92,8 @@ void Request::validate_Request()
 		_validRequest = false;
 	if (_headers.find("Content-Length") != _headers.end() && _headers.find("Transfer-Encoding") != _headers.end())
 		_validRequest = false;
-
+	if (_headers.find("Transfer-Encoding") != _headers.end())
+		_validRequest = false;
 }
 
 std::string Request::extract_HeaderFromBuffer(size_t size)
@@ -237,12 +228,6 @@ void Request::advanceParsing()
 		else if (_state == DONE)
 			return ;
 	}
-}
-
-void Request::parse(const std::string &request)
-{
-	fill_Buffer(request, request.length());
-	advanceParsing();
 }
 
 void Request::split_PathQuery(const std::string& path)
