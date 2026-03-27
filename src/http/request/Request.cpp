@@ -211,7 +211,6 @@ void Request::parse_Headers(std::string &line, std::istringstream &split)
 		}
 		std::string key = line.substr(0, pos);
 		transform(key);
-		std::cout << "key: " << key << std::endl;
 		std::string value = line.substr(pos + 1);
 		while (!value.empty() && (value[0] == ' ' || value[0] == '\t'))
 			value.erase(value.begin());
