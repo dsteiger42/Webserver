@@ -8,11 +8,9 @@ printf "POST / HTTP/1.1\r\nHost: localhost\r\nContent-Length: 5\r\n\r\nHelloWorl
 printf "POST / HTTP/1.1\r\nHost: localhost\r\nContent-Length: 5\r\n\r\n" | nc localhost 8080 -> 400
 
 
-classes letra grande -> ex: MimeTypes
-private -> _routerTeste
-funcoes -> parse_MimeTypes -> 
 
-
+verificar http versions e adaptar o codigo
+implementar parse chunked
 
 
 // prevent CRLF injection

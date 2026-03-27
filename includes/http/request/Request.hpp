@@ -4,6 +4,7 @@
 # include <cstring>
 #include <http/buffer/CircularBuffer.hpp>
 #include <config/model/types.hpp>
+#include <utils/utils.hpp>
 
 # include <iostream>
 # include <map>

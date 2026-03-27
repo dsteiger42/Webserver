@@ -88,11 +88,11 @@ void Request::fill_Buffer(const std::string &request, size_t len)
 
 void Request::validate_Request()
 {
-	if (_version == "" || _headers.find("Host") == _headers.end())
+	if (_version == "" || _headers.find("host") == _headers.end())
 		_validRequest = false;
-	if (_headers.find("Content-Length") != _headers.end() && _headers.find("Transfer-Encoding") != _headers.end())
+	if (_headers.find("content-length") != _headers.end() && _headers.find("transfer-encoding") != _headers.end())
 		_validRequest = false;
-	if (_headers.find("Transfer-Encoding") != _headers.end())
+	if (_headers.find("transfer-encoding") != _headers.end())
 		_validRequest = false;
 }
 
@@ -210,6 +210,8 @@ void Request::parse_Headers(std::string &line, std::istringstream &split)
 			return ;
 		}
 		std::string key = line.substr(0, pos);
+		transform(key);
+		std::cout << "key: " << key << std::endl;
 		std::string value = line.substr(pos + 1);
 		while (!value.empty() && (value[0] == ' ' || value[0] == '\t'))
 			value.erase(value.begin());

@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:32:35 by rafael            #+#    #+#             */
-/*   Updated: 2026/03/26 00:27:35 by rafael           ###   ########.fr       */
+/*   Updated: 2026/03/27 05:45:17 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,4 +39,13 @@ bool is_ValidMethod(std::vector<std::string> &allowedMethods, const std::string 
 bool validate_Method(const std::string &method)
 {
     return method == "GET" || method == "POST" || method == "DELETE";
+}
+
+void transform(std::string &string)
+{
+	for (size_t i = 0; i < string.length(); i++)
+	{
+		if (string[i] >= 65 && string[i] <= 90)
+		  	string[i] += 32;
+	}
 }
