@@ -273,7 +273,11 @@ Response Router::handle_Request(const Request& request)
         return make_ErrorCode(403);
     Location& loc = matchLocation(_path);
     if (loc.hasRedirect)
+    {
+        std::cout << "AM I HERE?\n";
         return redirect(loc.redirectCode, loc.redirectUrl);
+    }
+    std::cout << "AM I HERE1?\n";
     if (!is_ValidMethod(loc.allowedMethods, request.get_Method()))
     {
         std::cout << "3\n";

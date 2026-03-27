@@ -42,7 +42,7 @@ Response CGI::execute(const Request &req)
 	Response res;
 	int inPipe[2];
 	int outPipe[2];
-	int status;
+	int status = 0;
 	std::vector<char *> argv;
 	pid_t pid;
 	std::string output;
@@ -63,10 +63,7 @@ Response CGI::execute(const Request &req)
 	if (pid == 0)
 		execute_ChildProcess(inPipe, outPipe, scriptPath, &argv[0], &envp[0]);
 	if (pid > 0)
-    {
-		output = handle_ParentProcess(inPipe, outPipe, req);
-        waitpid(pid, &status, 0);
-    }
+		output = handle_ParentProcess(inPipe, outPipe, pid, status, req);
 	if (!WIFEXITED(status) || WEXITSTATUS(status) != 0)
 		return (router->make_ErrorCode(500));
 	if (!is_ValidCGIOutput(output))

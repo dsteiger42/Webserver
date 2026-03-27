@@ -9,6 +9,10 @@
 #include <http/response/Response.hpp>
 #include <utils/utils.hpp>
 #include <map>
+#include <fcntl.h>
+
+
+#define MAX_CGI_OUTPUT 1000000
 
 class Router; // forward declaration
 
@@ -42,7 +46,7 @@ class CGI
                                  const std::string& scriptPath,
                                  char* const argv[],
                                  char* const envp[]);
-        std::string handle_ParentProcess(int inPipe[2], int outPipe[2],
+        std::string handle_ParentProcess(int inPipe[2], int outPipe[2], pid_t pid, int &status,
                                         const Request& req);
         CGIResult parse_CGIOutput(const std::string& output);
         bool is_ValidCGIOutput(const std::string& output);

@@ -6,6 +6,8 @@ Response Router::make_ErrorCode(size_t code)
     res.set_StatusCode(code);
     std::string path = _documentRoot + res.get_FilePath();
     std::string page;
+    std::cout << "path: " << path << std::endl;
+    std::cout << "page: " << page << std::endl;
     if (!read_File(path, page))
     {
         std::stringstream ss;
