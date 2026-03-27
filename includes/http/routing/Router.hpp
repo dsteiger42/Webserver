@@ -24,7 +24,7 @@ class Router
         std::string _absolutePath;
     public:
         Response make_ErrorCode(size_t code);
-        CGI cgi;
+        CGI *cgi;
         Router(ServerConfig &sc);
         ~Router();
         Router(const Router& other);

@@ -8,10 +8,12 @@ Router::Router(ServerConfig &sc) : _config(sc)
     _method = "";
     _documentRoot = sc.config.root; //"./www/"
     _absolutePath = "";
-    cgi.setRouter(this);
+    cgi = new CGI;
+    cgi->setRouter(this);
 }
 Router::~Router()
 {
+    delete cgi;
 }
 
 Router::Router(const Router& other)
@@ -20,10 +22,10 @@ Router::Router(const Router& other)
       _query(other._query),
       _method(other._method),
       _documentRoot(other._documentRoot),
-      _absolutePath(other._absolutePath),
-      cgi(other.cgi)
+      _absolutePath(other._absolutePath)
 {
-    cgi.setRouter(this);
+    cgi = new CGI(*other.cgi);
+    cgi->setRouter(this);
 }
 
 Router& Router::operator=(const Router& other)
@@ -36,8 +38,9 @@ Router& Router::operator=(const Router& other)
         _method = other._method;
         _documentRoot = other._documentRoot;
         _absolutePath = other._absolutePath;
-        cgi = other.cgi;
-        cgi.setRouter(this);
+        delete cgi;
+        cgi = new CGI(*other.cgi);
+        cgi->setRouter(this);
     }
     return *this;
 }
@@ -158,13 +161,16 @@ Response Router::handle_GET(const Request& request, Location& location)
     if (location.hasRedirect)
         return redirect(location.redirectCode, location.redirectUrl);
     if (!is_ValidMethod(location.allowedMethods, request.get_Method()))
+    {
+        std::cout << "1\n";
         return make_ErrorCode(405);
+    }
     if (!location.root.empty())
         _documentRoot = location.root;
     else
         _documentRoot = _config.config.root;
     if (location.cgiPass)
-        return (cgi.execute(request));
+        return (cgi->execute(request));
     _absolutePath = _documentRoot + _path;
     if (!is_InsideRoot(_absolutePath, _documentRoot))
         return make_ErrorCode(403);
@@ -229,7 +235,7 @@ Response Router::handle_POST(const Request& request, Location& location)
     else
         _documentRoot = _config.config.root;
     if (location.cgiPass)
-        return (cgi.execute(request));
+        return (cgi->execute(request));
     size_t maxSize = _config.config.client_max_body_size;
     if (request.get_Body().size() > maxSize)
         return make_ErrorCode(413);
@@ -254,7 +260,10 @@ Response Router::handle_Request(const Request& request)
     if (!request.get_validRequest())
         return make_ErrorCode(400);
     if (!validate_Method(request.get_Method()))
+    {
+        std::cout << "55\n";
         return make_ErrorCode(405);
+    }
     if (request.get_Body().size() > _config.config.client_body_buffer_size)
         return make_ErrorCode(413);
     split_PathQuery(request.get_Path());
@@ -263,14 +272,20 @@ Response Router::handle_Request(const Request& request)
     if (!build_FinalPath(_path))
         return make_ErrorCode(403);
     Location& loc = matchLocation(_path);
+    if (loc.hasRedirect)
+        return redirect(loc.redirectCode, loc.redirectUrl);
     if (!is_ValidMethod(loc.allowedMethods, request.get_Method()))
+    {
+        std::cout << "3\n";
         return make_ErrorCode(405);
+    }
     if (request.get_Method() == "GET")
         return handle_GET(request, loc);
     else if (request.get_Method() == "DELETE")
         return handle_DELETE(request, loc);
     else if (request.get_Method() == "POST")
         return handle_POST(request, loc);
+    std::cout << "2\n";
     return make_ErrorCode(405);
 }
 
