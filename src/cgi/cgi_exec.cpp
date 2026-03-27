@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:18:06 by rafael            #+#    #+#             */
-/*   Updated: 2026/03/27 02:58:58 by rafael           ###   ########.fr       */
+/*   Updated: 2026/03/27 05:12:20 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,7 +76,6 @@ std::string CGI::handle_ParentProcess(int inPipe[2], int outPipe[2], pid_t pid, 
         {
             if (buff.size() + bytes > MAX_CGI_OUTPUT)
             {
-				std::cout << "aqui3\n";
                 kill(pid, SIGKILL);
                 waitpid(pid, NULL, 0);
                 return "";

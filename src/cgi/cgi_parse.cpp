@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:18:09 by rafael            #+#    #+#             */
-/*   Updated: 2026/03/26 23:41:50 by rafael           ###   ########.fr       */
+/*   Updated: 2026/03/27 05:13:15 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,7 +80,6 @@ bool CGI::is_ValidCGIOutput(const std::string& output)
 	size_t pos = output.find("\r\n\r\n");
 	/* if (pos == std::string::npos)
 	{
-		std::cout << "wtf1\n";
 		return false;
 	} */
 	std::string headers = output.substr(0, pos);

@@ -161,10 +161,7 @@ Response Router::handle_GET(const Request& request, Location& location)
     if (location.hasRedirect)
         return redirect(location.redirectCode, location.redirectUrl);
     if (!is_ValidMethod(location.allowedMethods, request.get_Method()))
-    {
-        std::cout << "1\n";
         return make_ErrorCode(405);
-    }
     /* if (!location.root.empty())
         _documentRoot = location.root;
     else
@@ -271,8 +268,6 @@ Response Router::handle_Request(const Request& request)
         return make_ErrorCode(400);
     if (!build_FinalPath(_path))
         return make_ErrorCode(403);
-    std::cout << _documentRoot << " DRi\n";
-    std::cout << _path << " pati\n";
     Location& loc = matchLocation(_path);
     if (!loc.root.empty())
         _documentRoot = loc.root;
