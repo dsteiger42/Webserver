@@ -242,7 +242,10 @@ Response Router::handle_POST(const Request& request, Location& location)
     if (!is_InsideRoot(_absolutePath, _documentRoot))
         return make_ErrorCode(403);
     if (is_Directory(_absolutePath))
+    {
+        std::cout << "aqui\n";
         return make_ErrorCode(403);
+    }
     std::ofstream file(_absolutePath.c_str(), std::ios::binary);
     if (!file.is_open())
         return make_ErrorCode(500);

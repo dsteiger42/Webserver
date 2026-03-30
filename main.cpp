@@ -3,13 +3,18 @@
 
 int main(int argc, char **argv)
 {
-    if (argc != 2)
+    std::string configFile;
+    if (argc == 1)
+        configFile = "./webserver.conf";
+    else if (argc == 2)
+        configFile = argv[1];
+    else
     {
-        std::cerr << "Error: wrong number of arguments" << std::endl;
+        std::cerr << "Usage: ./webserv [configuration file]" << std::endl;
         return -1;
     }
     Parser parser;
-    parse_all(argv[1], parser);
+    parse_all(configFile, parser);
     if (parser.servers.empty())
     {
         std::cerr << "Error: no server blocks found in config" << std::endl;
