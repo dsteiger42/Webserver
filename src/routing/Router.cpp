@@ -219,10 +219,6 @@ Response Router::handle_DELETE(const Request& request, Location& location)
     if (std::remove(_absolutePath.c_str()) != 0)
         return make_ErrorCode(500);
     response.set_StatusCode(204);
-    response.set_Body("File deleted");
-    std::string MimeType = get_MimeType(get_Extension(_absolutePath), _config.mimeTypes.types);
-    response.set_Header("Content-Type", MimeType);
-    response.set_Header("Content-Length", "12");
     return response;
 }
 Response Router::handle_POST(const Request& request, Location& location)
@@ -264,7 +260,7 @@ Response Router::handle_Request(const Request& request)
         return make_ErrorCode(400);
     if (!validate_Method(request.get_Method()))
         return make_ErrorCode(405);
-    if (request.get_Body().size() > _config.config.client_body_buffer_size)
+    if (_config.config.client_max_body_size > 0 && request.get_Body().size() > _config.config.client_body_buffer_size)
         return make_ErrorCode(413);
     split_PathQuery(request.get_Path());
     if (!validate_Path(_path))
