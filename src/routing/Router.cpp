@@ -234,7 +234,15 @@ Response Router::handle_POST(const Request& request, Location& location)
     size_t maxSize = _config.config.client_max_body_size;
     if (request.get_Body().size() > maxSize)
         return make_ErrorCode(413);
-    _absolutePath = _documentRoot + _path;
+    std::string uploadDir = location.upload_store.empty() ? _documentRoot : location.upload_store;
+/* // extrai apenas o nome do ficheiro do path
+std::string filename = _path;
+size_t slash = filename.rfind('/');
+if (slash != std::string::npos)
+    filename = filename.substr(slash + 1);
+_absolutePath = uploadDir;
+if (_absolutePath[_absolutePath.size()-1] != '/') _absolutePath += '/';
+_absolutePath += filename; */
     if (!is_InsideRoot(_absolutePath, _documentRoot))
         return make_ErrorCode(403);
     if (is_Directory(_absolutePath))

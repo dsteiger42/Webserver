@@ -38,6 +38,7 @@ struct Location
 {
     std::string path;
     std::string root;
+    std::string upload_store;
     std::vector<std::string> allowedMethods;
     std::vector<std::string> cgiExt;
     bool autoIndex;

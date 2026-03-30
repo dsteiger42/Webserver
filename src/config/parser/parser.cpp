@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/16 15:17:16 by dsteiger          #+#    #+#             */
-/*   Updated: 2026/03/26 04:57:28 by rafael           ###   ########.fr       */
+/*   Updated: 2026/03/30 19:12:22 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@ Config::Config() : server_name(""), root(""), index(""), client_body_buffer_size
 {
 }
 
-Location::Location() : path(""), root(""), autoIndex(false), cgiPass(false),
+Location::Location() : path(""), root(""), upload_store(""), autoIndex(false), cgiPass(false),
 	hasRedirect(false), has_tryFiles(false), redirectCode(0), redirectUrl("")
 {
 }
