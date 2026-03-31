@@ -205,17 +205,13 @@ Response Router::handle_DELETE(const Request& request, Location& location)
     (void)location;
     (void)request;
     Response response(_config.errorPages);
-    /* if (!location.root.empty())
-        _documentRoot = location.root;
-    else
-        _documentRoot = _config.config.root; */
     _absolutePath = _documentRoot + _path;
     if (!is_InsideRoot(_absolutePath, _documentRoot))
         return make_ErrorCode(403);
+    if (is_Directory(_absolutePath))
+        return make_ErrorCode(409);
     if (!check_File(_absolutePath))
         return make_ErrorCode(404);
-    if (is_Directory(_absolutePath))
-        return make_ErrorCode(403);
     if (std::remove(_absolutePath.c_str()) != 0)
         return make_ErrorCode(500);
     response.set_StatusCode(204);
