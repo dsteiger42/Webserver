@@ -162,10 +162,6 @@ Response Router::handle_GET(const Request& request, Location& location)
         return redirect(location.redirectCode, location.redirectUrl);
     if (!is_ValidMethod(location.allowedMethods, request.get_Method()))
         return make_ErrorCode(405);
-    /* if (!location.root.empty())
-        _documentRoot = location.root;
-    else
-        _documentRoot = _config.config.root; */
     if (location.cgiPass)
         return (cgi->execute(request));
     _absolutePath = _documentRoot + _path;
@@ -268,8 +264,9 @@ Response Router::handle_Request(const Request& request)
     
     if (!request.get_validRequest())
     {
-        std::cout << "lol\n";
-        return make_ErrorCode(400);
+        if (request.get_statusCode() != 0)
+            return make_ErrorCode(request.get_statusCode());
+        return make_ErrorCode(400);    
     }
     if (!validate_Method(request.get_Method()))
         return make_ErrorCode(405);
