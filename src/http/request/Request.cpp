@@ -54,8 +54,11 @@ void Request::reset()
 	_path.clear();
 	_version.clear();
 	_body.clear();
+	_query.clear();
 	_headers.clear();
 	_contentLength = 0;
+	_statusCode = 0;
+	_validRequest = false;
 	_state = READING_HEADER;
 }
 

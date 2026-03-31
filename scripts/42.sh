@@ -104,7 +104,7 @@ COUNT=$(grep -c "HTTP/" response.txt)
 ########################################
 test_title "CGI TEST"
 
-echo -e "GET /test.php HTTP/1.1\r\nHost: localhost\r\n\r\n" | nc $HOST $PORT > response.txt
+echo -e "GET /cgi-bin/test.php HTTP/1.1\r\nHost: localhost\r\n\r\n" | nc $HOST $PORT > response.txt
 
 grep -q "200" response.txt && ok "CGI executed" || fail "CGI failed"
 
@@ -122,7 +122,7 @@ grep -q "<html" response.txt && ok "Autoindex works" || fail "Autoindex missing"
 ########################################
 test_title "REDIRECTION"
 
-curl -s -o /dev/null -w "%{http_code}" http://$HOST:$PORT/redirect | grep -q "301\|302" \
+curl -s -o /dev/null -w "%{http_code}" http://$HOST:$PORT/redir/ | grep -q "301\|302" \
     && ok "Redirect works" || fail "Redirect failed"
 
 ########################################
