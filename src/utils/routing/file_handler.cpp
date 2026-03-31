@@ -10,55 +10,24 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef TYPES_HPP
-# define TYPES_HPP
+#include <http/routing/file_handler.hpp>
 
-# include <cctype>
-# include <climits>
-# include <cstdlib>
-# include <fstream>
-# include <iostream>
-# include <map>
-# include <sstream>
-# include <stdexcept>
-# include <string>
-# include <vector>
-
-struct		Config
+Response Router::make_ErrorCode(size_t code)
 {
-	std::string server_name;
-	std::string root;
-	std::string index;
-	size_t	client_body_buffer_size;
-	size_t	client_max_body_size;
-	int		listen;
-	Config();
-};
-
-struct		ErrorPages
-{
-	std::map<int, std::string> error_pages;
-};
-
-struct		MimeTypes
-{
-	std::map<std::string, std::string> types;
-};
-
-struct		Location
-{
-	std::string path;
-	std::string root;
-	std::vector<std::string> allowedMethods;
-	std::vector<std::string> cgiExt;
-	bool	autoIndex;
-	bool	cgiPass;
-	bool	hasRedirect;
-	bool	has_tryFiles;
-	size_t	redirectCode;
-	std::string redirectUrl;
-	std::vector<std::string> try_files;
-	Location();
-};
-
-#endif
+	Response res(_config.errorPages);
+	res.set_StatusCode(code);
+	std::string path = _documentRoot + res.get_FilePath();
+	std::string page;
+	if (!read_File(path, page))
+	{
+		std::cout << "aqui11111\n";
+		std::stringstream ss;
+		ss << "<h1>" << code << " "
+			<< "Error Ocurred"
+			<< "</h1>";
+		res.set_Body(ss.str());
+		return (res);
+	}
+	res.set_Body(page);
+	return (res);
+}

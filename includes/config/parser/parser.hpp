@@ -11,44 +11,33 @@
 /* ************************************************************************** */
 
 #ifndef Parser_HPP
-#define Parser_HPP
+# define Parser_HPP
 
-#include <string>
-#include <vector>
-#include <map>
-#include <utils/utils.hpp>
-#include <config/model/types.hpp>
-#include <config/parser/parsing_utils.hpp>
-// #include <iostream>
-// #include <fstream>
-// #include <sstream>
-// #include <stdexcept>
-// #include <cctype>
-// #include <vector>
-// #include <cstdlib>
-// #include <climits>
+# include <config/model/types.hpp>
+# include <config/parser/parsing_utils.hpp>
+# include <map>
+# include <string>
+# include <utils/utils.hpp>
+# include <vector>
 
-
-struct ServerConfig
+struct	ServerConfig
 {
-    Config config;
-    ErrorPages errorPages;
-    MimeTypes mimeTypes;
-    std::vector<Location> location;
+	Config		config;
+	ErrorPages	errorPages;
+	MimeTypes	mimeTypes;
+	std::vector<Location> location;
 };
 
-struct Parser
+struct	Parser
 {
-    std::vector<ServerConfig> servers;
-    Parser();
-
+	std::vector<ServerConfig> servers;
+	Parser();
 };
 
-
-void parse_all(const std::string &filename, Parser &parse);
-void parse_ServerBlock(const std::vector<std::string> &tokens, size_t &i, ServerConfig &sc);
-void parse_ErrorPage(const std::vector<std::string> &tokens, size_t &i, ErrorPages &errorPages);
-void parse_MimeTypes(MimeTypes& MimeTypes, size_t &i, const std::vector<std::string> &tokens);
-void parse_Location(Location &Location, size_t &i, const std::vector<std::string> &tokens);
+void	parse_all(const std::string &filename, Parser &parse);
+void	parse_ServerBlock(const std::vector<std::string> &tokens, size_t &i, ServerConfig &sc);
+void	parse_ErrorPage(const std::vector<std::string> &tokens, size_t &i, ErrorPages &errorPages);
+void	parse_MimeTypes(MimeTypes &MimeTypes, size_t &i, const std::vector<std::string> &tokens);
+void	parse_Location(Location &Location, size_t &i, const std::vector<std::string> &tokens);
 
 #endif

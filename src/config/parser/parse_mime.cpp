@@ -12,8 +12,7 @@
 
 #include <config/parser/parser.hpp>
 
-void	parse_MimeTypes(MimeTypes &MimeTypes, size_t &i,
-		const std::vector<std::string> &tokens)
+void	parse_MimeTypes(MimeTypes &MimeTypes, size_t &i, const std::vector<std::string> &tokens)
 {
 	i++;
 	if (tokens[i] != "{")

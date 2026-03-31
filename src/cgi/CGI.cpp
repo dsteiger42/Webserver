@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   path_utils.cpp                                     :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
+/*   Updated: 2026/03/24 02:59:09 by rafael           ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include <http/cgi/CGI.hpp>
 #include <http/routing/Router.hpp>
 
@@ -16,11 +28,10 @@ void CGI::setRouter(Router *r)
 
 std::string CGI::resolve_ScriptPath(const std::string &path)
 {
-
 	std::string locPath = router->matchLocation(path).path;
 	std::string relativePath = path.substr(locPath.size() - 1);
 	if (!relativePath.empty() && relativePath[0] == '/')
-        relativePath.erase(0, 1);
+		relativePath.erase(0, 1);
 	std::string fullPath = router->get_DocumentRoot();
 	if (!fullPath.empty() && fullPath[fullPath.size() - 1] != '/')
 		fullPath += '/';
@@ -63,10 +74,10 @@ Response CGI::execute(const Request &req)
 	if (pid == 0)
 		execute_ChildProcess(inPipe, outPipe, scriptPath, &argv[0], &envp[0]);
 	if (pid > 0)
-    {
+	{
 		output = handle_ParentProcess(inPipe, outPipe, req);
-        waitpid(pid, &status, 0);
-    }
+		waitpid(pid, &status, 0);
+	}
 	if (!WIFEXITED(status) || WEXITSTATUS(status) != 0)
 		return (router->make_ErrorCode(500));
 	if (!is_ValidCGIOutput(output))
@@ -75,7 +86,7 @@ Response CGI::execute(const Request &req)
 	res.set_StatusCode(result.status);
 	res.set_Header("Content-Type", result.contentType);
 	if (result.headers.count("Location"))
-    	res.set_Header("Location", result.headers["Location"]);
+		res.set_Header("Location", result.headers["Location"]);
 	res.set_Body(result.body);
 	return (res);
 }
