@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 00:53:07 by rafael            #+#    #+#             */
-/*   Updated: 2026/03/30 19:12:44 by rafael           ###   ########.fr       */
+/*   Updated: 2026/03/30 20:07:56 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,10 +59,11 @@ void	parse_Location(Location &Location, size_t &i,
 			i++;
 			set_CgiExt(tokens, i, Location);
 		}
-		if (tokens[i] == "upload_store" && !tokens[i + 1].empty())
+		if (tokens[i] == "upload_store" && i + 1 < tokens.size() && !tokens[i + 1].empty())
 		{
 			i++;
-			Location.upload_store = tokens[i];
+			if (tokens[i] != ";")
+				Location.upload_store = tokens[i];
 		}
 		i++;
 	}

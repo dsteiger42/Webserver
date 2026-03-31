@@ -9,6 +9,8 @@
 #include <config/parser/parser.hpp>
 #include <dirent.h>
 #include <algorithm>
+#include <ctime>
+#include <sstream>
 
 //serve para analisar um Request HTTP e decidir qual recurso devolver, construindo a Response adequada (ficheiro ou erro).
 

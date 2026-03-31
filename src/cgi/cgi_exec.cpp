@@ -6,11 +6,12 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:18:06 by rafael            #+#    #+#             */
-/*   Updated: 2026/03/27 05:12:20 by rafael           ###   ########.fr       */
+/*   Updated: 2026/03/30 20:06:32 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <http/cgi/CGI.hpp>
+#include <poll.h>
 
 void CGI::create_Pipes(int inPipe[2], int outPipe[2])
 {
@@ -66,37 +67,55 @@ std::string CGI::handle_ParentProcess(int inPipe[2], int outPipe[2], pid_t pid, 
 	close(inPipe[0]);
 	close(outPipe[1]);
     if (!req.get_Body().empty())
-	    write(inPipe[1], req.get_Body().c_str(), req.get_Body().size());
+	{
+		pollfd wpfd;
+		wpfd.fd = inPipe[1];
+		wpfd.events = POLLOUT;
+		if (poll(&wpfd, 1, 1000) > 0 && (wpfd.revents & POLLOUT))
+			write(inPipe[1], req.get_Body().c_str(), req.get_Body().size());
+	}
 	close(inPipe[1]);
-	fcntl(outPipe[0], F_SETFL, O_NONBLOCK);
+	pollfd pfd;
+	pfd.fd = outPipe[0];
+	pfd.events = POLLIN;
 	while (true)
-    {
-        bytes = read(outPipe[0], temp, sizeof(temp));
-        if (bytes > 0)
-        {
-            if (buff.size() + bytes > MAX_CGI_OUTPUT)
-            {
-                kill(pid, SIGKILL);
-                waitpid(pid, NULL, 0);
-                return "";
-            }
-            buff.append(temp, bytes);
-        }
-        else if (bytes == 0)
-		{
-            break; // EOF → processo terminou output
-		}
-		pid_t result = waitpid(pid, &status, WNOHANG);
-		if (result == pid)
+	{
+		int ret = poll(&pfd, 1, 100);
+		if (ret == -1)
 			break;
-		if (elapsed >= 50)
+		if (ret == 0)
 		{
-			kill(pid, SIGKILL);
-			waitpid(pid, &status, 0);
-			break;
+			elapsed++;
+			if (elapsed >= 50)
+			{
+				kill(pid, SIGKILL);
+				waitpid(pid, &status, 0);
+				break;
+			}
+			continue;
 		}
-		usleep(100000);
-		elapsed++;
+		if (pfd.revents & POLLIN)
+		{
+			bytes = read(outPipe[0], temp, sizeof(temp));
+			if (bytes > 0)
+			{
+				if (buff.size() + (size_t)bytes > MAX_CGI_OUTPUT)
+				{
+					kill(pid, SIGKILL);
+					waitpid(pid, NULL, 0);
+					return "";
+				}
+				buff.append(temp, bytes);
+			}
+			else if (bytes == 0)
+				break;
+		}
+		if (pfd.revents & (POLLHUP | POLLERR))
+		{
+			pid_t result = waitpid(pid, &status, WNOHANG);
+			if (result == pid)
+				break;
+		}
 	}
     close(outPipe[0]);
     return buff;

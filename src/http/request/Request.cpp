@@ -106,7 +106,7 @@ std::string Request::extract_HeaderFromBuffer(size_t size)
 void Request::determine_NextState()
 {
 	std::map<std::string,
-		std::string>::iterator it = _headers.find("Content-Length");
+		std::string>::iterator it = _headers.find("content-length");
 	if (it != _headers.end())
 	{
 		long length = std::atol(it->second.c_str());
@@ -183,9 +183,9 @@ void Request::parse_RequestLine(std::string &line, std::istringstream &split)
 
 static bool is_UniqueHeader(const std::string& key)
 {
-    return (key == "Content-Length" ||
-            key == "Host" ||
-            key == "Transfer-Encoding");
+    return (key == "content-length" ||
+            key == "host" ||
+            key == "transfer-encoding");
 }
 
 void Request::parse_Headers(std::string &line, std::istringstream &split)

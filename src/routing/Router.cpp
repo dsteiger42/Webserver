@@ -221,35 +221,40 @@ Response Router::handle_DELETE(const Request& request, Location& location)
     response.set_StatusCode(204);
     return response;
 }
+
 Response Router::handle_POST(const Request& request, Location& location)
 {
-    (void)location;
     Response response(_config.errorPages);
-    /* if (!location.root.empty())
-        _documentRoot = location.root;
-    else
-        _documentRoot = _config.config.root; */
     if (location.cgiPass)
         return (cgi->execute(request));
     size_t maxSize = _config.config.client_max_body_size;
     if (request.get_Body().size() > maxSize)
         return make_ErrorCode(413);
-    std::string uploadDir = location.upload_store.empty() ? _documentRoot : location.upload_store;
-/* // extrai apenas o nome do ficheiro do path
-std::string filename = _path;
-size_t slash = filename.rfind('/');
-if (slash != std::string::npos)
-    filename = filename.substr(slash + 1);
-_absolutePath = uploadDir;
-if (_absolutePath[_absolutePath.size()-1] != '/') _absolutePath += '/';
-_absolutePath += filename; */
-    if (!is_InsideRoot(_absolutePath, _documentRoot))
+    std::string uploadDir;
+    if (location.upload_store.empty())
+        uploadDir = _documentRoot;
+    else
+        uploadDir = location.upload_store;
+    std::string filename = _path;
+    size_t slash = filename.rfind('/');
+    if (slash != std::string::npos)
+        filename = filename.substr(slash + 1);
+    if (filename.empty())
+    {
+        std::stringstream ss;
+        ss << "upload_" << std::time(NULL) << ".txt";
+        filename = ss.str();
+    }
+    _absolutePath = uploadDir;
+    if (!_absolutePath.empty() && _absolutePath[_absolutePath.size() - 1] != '/')
+        _absolutePath += '/';
+    _absolutePath += filename;
+    if (!is_InsideRoot(_absolutePath, uploadDir))
         return make_ErrorCode(403);
     if (is_Directory(_absolutePath))
-    {
-        std::cout << "aqui\n";
         return make_ErrorCode(403);
-    }
+    if (check_File(_absolutePath))
+        return make_ErrorCode(409);    
     std::ofstream file(_absolutePath.c_str(), std::ios::binary);
     if (!file.is_open())
         return make_ErrorCode(500);
@@ -261,11 +266,15 @@ _absolutePath += filename; */
     response.set_Header("Content-Type", MimeType);
     return response;
 }
+
 Response Router::handle_Request(const Request& request)
 {
     
     if (!request.get_validRequest())
+    {
+        std::cout << "lol\n";
         return make_ErrorCode(400);
+    }
     if (!validate_Method(request.get_Method()))
         return make_ErrorCode(405);
     if (_config.config.client_max_body_size > 0 && request.get_Body().size() > _config.config.client_body_buffer_size)

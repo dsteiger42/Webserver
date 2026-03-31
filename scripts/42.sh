@@ -64,7 +64,7 @@ REQUEST="POST / HTTP/1.1\r\nHost: localhost\r\nContent-Length: 11\r\n\r\nhello=w
 
 echo -e "$REQUEST" | nc $HOST $PORT > response.txt
 
-grep -q "200" response.txt && ok "POST handled" || fail "POST failed"
+(grep -q "200" response.txt || grep -q "201" response.txt ) && ok "POST handled" || fail "POST failed"
 
 ########################################
 # DELETE REQUEST
