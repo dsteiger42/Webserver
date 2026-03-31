@@ -53,24 +53,24 @@ void CGI::execute_ChildProcess(int inPipe[2], int outPipe[2],
 		close(outPipe[1]);
 		exit(1);
 	}
-	//exit(1);
+	// exit(1);
 }
 
-std::string CGI::handle_ParentProcess(int inPipe[2], int outPipe[2],
-	const Request &req)
+std::string CGI::handle_ParentProcess(int inPipe[2], int outPipe[2], const Request &req)
 {
-    std::string buff;
-    size_t bytes;
-    char temp[4096];
+	size_t	bytes;
+	char	temp[4096];
+
+	std::string buff;
 	close(inPipe[0]);
 	close(outPipe[1]);
-    if (!req.get_Body().empty())
-	    write(inPipe[1], req.get_Body().c_str(), req.get_Body().size());
+	if (!req.get_Body().empty())
+		write(inPipe[1], req.get_Body().c_str(), req.get_Body().size());
 	close(inPipe[1]);
-    while((bytes = read(outPipe[0], temp, sizeof(temp))) > 0)
-    {
-        buff.append(temp, bytes);
-    }
-    close(outPipe[0]);
-    return buff;
+	while ((bytes = read(outPipe[0], temp, sizeof(temp))) > 0)
+	{
+		buff.append(temp, bytes);
+	}
+	close(outPipe[0]);
+	return (buff);
 }

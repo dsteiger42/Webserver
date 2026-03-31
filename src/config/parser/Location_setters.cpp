@@ -11,14 +11,14 @@
 /* ************************************************************************** */
 
 #include <config/parser/parser.hpp>
-void	set_Path(const std::vector<std::string> &tokens, size_t &i,
-		Location &location)
+
+void	set_Path(const std::vector<std::string> &tokens, size_t &i, Location &location)
 {
 	if (tokens[i].empty())
 		return ;
 	if (!tokens[i].empty())
 		location.path = tokens[i];
-	else 
+	else
 		location.path = "/";
 }
 void	set_Autoindex(const std::string &value, Location &location)
@@ -91,11 +91,12 @@ void	set_TryFiles(const std::vector<std::string> &tokens, size_t &i,
 	}
 }
 
-void set_CgiExt(const std::vector<std::string> &tokens, size_t &i, Location &location)
+void	set_CgiExt(const std::vector<std::string> &tokens, size_t &i,
+		Location &location)
 {
 	if (!tokens[i].empty())
 	{
-		while(tokens[i] != ";")
+		while (tokens[i] != ";")
 		{
 			location.cgiExt.push_back(tokens[i]);
 			i++;

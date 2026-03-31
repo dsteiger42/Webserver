@@ -10,11 +10,12 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <config/parser/parser.hpp>
 #include <config/parser/Location_setters.hpp>
+#include <config/parser/parser.hpp>
 #include <config/parser/parsing_utils.hpp>
 
-Config::Config() : server_name(""), root(""), index(""), client_body_buffer_size(0), client_max_body_size(0), listen(0)
+Config::Config() : server_name(""), root(""), index(""),
+	client_body_buffer_size(0), client_max_body_size(0), listen(0)
 {
 }
 
@@ -27,24 +28,25 @@ Parser::Parser() : servers()
 {
 }
 
-
-void parse_all(const std::string &filename, Parser &parser)
+void	parse_all(const std::string &filename, Parser &parser)
 {
-    std::vector<std::string> tokens = Tokenize(filename);
-    if (!countBraces(tokens))
-        return;
+	size_t	i;
+	ServerConfig sc;
 
-    size_t i = 0;
-    while (i < tokens.size())
-    {
-        if (tokens[i] == "server" && i + 1 < tokens.size() && tokens[i + 1] == "{")
-        {
-            i += 2; // skip "server" and "{"
-            ServerConfig sc;
-            parse_ServerBlock(tokens, i, sc); // i will be left past the closing "}"
-            parser.servers.push_back(sc);
-        }
-        else
-            i++;
-    }
+	std::vector<std::string> tokens = Tokenize(filename);
+	if (!countBraces(tokens))
+		return ;
+	i = 0;
+	while (i < tokens.size())
+	{
+		if (tokens[i] == "server" && i + 1 < tokens.size() && tokens[i
+			+ 1] == "{")
+		{
+			i += 2; // skip "server" and "{"
+			parse_ServerBlock(tokens, i, sc);
+			parser.servers.push_back(sc);
+		}
+		else
+			i++;
+	}
 }

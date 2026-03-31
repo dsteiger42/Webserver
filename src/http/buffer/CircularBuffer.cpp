@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   path_utils.cpp                                     :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
+/*   Updated: 2026/03/24 02:59:09 by rafael           ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include <http/buffer/CircularBuffer.hpp>
 
 CircularBuffer::CircularBuffer(size_t cap) : _buffer(cap), _head(0), _tail(0),
@@ -22,18 +34,23 @@ size_t CircularBuffer::get_Size()
 
 size_t CircularBuffer::write(const char *data, size_t len)
 {
-    if (_size == _capacity)
-        return 0;
-    size_t freeSpace = (_capacity - _size);
-    size_t toWrite = std::min(len, freeSpace);
-    size_t firstChunk = std::min(toWrite, _capacity - _head);
-    std::memcpy(&_buffer[_head], data, firstChunk); // trocar
-    size_t secondChunk = toWrite - firstChunk;
-    if (secondChunk)
-        std::memcpy(&_buffer[0], data + firstChunk, secondChunk); //trocar
-    _head = (_head + toWrite) % _capacity;
-    _size += toWrite;
-    return toWrite;
+	size_t	freeSpace;
+	size_t	toWrite;
+	size_t	firstChunk;
+	size_t	secondChunk;
+
+	if (_size == _capacity)
+		return (0);
+	freeSpace = (_capacity - _size);
+	toWrite = std::min(len, freeSpace);
+	firstChunk = std::min(toWrite, _capacity - _head);
+	std::memcpy(&_buffer[_head], data, firstChunk); // trocar
+	secondChunk = toWrite - firstChunk;
+	if (secondChunk)
+		std::memcpy(&_buffer[0], data + firstChunk, secondChunk); // trocar
+	_head = (_head + toWrite) % _capacity;
+	_size += toWrite;
+	return (toWrite);
 }
 
 size_t CircularBuffer::read(char *out, size_t len)
@@ -93,7 +110,6 @@ size_t CircularBuffer::find(const std::string &pattern) const
 	}
 	return (std::string::npos);
 }
-
 
 void CircularBuffer::consume(size_t bytes)
 {

@@ -12,9 +12,9 @@
 
 #include <utils/utils.hpp>
 
-bool is_InsideRoot(const std::string& path, const std::string &DocumentRoot)
+bool	is_InsideRoot(const std::string &path, const std::string &DocumentRoot)
 {
-    if (path.compare(0, DocumentRoot.size(), DocumentRoot) != 0)
-        return false;
-    return true;
+	if (path.compare(0, DocumentRoot.size(), DocumentRoot) != 0)
+		return (false);
+	return (true);
 }

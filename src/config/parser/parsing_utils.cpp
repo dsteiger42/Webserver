@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   path_utils.cpp                                     :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
+/*   Updated: 2026/03/24 02:59:09 by rafael           ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include <config/parser/parsing_utils.hpp>
 
 std::vector<std::string> Tokenize(const std::string &filename)
@@ -42,7 +54,6 @@ std::vector<std::string> Tokenize(const std::string &filename)
 	}
 	return (tokens);
 }
-
 
 bool countBraces(std::vector<std::string> &tokens)
 {
