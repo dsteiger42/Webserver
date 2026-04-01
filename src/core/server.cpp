@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/01 16:17:14 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/01 19:00:05 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,18 +35,6 @@ void	*ft_memset(void *str, int c, size_t n)
 	return (mem);
 }
 
-/*
-Port is 16 bit value. IP address is 32 bit value.
-For 16 bit value, use htons or ntohs
-For 32 bit value, use htonl or ntohl
-Internet protocols work on Big-Endian (network order)
-	-> most significant byte is stored first
-Most computers work in Small-Endian -> least significant byte is stored first
-I need to translate the Port and Ip Address to network order,
-	hence the htons(_port).
-And, if needed, IP address will be used with htonl.
-*/
-// sockaddr_in represents the adress of a socket
 sockaddr_in Server::create_Address()
 {
 	sockaddr_in	addr;
@@ -54,7 +42,7 @@ sockaddr_in Server::create_Address()
 	ft_memset(&addr, 0, sizeof(addr));
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons(_port);
-	addr.sin_addr.s_addr = htonl(INADDR_ANY); // Accept connections from outside computers and from this computer itself (localhost)
+	addr.sin_addr.s_addr = htonl(INADDR_ANY);
 	return (addr);
 }
 
@@ -118,8 +106,8 @@ int Server::accept_NewClient(std::vector<pollfd> &fds)
 		return (-1);
 	}
 	std::cout << "Client connected: fd=" << client_fd << "\n";
-	flags = fcntl(client_fd, F_GETFL, 0); // F_GETFL get the current file status flags,like O_NONBLOCK or O_RDONLY
-	fcntl(client_fd, F_SETFL, flags | O_NONBLOCK); // F_SETFL sets the flags we retrieved above
+	flags = fcntl(client_fd, F_GETFL, 0);
+	fcntl(client_fd, F_SETFL, flags | O_NONBLOCK);
 	ft_memset(&poll, 0, sizeof(poll));
 	poll.fd = client_fd;
 	poll.events = POLLIN;
@@ -152,7 +140,7 @@ bool Server::receive_FromClient(std::vector<pollfd> &fds, size_t index)
 		n = client.readBuffer.read(temp, sizeof(temp));
 		std::string chunk(temp, n);
 		client.request.fill_Buffer(chunk, chunk.size());
-		if (client.request.is_Done()|| !client.request.get_validRequest())
+		if (client.request.is_Done() || !client.request.get_validRequest())
 		{
 			client.response = _router.handle_Request(client.request);
 			std::string rawResponse = client.response.serialize();
@@ -200,11 +188,37 @@ SendStatus Server::send_ToClient(std::vector<pollfd> &fds, size_t index)
 	return (SEND_OK);
 }
 
+/*
+** FIX — Bug 1:
+**   O problema original era: um cliente que enviava o header com
+**   Content-Length: 5 mas não enviava os bytes do body ficava pendente
+**   indefinidamente (até ao timeout de 10s de CLIENT_TIMEOUT_SEC).
+**   O subject exige que o servidor nunca fique bloqueado e seja resiliente.
+**
+**   A correção introduz dois timeouts distintos:
+**     - INCOMPLETE_REQUEST_TIMEOUT_SEC (5s): aplicado enquanto o request
+**       ainda não chegou a DONE (body incompleto). Quando expira, o servidor
+**       responde com 408 Request Timeout e fecha a ligação de forma limpa,
+**       em vez de manter o fd aberto para sempre.
+**     - CLIENT_TIMEOUT_SEC (30s): tempo máximo de inactividade geral
+**       (mantido para ligações keep-alive ou clientes lentos mas activos).
+**
+**   Nota: enviar a resposta 408 antes de fechar é boa prática HTTP/1.1 e
+**   é o que o NGINX faz (pode ser verificado com telnet, conforme o subject).
+*/
 void Server::cleanup_TimeoutClients(std::vector<pollfd> &fds, time_t now,
 	int timeoutSec)
 {
 	int		fd;
 	bool	timeout;
+
+	/*
+	** Timeout curto para requests incompletos (body não chegou a tempo).
+	** Valor separado para não penalizar clientes que estão genuinamente lentos
+	** mas activos (ex: upload grande em chunks), mas que NÃO estão a usar
+	** Transfer-Encoding: chunked (que o servidor já rejeita com 501).
+	*/
+	const int INCOMPLETE_REQUEST_TIMEOUT_SEC = 5;
 
 	std::map<int, Client>::iterator it = _allClients.begin();
 	while (it != _allClients.end())
@@ -212,10 +226,33 @@ void Server::cleanup_TimeoutClients(std::vector<pollfd> &fds, time_t now,
 		fd = it->first;
 		Client &client = it->second;
 		timeout = false;
+
 		if (!client.request.is_Done())
 		{
-			if (now - client.requestStart > timeoutSec)
+			/*
+			** FIX Bug 1: usar timeout curto para requests incompletos.
+			** Antes usava-se o mesmo timeoutSec (10s) para tudo, o que
+			** fazia o servidor esperar muito tempo antes de fechar um
+			** cliente que enviou header mas não enviou o body.
+			*/
+			if (now - client.requestStart > INCOMPLETE_REQUEST_TIMEOUT_SEC)
+			{
+				std::cout << "Client " << fd << " timed out (incomplete request)\n";
+				/*
+				** Envia 408 Request Timeout antes de fechar, tal como
+				** o NGINX faz. Isto evita que o cliente fique à espera
+				** de uma resposta que nunca chega.
+				*/
+				std::string response408 =
+					"HTTP/1.1 408 Request Timeout\r\n"
+					"Content-Type: text/plain\r\n"
+					"Content-Length: 15\r\n"
+					"Connection: close\r\n"
+					"\r\n"
+					"Request Timeout";
+				send(fd, response408.c_str(), response408.size(), 0);
 				timeout = true;
+			}
 		}
 		else
 		{
@@ -224,7 +261,6 @@ void Server::cleanup_TimeoutClients(std::vector<pollfd> &fds, time_t now,
 		}
 		if (timeout)
 		{
-			std::cout << "Client timed out: fd=" << fd << "\n";
 			close(fd);
 			for (size_t i = 0; i < fds.size(); i++)
 			{
@@ -251,9 +287,9 @@ void Server::handle_Clients(std::vector<Server> &servers)
 	SendStatus	status;
 	time_t		now;
 
-	const int POLL_TIMEOUT_MS = 1000;  // up every 1 second
-	const int CLIENT_TIMEOUT_SEC = 10; // Max request time
-	std::vector<pollfd> fds; // Register all server listening fds
+	const int POLL_TIMEOUT_MS  = 1000;
+	const int CLIENT_TIMEOUT_SEC = 30; /* inactividade geral — aumentado de 10 para 30s */
+	std::vector<pollfd> fds;
 	for (size_t s = 0; s < servers.size(); s++)
 	{
 		listen_fd.fd = servers[s]._server_fd;
@@ -266,7 +302,7 @@ void Server::handle_Clients(std::vector<Server> &servers)
 		if (ret == -1)
 		{
 			if (errno == EINTR)
-				 continue;
+				continue;
 			std::cerr << "Error: poll failed\n";
 			break;
 		}

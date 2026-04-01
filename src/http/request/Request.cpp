@@ -6,15 +6,14 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/01 16:04:01 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/01 19:43:47 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <http/request/Request.hpp>
 
-Request::Request() : _buffer(4096), _method(""), _path(""), _version(""),
-	_body(""), _query(""), _state(READING_HEADER), _contentLength(0),
-	_statusCode(0), _validRequest(false)
+Request::Request() : _buffer(MAX_HEADER_SIZE + MAX_BODY_SIZE), _state(READING_HEADER),
+	_contentLength(0), _statusCode(0), _validRequest(false)
 {
 }
 
@@ -38,18 +37,24 @@ const std::string &Request::get_Body() const
 	return (this->_body);
 }
 
-const std::string Request::get_Query() const
+const std::string get_EmptyString()
 {
-	return (this->_query);
+	static std::string empty;
+	return (empty);
 }
 
 const std::string &Request::get_Header(const std::string &key) const
 {
-	static const std::string empty = "";
+	static std::string empty;
 	std::map<std::string, std::string>::const_iterator it = _headers.find(key);
 	if (it != _headers.end())
 		return (it->second);
 	return (empty);
+}
+
+const std::string Request::get_Query() const
+{
+	return (this->_query);
 }
 
 size_t Request::get_statusCode() const
@@ -133,12 +138,9 @@ void Request::validate_Request()
 
 std::string Request::extract_HeaderFromBuffer(size_t size)
 {
-	std::string header(size, '\0');                          
-		// aloca string do tamanho exato
+	std::string header(size, '\0');
 	_buffer.peek(reinterpret_cast<char *>(&header[0]), size);
-		// copia direto para string
-	_buffer.consume(size);                                   
-		// remove do buffer
+	_buffer.consume(size);
 	return (header);
 }
 
@@ -187,40 +189,35 @@ bool Request::process_Header()
 
 bool Request::process_Body()
 {
-	size_t	remaining;
-	size_t	available;
-	size_t	toRead;
-	size_t	oldSize;
+    size_t  remaining;
+    size_t  available;
+    size_t  toRead;
+    size_t  oldSize;
 
-	remaining = _contentLength - _body.size();
-	if (remaining == 0)
-	{
-		_state = DONE;
-		return (true);
-	}
-	available = _buffer.get_Size();
-	/* if (available > remaining)
-	{
-		_statusCode = 400;
-		_validRequest = false;
-		_state = DONE;
-		return (false);
-	} */
-	toRead = std::min(remaining, available);
-	if (toRead == 0)
-		return (false);
-	oldSize = _body.size();
-	_body.resize(oldSize + toRead);
-	_buffer.read(&_body[oldSize], toRead);
-	if (_body.size() > _contentLength)
-	{
-		_statusCode = 400;
-		_validRequest = false;
-		return (true);
-	}
-	if (_body.size() == _contentLength)
-		_state = DONE;
-	return (true);
+    remaining = _contentLength - _body.size();
+    if (remaining == 0)
+    {
+        _state = DONE;
+        return (true);
+    }
+    available = _buffer.get_Size();
+    /*
+    ** Lê exactamente min(remaining, available) bytes.
+    ** Se available > remaining, os bytes extra pertencem ao próximo
+    ** request (keep-alive) ou são ruído do pipe — ignoramos, não
+    ** rejeitamos. O RFC HTTP manda ler Content-Length bytes e parar.
+    ** Se available < remaining, ainda estamos a espera de mais dados
+    ** — retornamos false para esperar o próximo recv().
+    */
+    toRead = std::min(remaining, available);
+    if (toRead == 0)
+        return (false);
+    oldSize = _body.size();
+    _body.resize(oldSize + toRead);
+    _buffer.read(&_body[oldSize], toRead);
+    if (_body.size() == _contentLength)
+        _state = DONE;
+    return (true);
 }
 
 void Request::parse_RequestLine(std::string &line, std::istringstream &split)
@@ -296,8 +293,8 @@ void Request::parse_Header(const std::string &headerStr)
 {
 	std::istringstream split(headerStr);
 	std::string line;
-	parse_RequestLine(line, split); // POST /index.html HTTP/1.1
-	parse_Headers(line, split);     // Host: localhost || Content-Length: 5
+	parse_RequestLine(line, split);
+	parse_Headers(line, split);
 }
 
 void Request::advanceParsing()
