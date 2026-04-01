@@ -167,10 +167,16 @@ bool Request::process_Body() // read the Body
         return true;
     }
 	size_t available = _buffer.get_Size();
+	/* if (available > remaining)
+	{ 
+		_statusCode = 400;  
+		_validRequest = false;  
+		_state = DONE; 
+		return false; 
+	} */
 	size_t toRead = std::min(remaining, available);
 	if (toRead == 0)
         return false;
-
 	size_t oldSize = _body.size();
     _body.resize(oldSize + toRead);
     _buffer.read(&_body[oldSize], toRead);
