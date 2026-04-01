@@ -11,14 +11,14 @@
 /* ************************************************************************** */
 
 #ifndef PARSING_UTILS_HPP
-#define PARSING_UTILS_HPP
+# define PARSING_UTILS_HPP
 
-#include <vector>
-#include <string>
-#include <iostream>
-#include <fstream>
+# include <fstream>
+# include <iostream>
+# include <string>
+# include <vector>
 
 std::vector<std::string> Tokenize(const std::string &filename);
-bool countBraces(std::vector<std::string> &tokens);
+bool	countBraces(std::vector<std::string> &tokens);
 
 #endif

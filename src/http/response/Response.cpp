@@ -1,12 +1,31 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Response.cpp                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
+/*   Updated: 2026/04/01 14:53:19 by rafael           ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include <http/response/Response.hpp>
 
-Response::Response() :  _errorPages(), _statusCode(200),  _httpVersion("HTTP/1.1"),  _statusMessage("OK"), _filePath("") {}
+Response::Response() : _errorPages(), _statusCode(200),
+	_httpVersion("HTTP/1.1"), _statusMessage("OK"), _filePath("")
+{
+}
 
-Response::Response(ErrorPages &ErrorPages) :  _errorPages(ErrorPages), _statusCode(200),  _httpVersion("HTTP/1.1"),  _statusMessage("OK"),  _filePath("") {}
+Response::Response(ErrorPages &ErrorPages) : _errorPages(ErrorPages),
+	_statusCode(200), _httpVersion("HTTP/1.1"), _statusMessage("OK"),
+	_filePath("")
+{
+}
 
 int Response::get_StatusCode() const
 {
-    return (this->_statusCode);
+	return (this->_statusCode);
 }
 
 std::string Response::get_StatusMessage(int code) const
@@ -50,92 +69,95 @@ std::string Response::get_StatusMessage(int code) const
 
 std::string Response::get_FilePath() const
 {
-    return (this->_filePath);
+	return (this->_filePath);
 }
 
 const std::string Response::get_Body() const
 {
-    return (this->_body);
+	return (this->_body);
 }
 
-const std::string& Response::get_Header(std::string &key)
+const std::string &Response::get_Header(std::string &key)
 {
-    static const std::string empty = "";
-    if (_headers.find(key) != _headers.end())
-        return _headers[key];
-    return empty;
+	static const std::string empty = "";
+	if (_headers.find(key) != _headers.end())
+		return (_headers[key]);
+	return (empty);
 }
 
 void Response::set_StatusCode(int code)
 {
-    this->_statusCode = code;
-    this->_statusMessage = get_StatusMessage(code);
-    std::map<int, std::string>::const_iterator it = _errorPages.error_pages.find(code);
-    if (it != _errorPages.error_pages.end())
-        this->_filePath = it->second;
-    else
-        this->_filePath = "Unknown";
+	this->_statusCode = code;
+	this->_statusMessage = get_StatusMessage(code);
+	std::map<int,
+		std::string>::const_iterator it = _errorPages.error_pages.find(code);
+	if (it != _errorPages.error_pages.end())
+		this->_filePath = it->second;
+	else
+		this->_filePath = "Unknown";
 }
 
-void Response::set_HttpVersion(const std::string& version)
+void Response::set_HttpVersion(const std::string &version)
 {
-    this->_httpVersion = version;
+	this->_httpVersion = version;
 }
 
 void Response::set_StatusMessage(std::string message)
 {
-    this->_statusMessage = message;
+	this->_statusMessage = message;
 }
 void Response::set_Body(std::string body)
 {
-    this->_body = body;
+	this->_body = body;
 }
 void Response::set_Header(std::string key, std::string value)
 {
-    this->_headers[key] = value;
+	this->_headers[key] = value;
 }
 
 bool Response::has_Header(std::string key) const
 {
-    if (_headers.find(key) != _headers.end())
-        return true;
-    return false;
+	if (_headers.find(key) != _headers.end())
+		return true;
+	return false;
 }
 
 void Response::prepare_Headers()
 {
-    if (!has_Header("Content-Length"))
-    {
-        size_t size = this->_body.length();
-        std::stringstream ss;
-        ss << size;
-        std::string length = ss.str();
-        set_Header("Content-Length", length);
-    }
-    if (!has_Header("Connection"))
-        set_Header("Connection", "close");
+	size_t	size;
+
+	if (!has_Header("Content-Length"))
+	{
+		size = this->_body.length();
+		std::stringstream ss;
+		ss << size;
+		std::string length = ss.str();
+		set_Header("Content-Length", length);
+	}
+	if (!has_Header("Connection"))
+		set_Header("Connection", "close");
 }
 
 std::string Response::build_StatusLine()
 {
-    std::stringstream ss;
-
-    ss << this->_httpVersion << " " << this->_statusCode << " " << this->_statusMessage << "\r\n";
-    return ss.str();
+	std::stringstream ss;
+	ss << this->_httpVersion << " " << this->_statusCode << " " << this->_statusMessage << "\r\n";
+	return ss.str();
 }
 
 void Response::build_Header(std::string &result)
 {
-    for (std::map<std::string, std::string>::iterator it = _headers.begin(); it != _headers.end(); it++)
-    {
-        result += it->first + ": " + it->second + "\r\n";
-    }
-    result += "\r\n";
+	for (std::map<std::string,
+		std::string>::iterator it = _headers.begin(); it != _headers.end(); it++)
+	{
+		result += it->first + ": " + it->second + "\r\n";
+	}
+	result += "\r\n";
 }
 
 void Response::build_Body(std::string &result)
 {
-    result += this->_body;
+	result += this->_body;
 }
 
 std::string Response::serialize()

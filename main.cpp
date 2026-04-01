@@ -1,7 +1,20 @@
-#include <core/server.hpp>
-#include <config/parser/parser.hpp>
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   main.cpp                                           :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
+/*   Updated: 2026/04/01 14:48:37 by rafael           ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 
-int main(int argc, char **argv)
+#include <config/parser/parser.hpp>
+#include <core/server.hpp>
+#include <utils/signals/signals.hpp>
+
+int	main(int argc, char **argv)
 {
     std::string configFile;
     if (argc == 1)

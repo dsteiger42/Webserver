@@ -1,5 +1,18 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   CGI.hpp                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
+/*   Updated: 2026/04/01 14:50:20 by rafael           ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #ifndef CGI_HPP
 #define CGI_HPP
+
 
 #include <string>
 #include <vector>
@@ -18,38 +31,36 @@ class Router; // forward declaration
 
 class CGI
 {
-    public:
-        CGI();
-        ~CGI();
-        void setRouter(Router* r);
+  public:
+	CGI();
+	~CGI();
+	void setRouter(Router *r);
 
-        struct CGIResult 
-        {
-            int status;
-            std::string contentType;
-            std::string body;
-            std::map<std::string,std::string> headers;
-        };
+	struct	CGIResult
+	{
+		int	status;
+		std::string contentType;
+		std::string body;
+		std::map<std::string, std::string> headers;
+	};
 
-        Response execute(const Request& req);
+	Response execute(const Request &req);
 
-    private:
-        std::vector<std::string> _args;
-        std::vector<std::string> env;
-        Router *router;
-        std::string resolve_ScriptPath(const std::string& path);
-        std::vector<char*> build_Arguments(const std::string& scriptPath);
-        void build_Environment(const Request& req, const std::string& scriptPath);
-        std::vector<char*> convert_Env(const std::vector<std::string>& env);
-        void create_Pipes(int inPipe[2], int outPipe[2]);
-        void execute_ChildProcess(int inPipe[2], int outPipe[2],
-                                 const std::string& scriptPath,
-                                 char* const argv[],
-                                 char* const envp[]);
-        std::string handle_ParentProcess(int inPipe[2], int outPipe[2], pid_t pid, int &status,
-                                        const Request& req);
-        CGIResult parse_CGIOutput(const std::string& output);
-        bool is_ValidCGIOutput(const std::string& output);
+  private:
+	std::vector<std::string> _args;
+	std::vector<std::string> env;
+	Router	*router;
+	std::string resolve_ScriptPath(const std::string &path);
+	std::vector<char *> build_Arguments(const std::string &scriptPath);
+	void build_Environment(const Request &req, const std::string &scriptPath);
+	std::vector<char *> convert_Env(const std::vector<std::string> &env);
+	void create_Pipes(int inPipe[2], int outPipe[2]);
+	void execute_ChildProcess(int inPipe[2], int outPipe[2],
+		const std::string &scriptPath, char *const argv[], char *const envp[]);
+	std::string handle_ParentProcess(int inPipe[2], int outPipe[2], pid_t pid, int &status,
+	const Request &req);
+	CGIResult parse_CGIOutput(const std::string &output);
+	bool is_ValidCGIOutput(const std::string &output);
 };
 
 #endif

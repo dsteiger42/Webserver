@@ -1,41 +1,55 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Request.cpp                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
+/*   Updated: 2026/04/01 14:52:48 by rafael           ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include <http/request/Request.hpp>
 
-Request::Request() : _buffer(4096), _method(""), _path(""), _version(""), _body(""), _query(""), _state(READING_HEADER), _contentLength(0), _statusCode(0), _validRequest(false)
+Request::Request() : _buffer(4096), _method(""), _path(""), _version(""),
+	_body(""), _query(""), _state(READING_HEADER), _contentLength(0),
+	_statusCode(0), _validRequest(false)
 {
 }
 
-const std::string& Request::get_Method() const
+const std::string &Request::get_Method() const
 {
 	return (this->_method);
 }
 
-const std::string& Request::get_Path() const
+const std::string &Request::get_Path() const
 {
 	return (this->_path);
 }
 
-const std::string& Request::get_Version() const
+const std::string &Request::get_Version() const
 {
 	return (this->_version);
 }
 
-const std::string& Request::get_Body() const
+const std::string &Request::get_Body() const
 {
 	return (this->_body);
 }
 
 const std::string Request::get_Query() const
 {
-    return (this->_query);
+	return (this->_query);
 }
 
-const std::string& Request::get_Header(const std::string &key) const
+const std::string &Request::get_Header(const std::string &key) const
 {
 	static const std::string empty = "";
 	std::map<std::string, std::string>::const_iterator it = _headers.find(key);
-    if (it != _headers.end())
-        return it->second;
-    return empty;
+	if (it != _headers.end())
+		return (it->second);
+	return (empty);
 }
 
 size_t Request::get_statusCode() const
@@ -69,30 +83,34 @@ bool Request::is_Done() const
 
 void Request::fill_Buffer(const std::string &request, size_t len)
 {
-    size_t written = 0;
-    while (written < len)
-    {
-		if (_state == READING_HEADER && _buffer.get_Size() + (len - written) > MAX_HEADER_SIZE)
+	size_t	written;
+	size_t	bytesWritten;
+	size_t	bytesWritten;
+
+	written = 0;
+	while (written < len)
+	{
+		if (_state == READING_HEADER && _buffer.get_Size() + (len
+				- written) > MAX_HEADER_SIZE)
 		{
 			_statusCode = 431;
 			_validRequest = false;
 			return ;
 		}
-        size_t bytesWritten = _buffer.write(request.data() + written, len - written);
-        if (bytesWritten == 0)
-        {
-            advanceParsing();
-            if (_buffer.is_Full())
-            {
-                break;
-            }
-            continue; 
-        }
-        written += bytesWritten;
-        advanceParsing();
-    }
+		bytesWritten = _buffer.write(request.data() + written, len - written);
+		if (bytesWritten == 0)
+		{
+			advanceParsing();
+			if (_buffer.is_Full())
+			{
+				break ;
+			}
+			continue ;
+		}
+		written += bytesWritten;
+		advanceParsing();
+	}
 }
-
 
 void Request::validate_Request()
 {
@@ -101,7 +119,8 @@ void Request::validate_Request()
 		_statusCode = 400;
 		_validRequest = false;
 	}
-	if (_headers.find("content-length") != _headers.end() && _headers.find("transfer-encoding") != _headers.end())
+	if (_headers.find("content-length") != _headers.end()
+		&& _headers.find("transfer-encoding") != _headers.end())
 	{
 		_statusCode = 400;
 		_validRequest = false;
@@ -115,18 +134,24 @@ void Request::validate_Request()
 
 std::string Request::extract_HeaderFromBuffer(size_t size)
 {
-    std::string header(size, '\0');        // aloca string do tamanho exato
-    _buffer.peek(reinterpret_cast<char*>(&header[0]), size); // copia direto para string
-    _buffer.consume(size);                  // remove do buffer
-	return header;
+	std::string header(size, '\0');                          
+		// aloca string do tamanho exato
+	_buffer.peek(reinterpret_cast<char *>(&header[0]), size);
+		// copia direto para string
+	_buffer.consume(size);                                   
+		// remove do buffer
+	return (header);
 }
+
 void Request::determine_NextState()
 {
+	long	length;
 
-	std::map<std::string, std::string>::iterator it = _headers.find("content-length");
+	std::map<std::string,
+		std::string>::iterator it = _headers.find("content-length");
 	if (it != _headers.end())
 	{
-		long length = std::atol(it->second.c_str());
+		length = std::atol(it->second.c_str());
 		if (length > MAX_BODY_SIZE)
 		{
 			_statusCode = 413;
@@ -143,12 +168,15 @@ void Request::determine_NextState()
 	_state = DONE;
 }
 
-bool Request::process_Header() // parsing headers
+bool Request::process_Header()
 {
-	size_t pos = _buffer.find("\r\n\r\n");
+	size_t	pos;
+	size_t	headersize;
+
+	pos = _buffer.find("\r\n\r\n");
 	if (pos == std::string::npos)
 		return (false);
-	size_t headersize = pos + 4;
+	headersize = pos + 4;
 	if (_buffer.get_Size() < headersize)
 		return (false);
 	std::string header = extract_HeaderFromBuffer(headersize);
@@ -158,37 +186,42 @@ bool Request::process_Header() // parsing headers
 	return (true);
 }
 
-bool Request::process_Body() // read the Body
+bool Request::process_Body()
 {
-	size_t remaining = _contentLength - _body.size();
+	size_t	remaining;
+	size_t	available;
+	size_t	toRead;
+	size_t	oldSize;
+
+	remaining = _contentLength - _body.size();
 	if (remaining == 0)
 	{
-        _state = DONE;
-        return true;
-    }
-	size_t available = _buffer.get_Size();
+		_state = DONE;
+		return (true);
+	}
+	available = _buffer.get_Size();
 	/* if (available > remaining)
-	{ 
-		_statusCode = 400;  
-		_validRequest = false;  
-		_state = DONE; 
-		return false; 
-	} */
-	size_t toRead = std::min(remaining, available);
-	if (toRead == 0)
-        return false;
-	size_t oldSize = _body.size();
-    _body.resize(oldSize + toRead);
-    _buffer.read(&_body[oldSize], toRead);
-    if (_body.size() > _contentLength)
 	{
 		_statusCode = 400;
-        _validRequest = false;
-		return true;
+		_validRequest = false;
+		_state = DONE;
+		return (false);
+	} */
+	toRead = std::min(remaining, available);
+	if (toRead == 0)
+		return (false);
+	oldSize = _body.size();
+	_body.resize(oldSize + toRead);
+	_buffer.read(&_body[oldSize], toRead);
+	if (_body.size() > _contentLength)
+	{
+		_statusCode = 400;
+		_validRequest = false;
+		return (true);
 	}
 	if (_body.size() == _contentLength)
-        _state = DONE;
-    return true;
+		_state = DONE;
+	return (true);
 }
 
 void Request::parse_RequestLine(std::string &line, std::istringstream &split)
@@ -202,18 +235,17 @@ void Request::parse_RequestLine(std::string &line, std::istringstream &split)
 		{
 			_statusCode = 400;
 			_validRequest = false;
-			return ;	
+			return ;
 		}
 		_validRequest = true;
 		split_PathQuery(_path);
 	}
 }
 
-static bool is_UniqueHeader(const std::string& key)
+static bool	is_UniqueHeader(const std::string &key)
 {
-    return (key == "content-length" ||
-            key == "host" ||
-            key == "transfer-encoding");
+	return (key == "content-length" || key == "host"
+		|| key == "transfer-encoding");
 }
 
 void Request::parse_Headers(std::string &line, std::istringstream &split)
@@ -227,10 +259,10 @@ void Request::parse_Headers(std::string &line, std::istringstream &split)
 		if (line.empty())
 			break ;
 		if (line.size() > MAX_HEADER_SIZE)
-        {
-            _validRequest = false;
-            return;
-        }
+		{
+			_validRequest = false;
+			return ;
+		}
 		pos = line.find(':');
 		if (pos == std::string::npos)
 		{
@@ -252,11 +284,11 @@ void Request::parse_Headers(std::string &line, std::istringstream &split)
 		if (_headers.count(key) && is_UniqueHeader(key))
 		{
 			_statusCode = 400;
-    		_validRequest = false;
-    		return;
+			_validRequest = false;
+			return ;
 		}
 		while (!value.empty() && (is_Space(value[0])))
-    		value.erase(value.begin());
+			value.erase(value.begin());
 		_headers[key] = value;
 	}
 }
@@ -286,19 +318,21 @@ void Request::advanceParsing()
 	}
 }
 
-void Request::split_PathQuery(const std::string& path)
+void Request::split_PathQuery(const std::string &path)
 {
-    size_t pos = path.find("?");
-    if (pos != std::string::npos && pos + 1 <= path.size())
-    {
-		std::string path1;
-        path1 = path.substr(0, pos);
-        _query = path.substr(pos + 1);
-		_path = path1;
-    }
-    else
+	size_t	pos;
+
+	pos = path.find("?");
+	if (pos != std::string::npos && pos + 1 <= path.size())
 	{
-        _path = path;    
+		std::string path1;
+		path1 = path.substr(0, pos);
+		_query = path.substr(pos + 1);
+		_path = path1;
+	}
+	else
+	{
+		_path = path;
 		_query = "";
 	}
 }

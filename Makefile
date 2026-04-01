@@ -8,10 +8,6 @@ SRCS = \
 	src/http/response/Response.cpp \
 	src/http/buffer/CircularBuffer.cpp \
 	\
-	src/routing/Router.cpp \
-	src/routing/autoindex.cpp \
-	src/routing/file_handler.cpp \
-	\
 	src/cgi/CGI.cpp \
 	src/cgi/cgi_exec.cpp \
 	src/cgi/cgi_env.cpp \
@@ -27,8 +23,12 @@ SRCS = \
 	\
 	src/utils/filesystem/file_utils.cpp \
 	src/utils/filesystem/path_utils.cpp \
-	src/utils/validation/validation_utils.cpp \
-	src/utils/http/mime.cpp
+	src/utils/http/mime.cpp \
+	src/utils/routing/autoindex.cpp \
+	src/utils/routing/file_handler.cpp \
+	src/utils/routing/Router.cpp \
+	src/utils/signals/signals.cpp \
+	src/utils/validation/validation_utils.cpp
 	
 NAME = Webserv
 

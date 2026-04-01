@@ -10,8 +10,8 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <config/parser/parser.hpp>
 #include <config/parser/Location_setters.hpp>
+#include <config/parser/parser.hpp>
 
 void	parse_Location(Location &Location, size_t &i,
 		const std::vector<std::string> &tokens)
@@ -67,5 +67,5 @@ void	parse_Location(Location &Location, size_t &i,
 		}
 		i++;
 	}
-    i++;
+	i++;
 }
