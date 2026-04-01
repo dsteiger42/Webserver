@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   path_utils.cpp                                     :+:      :+:    :+:   */
+/*   server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/03/24 02:59:09 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/01 16:17:14 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -152,7 +152,7 @@ bool Server::receive_FromClient(std::vector<pollfd> &fds, size_t index)
 		n = client.readBuffer.read(temp, sizeof(temp));
 		std::string chunk(temp, n);
 		client.request.fill_Buffer(chunk, chunk.size());
-		if (client.request.is_Done())
+		if (client.request.is_Done()|| !client.request.get_validRequest())
 		{
 			client.response = _router.handle_Request(client.request);
 			std::string rawResponse = client.response.serialize();
