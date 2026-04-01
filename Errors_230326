@@ -1,5 +1,5 @@
 printf "GET / HTTP/1.1\r\nHost: localhost\r\nX-Test: hello\nInjected: evil\r\n\r\n" | nc localhost 8080 -> deve 400
-printf "POST / HTTP/1.1\r\nHost: localhost\r\nContent-Length: 5\r\n\r\nHello" | nc localhost 8080
+printf "POST / HTTP/1.1\r\nHost: localhost\r\nContent-Length: 5\r\n\r\n" | nc localhost 8080
 printf "POST / HTTP/1.1\r\nHost: localhost\r\nContent-Length: 5\r\n\r\nHelloWorld" | nc localhost 8080
 
 verificar http versions e adaptar o codigo
