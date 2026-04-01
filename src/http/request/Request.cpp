@@ -236,6 +236,12 @@ void Request::parse_Headers(std::string &line, std::istringstream &split)
 		std::string key = line.substr(0, pos);
 		transform(key);
 		std::string value = line.substr(pos + 1);
+		if (key == "content-length" && !is_Number(value))
+		{
+			_validRequest = false;
+			_statusCode = 400;
+			return ;
+		}
 		while (!value.empty() && (value[0] == ' ' || value[0] == '\t'))
 			value.erase(value.begin());
 		if (_headers.count(key) && is_UniqueHeader(key))

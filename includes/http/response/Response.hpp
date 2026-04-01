@@ -7,6 +7,7 @@
 #include <string>
 #include <sstream>
 #include <config/model/types.hpp>
+#include <utils/utils.hpp>
 
 class Response
 {

@@ -63,7 +63,7 @@ echo -e "${RED}Check if server hangs${NC}"
 echo "=== CGI TEST ==="
 
 test_case "CGI execution" \
-"GET /test.cgi HTTP/1.1\r\nHost: test\r\n\r\n" \
+"GET /cgi-bin/test.py HTTP/1.1\r\nHost: test\r\n\r\n" \
 "200"
 
 echo "=== HEADER INJECTION ==="
@@ -81,7 +81,7 @@ test_case "Big body" \
 echo "=== DIRECTORY LISTING ==="
 
 test_case "Autoindex" \
-"GET /dir/ HTTP/1.1\r\nHost: test\r\n\r\n" \
+"GET /test/ HTTP/1.1\r\nHost: test\r\n\r\n" \
 "200"
 
 echo "=== XSS CHECK ==="

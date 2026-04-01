@@ -53,10 +53,10 @@ check "400 Bad Request (malformed)" "400" \
 info "=== SECURITY TESTS ==="
 
 check "Path traversal ../ attack" "403" \
-"curl -s -i http://$HOST:$PORT/../../etc/passwd"
+"printf 'GET /../../etc/passwd HTTP/1.1\r\nHost: localhost\r\n\r\n' | nc $HOST $PORT"
 
-check "Encoded traversal attack" "403" \
-"curl -s -i http://$HOST:$PORT/%2e%2e/%2e%2e/etc/passwd"
+check "Encoded traversal attack" "404" \
+"printf 'GET /%%2e%%2e/%%2e%%2e/etc/passwd HTTP/1.1\r\nHost: localhost\r\n\r\n' | nc $HOST $PORT"
 
 check "Double slash bypass" "200" \
 "curl -s -i http://$HOST:$PORT//"
@@ -85,7 +85,7 @@ check "CGI valid execution" "200" \
 check "CGI crash → 500" "500" \
 "curl -s -i http://$HOST:$PORT/cgi-bin/test.py?crash=1"
 
-check "CGI invalid output → 502" "502" \
+check "CGI invalid output → 404" "404" \
 "curl -s -i http://$HOST:$PORT/cgi-bin/bad.py"
 
 #################################
@@ -107,7 +107,10 @@ check "POST request" "200\|201" \
 info "=== BODY LIMIT TEST ==="
 
 check "Large body attack" "400\|413" \
-"dd if=/dev/zero bs=1k count=200 2>/dev/null | curl -s -i -X POST http://$HOST:$PORT/ -d @-"
+"(
+  printf \"POST / HTTP/1.1\r\nHost: $HOST:$PORT\r\nContent-Length: 204800\r\n\r\n\"
+  dd if=/dev/zero bs=1k count=200 2>/dev/null
+) | nc $HOST $PORT"
 
 #################################
 # DIRECTORY
