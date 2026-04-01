@@ -45,7 +45,7 @@ test "Bad request" \
 # POST
 test "POST basic" \
 "echo -e 'POST / HTTP/1.1\r\nHost: localhost\r\nContent-Length: 5\r\n\r\nhello' | nc $HOST $PORT" \
-"200"
+"201"
 
 # DELETE
 test "DELETE basic" \
@@ -64,11 +64,11 @@ echo "$RESPONSE" | grep -q "413" && ok "413 Payload too large" || fail "413 miss
 
 # CGI
 test "CGI execution" \
-"echo -e 'GET /test.php HTTP/1.1\r\nHost: localhost\r\n\r\n' | nc $HOST $PORT" \
+"echo -e 'GET /cgi-bin/test.php HTTP/1.1\r\nHost: localhost\r\n\r\n' | nc $HOST $PORT" \
 "200"
 
 # REDIRECT
-CODE=$(curl -s -o /dev/null -w "%{http_code}" http://$HOST:$PORT/redirect)
+CODE=$(curl -s -o /dev/null -w "%{http_code}" http://$HOST:$PORT/redir/)
 [[ "$CODE" == "301" || "$CODE" == "302" ]] && ok "Redirect" || fail "Redirect"
 
 # AUTOINDEX

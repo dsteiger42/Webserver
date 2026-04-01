@@ -113,7 +113,7 @@ void Response::prepare_Headers()
         set_Header("Content-Length", length);
     }
     if (!has_Header("Connection"))
-        set_Header("Connection", "keep-alive");
+        set_Header("Connection", "close");
 }
 
 std::string Response::build_StatusLine()
