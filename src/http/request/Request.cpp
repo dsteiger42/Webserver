@@ -79,7 +79,6 @@ void Request::fill_Buffer(const std::string &request, size_t len)
 			return ;
 		}
         size_t bytesWritten = _buffer.write(request.data() + written, len - written);
-
         if (bytesWritten == 0)
         {
             advanceParsing();
@@ -123,8 +122,8 @@ std::string Request::extract_HeaderFromBuffer(size_t size)
 }
 void Request::determine_NextState()
 {
-	std::map<std::string,
-		std::string>::iterator it = _headers.find("content-length");
+
+	std::map<std::string, std::string>::iterator it = _headers.find("content-length");
 	if (it != _headers.end())
 	{
 		long length = std::atol(it->second.c_str());
@@ -250,6 +249,8 @@ void Request::parse_Headers(std::string &line, std::istringstream &split)
     		_validRequest = false;
     		return;
 		}
+		while (!value.empty() && (is_Space(value[0])))
+    		value.erase(value.begin());
 		_headers[key] = value;
 	}
 }

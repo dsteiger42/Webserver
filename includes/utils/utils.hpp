@@ -18,4 +18,5 @@ bool validate_Method(const std::string &method);
 bool is_Number(const std::string &string);
 bool is_ValidMethod(std::vector<std::string> &allowedMethods, const std::string &method);
 void transform(std::string &string);
+bool	is_Space(char c);
 #endif

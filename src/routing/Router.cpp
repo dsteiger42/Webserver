@@ -266,7 +266,8 @@ Response Router::handle_Request(const Request& request)
     {
         if (request.get_statusCode() != 0)
             return make_ErrorCode(request.get_statusCode());
-        return make_ErrorCode(400);    
+        else
+            return make_ErrorCode(400);    
     }
     if (!validate_Method(request.get_Method()))
         return make_ErrorCode(405);
