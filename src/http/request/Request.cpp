@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   path_utils.cpp                                     :+:      :+:    :+:   */
+/*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/03/24 02:59:09 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/01 14:52:48 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 Request::Request() : _buffer(4096), _method(""), _path(""), _version(""),
 	_body(""), _query(""), _state(READING_HEADER), _contentLength(0),
-	_validRequest(false)
+	_statusCode(0), _validRequest(false)
 {
 }
 
@@ -52,6 +52,11 @@ const std::string &Request::get_Header(const std::string &key) const
 	return (empty);
 }
 
+size_t Request::get_statusCode() const
+{
+	return (this->_statusCode);
+}
+
 bool Request::get_validRequest() const
 {
 	return (this->_validRequest);
@@ -63,8 +68,11 @@ void Request::reset()
 	_path.clear();
 	_version.clear();
 	_body.clear();
+	_query.clear();
 	_headers.clear();
 	_contentLength = 0;
+	_statusCode = 0;
+	_validRequest = false;
 	_state = READING_HEADER;
 }
 
@@ -77,6 +85,7 @@ void Request::fill_Buffer(const std::string &request, size_t len)
 {
 	size_t	written;
 	size_t	bytesWritten;
+	size_t	bytesWritten;
 
 	written = 0;
 	while (written < len)
@@ -84,6 +93,7 @@ void Request::fill_Buffer(const std::string &request, size_t len)
 		if (_state == READING_HEADER && _buffer.get_Size() + (len
 				- written) > MAX_HEADER_SIZE)
 		{
+			_statusCode = 431;
 			_validRequest = false;
 			return ;
 		}
@@ -104,20 +114,32 @@ void Request::fill_Buffer(const std::string &request, size_t len)
 
 void Request::validate_Request()
 {
-	if (_version == "" || _headers.find("Host") == _headers.end())
+	if (_version == "" || _headers.find("host") == _headers.end())
+	{
+		_statusCode = 400;
 		_validRequest = false;
-	if (_headers.find("Content-Length") != _headers.end()
-		&& _headers.find("Transfer-Encoding") != _headers.end())
+	}
+	if (_headers.find("content-length") != _headers.end()
+		&& _headers.find("transfer-encoding") != _headers.end())
+	{
+		_statusCode = 400;
 		_validRequest = false;
-	if (_headers.find("Transfer-Encoding") != _headers.end())
+	}
+	if (_headers.find("transfer-encoding") != _headers.end())
+	{
+		_statusCode = 501;
 		_validRequest = false;
+	}
 }
 
 std::string Request::extract_HeaderFromBuffer(size_t size)
 {
-	std::string header(size, '\0'); // aloca string do tamanho exato
-	_buffer.peek(reinterpret_cast<char *>(&header[0]), size); // copia direto para string
-	_buffer.consume(size); // remove do buffer
+	std::string header(size, '\0');                          
+		// aloca string do tamanho exato
+	_buffer.peek(reinterpret_cast<char *>(&header[0]), size);
+		// copia direto para string
+	_buffer.consume(size);                                   
+		// remove do buffer
 	return (header);
 }
 
@@ -126,13 +148,13 @@ void Request::determine_NextState()
 	long	length;
 
 	std::map<std::string,
-		std::string>::iterator it = _headers.find("Content-Length");
+		std::string>::iterator it = _headers.find("content-length");
 	if (it != _headers.end())
 	{
 		length = std::atol(it->second.c_str());
 		if (length > MAX_BODY_SIZE)
 		{
-			// 413
+			_statusCode = 413;
 			_validRequest = false;
 			return ;
 		}
@@ -148,10 +170,13 @@ void Request::determine_NextState()
 
 bool Request::process_Header()
 {
-	size_t pos = _buffer.find("\r\n\r\n");
+	size_t	pos;
+	size_t	headersize;
+
+	pos = _buffer.find("\r\n\r\n");
 	if (pos == std::string::npos)
 		return (false);
-	size_t headersize = pos + 4;
+	headersize = pos + 4;
 	if (_buffer.get_Size() < headersize)
 		return (false);
 	std::string header = extract_HeaderFromBuffer(headersize);
@@ -163,22 +188,34 @@ bool Request::process_Header()
 
 bool Request::process_Body()
 {
-	size_t remaining = _contentLength - _body.size();
+	size_t	remaining;
+	size_t	available;
+	size_t	toRead;
+	size_t	oldSize;
+
+	remaining = _contentLength - _body.size();
 	if (remaining == 0)
 	{
 		_state = DONE;
 		return (true);
 	}
-	size_t available = _buffer.get_Size();
-	size_t toRead = std::min(remaining, available);
+	available = _buffer.get_Size();
+	/* if (available > remaining)
+	{
+		_statusCode = 400;
+		_validRequest = false;
+		_state = DONE;
+		return (false);
+	} */
+	toRead = std::min(remaining, available);
 	if (toRead == 0)
 		return (false);
-
-	size_t oldSize = _body.size();
+	oldSize = _body.size();
 	_body.resize(oldSize + toRead);
 	_buffer.read(&_body[oldSize], toRead);
 	if (_body.size() > _contentLength)
 	{
+		_statusCode = 400;
 		_validRequest = false;
 		return (true);
 	}
@@ -195,7 +232,11 @@ void Request::parse_RequestLine(std::string &line, std::istringstream &split)
 			line.erase(line.size() - 1);
 		std::istringstream rl(line);
 		if (!(rl >> _method >> _path >> _version))
+		{
+			_statusCode = 400;
+			_validRequest = false;
 			return ;
+		}
 		_validRequest = true;
 		split_PathQuery(_path);
 	}
@@ -203,7 +244,8 @@ void Request::parse_RequestLine(std::string &line, std::istringstream &split)
 
 static bool	is_UniqueHeader(const std::string &key)
 {
-	return (key == "Content-Length" || key == "Host" || key == "Transfer-Encoding");
+	return (key == "content-length" || key == "host"
+		|| key == "transfer-encoding");
 }
 
 void Request::parse_Headers(std::string &line, std::istringstream &split)
@@ -224,18 +266,29 @@ void Request::parse_Headers(std::string &line, std::istringstream &split)
 		pos = line.find(':');
 		if (pos == std::string::npos)
 		{
+			_statusCode = 400;
 			_validRequest = false;
 			return ;
 		}
 		std::string key = line.substr(0, pos);
+		transform(key);
 		std::string value = line.substr(pos + 1);
+		if (key == "content-length" && !is_Number(value))
+		{
+			_validRequest = false;
+			_statusCode = 400;
+			return ;
+		}
 		while (!value.empty() && (value[0] == ' ' || value[0] == '\t'))
 			value.erase(value.begin());
 		if (_headers.count(key) && is_UniqueHeader(key))
 		{
+			_statusCode = 400;
 			_validRequest = false;
 			return ;
 		}
+		while (!value.empty() && (is_Space(value[0])))
+			value.erase(value.begin());
 		_headers[key] = value;
 	}
 }
@@ -267,7 +320,9 @@ void Request::advanceParsing()
 
 void Request::split_PathQuery(const std::string &path)
 {
-	size_t pos = path.find("?");
+	size_t	pos;
+
+	pos = path.find("?");
 	if (pos != std::string::npos && pos + 1 <= path.size())
 	{
 		std::string path1;

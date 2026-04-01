@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   path_utils.cpp                                     :+:      :+:    :+:   */
+/*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/03/24 02:59:09 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/01 14:48:37 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,27 +16,31 @@
 
 int	main(int argc, char **argv)
 {
-	if (argc != 2)
-	{
-		std::cerr << "Error: wrong number of arguments" << std::endl;
-		return (-1);
-	}
-	signal(SIGINT, handle_Sigint);
-	Parser parser;
-	parse_all(argv[1], parser);
-	if (parser.servers.empty())
-	{
-		std::cerr << "Error: no server blocks found in config" << std::endl;
-		return (-1);
-	}
-	std::vector<Server> server;
-	for (size_t i = 0; i < parser.servers.size(); i++)
-		server.push_back(Server(parser.servers[i].config.listen, parser.servers[i]));
-	for (size_t i = 0; i < server.size(); i++)
-	{
-		if (server[i].setup_Socket() == -1)
-			return (-1);
-	}
-	Server::handle_Clients(server);
-	return (0);
+    std::string configFile;
+    if (argc == 1)
+        configFile = "./webserver.conf";
+    else if (argc == 2)
+        configFile = argv[1];
+    else
+    {
+        std::cerr << "Usage: ./webserv [configuration file]" << std::endl;
+        return -1;
+    }
+    Parser parser;
+    parse_all(configFile, parser);
+    if (parser.servers.empty())
+    {
+        std::cerr << "Error: no server blocks found in config" << std::endl;
+        return -1;
+    }
+    std::vector<Server> servers;
+    for (size_t i = 0; i < parser.servers.size(); i++)
+        servers.push_back(Server(parser.servers[i].config.listen, parser.servers[i]));
+    for (size_t i = 0; i < servers.size(); i++)
+    {
+        if (servers[i].setup_Socket() == -1)
+            return -1;
+    }
+    Server::handle_Clients(servers);
+    return 0;
 }

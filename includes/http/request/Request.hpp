@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   path_utils.cpp                                     :+:      :+:    :+:   */
+/*   Request.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/03/24 02:59:09 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/01 14:46:10 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,13 +14,14 @@
 # define REQUEST_HPP
 
 # include <config/model/types.hpp>
+# include <config/model/types.hpp>
 # include <cstdlib>
 # include <cstring>
-# include <fstream>
 # include <http/buffer/CircularBuffer.hpp>
 # include <iostream>
 # include <map>
 # include <sstream>
+# include <utils/utils.hpp>
 # include <vector>
 
 enum	State
@@ -45,6 +46,7 @@ class Request
 	std::map<std::string, std::string> _headers;
 	State _state;
 	size_t _contentLength;
+	size_t _statusCode;
 	bool _validRequest;
 
   public:
@@ -55,6 +57,7 @@ class Request
 	const std::string &get_Body() const;
 	const std::string &get_Header(const std::string &key) const;
 	const std::string get_Query() const;
+	size_t get_statusCode() const;
 	bool get_validRequest() const;
 	bool is_Done() const;
 	void reset();

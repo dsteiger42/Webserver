@@ -1,26 +1,31 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   path_utils.cpp                                     :+:      :+:    :+:   */
+/*   CGI.hpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/03/24 02:59:09 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/01 14:50:20 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef CGI_HPP
-# define CGI_HPP
+#define CGI_HPP
 
-# include <http/request/Request.hpp>
-# include <http/response/Response.hpp>
-# include <map>
-# include <string>
-# include <sys/types.h>
-# include <sys/wait.h>
-# include <utils/utils.hpp>
-# include <vector>
+
+#include <string>
+#include <vector>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <http/request/Request.hpp>
+#include <http/response/Response.hpp>
+#include <utils/utils.hpp>
+#include <map>
+#include <fcntl.h>
+
+
+#define MAX_CGI_OUTPUT 1000000
 
 class Router; // forward declaration
 
@@ -52,8 +57,8 @@ class CGI
 	void create_Pipes(int inPipe[2], int outPipe[2]);
 	void execute_ChildProcess(int inPipe[2], int outPipe[2],
 		const std::string &scriptPath, char *const argv[], char *const envp[]);
-	std::string handle_ParentProcess(int inPipe[2], int outPipe[2],
-		const Request &req);
+	std::string handle_ParentProcess(int inPipe[2], int outPipe[2], pid_t pid, int &status,
+	const Request &req);
 	CGIResult parse_CGIOutput(const std::string &output);
 	bool is_ValidCGIOutput(const std::string &output);
 };

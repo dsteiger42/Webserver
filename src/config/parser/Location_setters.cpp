@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/23 17:33:01 by raamorim          #+#    #+#             */
-/*   Updated: 2026/03/24 18:28:12 by rafael           ###   ########.fr       */
+/*   Updated: 2026/03/30 20:01:22 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,7 @@ void	set_AllowedMethods(const std::vector<std::string> &tokens, size_t &i,
 {
 	if (!tokens[i].empty())
 	{
-		while (validate_Method(tokens[i]))
+		while (i < tokens.size() && validate_Method(tokens[i]))
 		{
 			location.allowedMethods.push_back(tokens[i]);
 			i++;

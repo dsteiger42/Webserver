@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   path_utils.cpp                                     :+:      :+:    :+:   */
+/*   Router.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/03/24 02:59:09 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/01 14:48:13 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,10 +15,12 @@
 
 # include <algorithm>
 # include <config/parser/parser.hpp>
+# include <ctime>
 # include <dirent.h>
 # include <http/cgi/CGI.hpp>
 # include <http/request/Request.hpp>
 # include <http/response/Response.hpp>
+# include <sstream>
 # include <utils/http/mime.hpp>
 # include <utils/utils.hpp>
 
@@ -37,7 +39,7 @@ class Router
 
   public:
 	Response make_ErrorCode(size_t code);
-	CGI cgi;
+	CGI *cgi;
 	Router(ServerConfig &sc);
 	~Router();
 	Router(const Router &other);
@@ -47,9 +49,11 @@ class Router
 	std::string get_Method() const;
 	std::string get_AbsolutePath() const;
 	std::string get_DocumentRoot() const;
+
 	Response handle_GET(const Request &request, Location &location);
 	Response handle_DELETE(const Request &request, Location &location);
 	Response handle_POST(const Request &request, Location &location);
+
 	bool validate_Path(const std::string &path);
 	void split_PathQuery(const std::string &path);
 	std::vector<std::string> split_Path(const std::string &path);

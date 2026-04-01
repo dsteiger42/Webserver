@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   path_utils.cpp                                     :+:      :+:    :+:   */
+/*   CGI.cpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/03/24 02:59:09 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/01 14:49:08 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,7 +53,7 @@ Response CGI::execute(const Request &req)
 	Response res;
 	int inPipe[2];
 	int outPipe[2];
-	int status;
+	int status = 0;
 	std::vector<char *> argv;
 	pid_t pid;
 	std::string output;
@@ -74,10 +74,7 @@ Response CGI::execute(const Request &req)
 	if (pid == 0)
 		execute_ChildProcess(inPipe, outPipe, scriptPath, &argv[0], &envp[0]);
 	if (pid > 0)
-	{
-		output = handle_ParentProcess(inPipe, outPipe, req);
-		waitpid(pid, &status, 0);
-	}
+		output = handle_ParentProcess(inPipe, outPipe, pid, status, req);
 	if (!WIFEXITED(status) || WEXITSTATUS(status) != 0)
 		return (router->make_ErrorCode(500));
 	if (!is_ValidCGIOutput(output))
