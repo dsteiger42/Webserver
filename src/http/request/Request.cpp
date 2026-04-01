@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/01 14:52:48 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/01 16:04:01 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,7 +84,6 @@ bool Request::is_Done() const
 void Request::fill_Buffer(const std::string &request, size_t len)
 {
 	size_t	written;
-	size_t	bytesWritten;
 	size_t	bytesWritten;
 
 	written = 0;
