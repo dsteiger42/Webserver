@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/07 19:07:25 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/07 19:30:49 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -246,8 +246,9 @@ Response Router::handle_POST(const Request& request, Location& location)
         filename = filename.substr(slash + 1);
     if (filename.empty())
     {
+        static size_t upload_counter = 0;
         std::stringstream ss;
-        ss << "upload_" << std::time(NULL) << ".txt";
+        ss << "upload_" << std::time(NULL) << "_" << (++upload_counter) << ".txt";
         filename = ss.str();
     }
     _absolutePath = uploadDir;
