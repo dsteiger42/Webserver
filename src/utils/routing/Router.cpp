@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/02 02:12:20 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/07 19:07:25 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -210,10 +210,11 @@ Response Router::handle_GET(const Request& request, Location& location)
 
 Response Router::handle_DELETE(const Request& request, Location& location)
 {
-    (void)location;
     (void)request;
     Response response(_config.errorPages);
     _absolutePath = _documentRoot + _path;
+    if (!is_ValidMethod(location.allowedMethods, request.get_Method()))
+        return make_ErrorCode(405);
     if (!is_InsideRoot(_absolutePath, _documentRoot))
         return make_ErrorCode(403);
     if (is_Directory(_absolutePath))
