@@ -6,27 +6,28 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:18:06 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/02 02:09:47 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/07 18:58:31 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <http/cgi/CGI.hpp>
 #include <poll.h>
 
-void CGI::create_Pipes(int inPipe[2], int outPipe[2])
+bool CGI::create_Pipes(int inPipe[2], int outPipe[2])
 {
 	if (pipe(inPipe) == -1)
 	{
 		std::cerr << "Error creating inPipe" << std::endl;
-		return ;
+		return false;
 	}
 	if (pipe(outPipe) == -1)
 	{
 		close(inPipe[0]);
 		close(inPipe[1]);
 		std::cerr << "Error creating inPipe" << std::endl;
-		return ;
+		return false;
 	}
+	return true;
 }
 
 void CGI::execute_ChildProcess(int inPipe[2], int outPipe[2],

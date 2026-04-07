@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/01 15:49:26 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/07 18:52:16 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,7 +67,8 @@ Response CGI::execute(const Request &req)
 	argv = build_Arguments(scriptPath);
 	build_Environment(req, scriptPath);
 	std::vector<char *> envp = convert_Env(env);
-	create_Pipes(inPipe, outPipe);
+	if (!create_Pipes(inPipe, outPipe))
+		return router->make_ErrorCode(500);
 	pid = fork();
 	if (pid == -1)
 		return (router->make_ErrorCode(500));
