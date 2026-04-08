@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/08 01:52:06 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/08 03:18:10 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@ std::string get_Extension(std::string file)
 	return (extension);
 }
 
-std::string get_MimeType(const std::string &extension, std::map<std::string, std::string> mimeTypes)
+std::string get_MimeType(const std::string &extension, const std::map<std::string, std::string> &mimeTypes)
 {
 	std::map<std::string,
 		std::string>::const_iterator it = mimeTypes.find(extension);
@@ -45,11 +45,9 @@ std::string get_MimeType(const std::string &extension, std::map<std::string, std
 bool is_acceptableExtension(const std::string &path, Location &location)
 {
     std::string extension = get_Extension(path);
-	std::cout << "extension: " << extension << std::endl;
 	size_t i = 0;
 	while (i < location.cgiExt.size())
 	{
-		std::cout << location.cgiExt[i] << std::endl;
 		if (&location.cgiExt[i][1] && extension == &location.cgiExt[i][1])
 			return true;
 		i++;

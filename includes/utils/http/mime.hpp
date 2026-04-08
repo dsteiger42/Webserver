@@ -6,7 +6,7 @@
 #include <config/model/types.hpp>
 
 std::string get_Extension(std::string file);
-std::string get_MimeType(const std::string& extension, std::map<std::string, std::string>);
+std::string get_MimeType(const std::string& extension, const std::map<std::string, std::string> &mimeTypes);
 bool is_acceptableExtension(const std::string &path, Location &location);
 
 

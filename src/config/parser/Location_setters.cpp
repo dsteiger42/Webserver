@@ -6,16 +6,15 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/23 17:33:01 by raamorim          #+#    #+#             */
-/*   Updated: 2026/04/07 19:11:30 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/08 03:16:34 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <config/parser/parser.hpp>
 
-void	set_Path(const std::vector<std::string> &tokens, size_t &i, Location &location)
+void	set_Path(const std::vector<std::string> &tokens, size_t &i,
+		Location &location)
 {
-	if (tokens[i].empty())
-		return ;
 	if (!tokens[i].empty())
 		location.path = tokens[i];
 	else
@@ -91,12 +90,9 @@ void	set_TryFiles(const std::vector<std::string> &tokens, size_t &i,
 void	set_CgiExt(const std::vector<std::string> &tokens, size_t &i,
 		Location &location)
 {
-	if (!tokens[i].empty())
+	while (i < tokens.size() && tokens[i] != ";")
 	{
-		while (tokens[i] != ";")
-		{
-			location.cgiExt.push_back(tokens[i]);
-			i++;
-		}
+		location.cgiExt.push_back(tokens[i]);
+		i++;
 	}
 }

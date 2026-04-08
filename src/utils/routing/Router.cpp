@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/08 01:38:17 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/08 03:40:16 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -230,9 +230,11 @@ Response Router::handle_DELETE(const Request& request, Location& location)
 Response Router::handle_POST(const Request& request, Location& location)
 {
     Response response(_config.errorPages);
+    size_t maxSize = _config.config.client_max_body_size;
+    if (maxSize > 0 && request.get_Body().size() > maxSize)
+        return make_ErrorCode(413);
     if (location.cgiPass)
         return (cgi->execute(request, location));
-    size_t maxSize = _config.config.client_max_body_size;
     if (request.get_Body().size() > maxSize)
         return make_ErrorCode(413);
     std::string uploadDir;
@@ -290,7 +292,7 @@ Response Router::handle_Request(const Request& request)
     }
     if (!validate_Method(request.get_Method()))
         return make_ErrorCode(405);
-    if (_config.config.client_max_body_size > 0 && request.get_Body().size() > _config.config.client_body_buffer_size)
+    if (_config.config.client_max_body_size > 0 && request.get_Body().size() > _config.config.client_max_body_size)
         return make_ErrorCode(413);
     split_PathQuery(request.get_Path());
     if (!validate_Path(_path))
