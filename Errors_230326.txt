@@ -2,7 +2,7 @@ printf "GET / HTTP/1.1\r\nHost: localhost\r\nX-Test: hello\nInjected: evil\r\n\r
 
 verificar http versions e adaptar o codigo
 implementar parse chunked
-
+verificar se a extensao do ficheiro e aceitavel
 
 // prevent CRLF injection
         if (key.find('\n') != std::string::npos || key.find('\r') != std::string::npos ||

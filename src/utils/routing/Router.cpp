@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/07 19:30:49 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/08 01:38:17 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -175,7 +175,7 @@ Response Router::handle_GET(const Request& request, Location& location)
     if (!is_ValidMethod(location.allowedMethods, request.get_Method()))
         return make_ErrorCode(405);
     if (location.cgiPass)
-        return (cgi->execute(request));
+        return (cgi->execute(request, location));
     _absolutePath = _documentRoot + _path;
     if (!is_InsideRoot(_absolutePath, _documentRoot))
         return make_ErrorCode(403);
@@ -231,7 +231,7 @@ Response Router::handle_POST(const Request& request, Location& location)
 {
     Response response(_config.errorPages);
     if (location.cgiPass)
-        return (cgi->execute(request));
+        return (cgi->execute(request, location));
     size_t maxSize = _config.config.client_max_body_size;
     if (request.get_Body().size() > maxSize)
         return make_ErrorCode(413);

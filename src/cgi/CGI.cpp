@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/07 18:52:16 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/08 01:41:08 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,7 +48,7 @@ std::vector<char *> CGI::build_Arguments(const std::string &scriptPath)
 	return (argv);
 }
 
-Response CGI::execute(const Request &req)
+Response CGI::execute(const Request &req, Location &location)
 {
 	Response res;
 	int inPipe[2];
@@ -58,6 +58,8 @@ Response CGI::execute(const Request &req)
 	pid_t pid;
 	std::string output;
 	std::string scriptPath = resolve_ScriptPath(req.get_Path());
+	if (!is_acceptableExtension(req.get_Path(), location))
+		return (router->make_ErrorCode(404));
 	if (!is_InsideRoot(scriptPath, router->get_DocumentRoot()))
 		return (router->make_ErrorCode(403));
 	if (!check_File(scriptPath))

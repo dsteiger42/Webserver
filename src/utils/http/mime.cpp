@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   path_utils.cpp                                     :+:      :+:    :+:   */
+/*   mime.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/03/24 02:59:09 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/08 01:52:06 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,4 +40,19 @@ std::string get_MimeType(const std::string &extension, std::map<std::string, std
 	if (it != mimeTypes.end())
 		return (it->second);
 	return ("application/octet-stream");
+}
+
+bool is_acceptableExtension(const std::string &path, Location &location)
+{
+    std::string extension = get_Extension(path);
+	std::cout << "extension: " << extension << std::endl;
+	size_t i = 0;
+	while (i < location.cgiExt.size())
+	{
+		std::cout << location.cgiExt[i] << std::endl;
+		if (&location.cgiExt[i][1] && extension == &location.cgiExt[i][1])
+			return true;
+		i++;
+	}
+	return false;	
 }
