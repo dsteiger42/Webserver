@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
-import os
+print("Content-Type: text/plain")
 
-print("Content-Type: text/plain\n")
-print("Hello from CGI!\n")
+# tentativa de injection (inofensiva)
 
-print("Method:", os.environ.get("REQUEST_METHOD"))
-print("Query:", os.environ.get("QUERY_STRING"))
-#raise Exception("boom")
+print("X-Test: normal\r\nX-Injected: yes")
+
+print()
+print("Hello from CGI")

@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/01 14:50:20 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/08 01:40:53 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,7 @@ class CGI
 		std::map<std::string, std::string> headers;
 	};
 
-	Response execute(const Request &req);
+	Response execute(const Request &req, Location &location);
 
   private:
 	std::vector<std::string> _args;
@@ -54,7 +54,7 @@ class CGI
 	std::vector<char *> build_Arguments(const std::string &scriptPath);
 	void build_Environment(const Request &req, const std::string &scriptPath);
 	std::vector<char *> convert_Env(const std::vector<std::string> &env);
-	void create_Pipes(int inPipe[2], int outPipe[2]);
+	bool create_Pipes(int inPipe[2], int outPipe[2]);
 	void execute_ChildProcess(int inPipe[2], int outPipe[2],
 		const std::string &scriptPath, char *const argv[], char *const envp[]);
 	std::string handle_ParentProcess(int inPipe[2], int outPipe[2], pid_t pid, int &status,

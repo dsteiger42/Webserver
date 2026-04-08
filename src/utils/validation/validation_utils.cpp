@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:32:35 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/01 14:54:32 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/08 01:27:55 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,9 +18,9 @@ bool	is_Number(const std::string &string)
         return false;
     for (size_t i = 0; i < string.size(); i++)
     {
-        while(is_Space(string[i]))
+        while(i < string.size() &&  is_Space(string[i]))
             i++;
-        if (string[i] == '+')
+        if (i < string.size() && string[i] == '+')
             i++;
         if (!std::isdigit(string[i]))
             return false;

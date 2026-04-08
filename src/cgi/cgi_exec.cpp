@@ -6,27 +6,28 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:18:06 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/01 14:50:04 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/07 18:58:31 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <http/cgi/CGI.hpp>
 #include <poll.h>
 
-void CGI::create_Pipes(int inPipe[2], int outPipe[2])
+bool CGI::create_Pipes(int inPipe[2], int outPipe[2])
 {
 	if (pipe(inPipe) == -1)
 	{
 		std::cerr << "Error creating inPipe" << std::endl;
-		return ;
+		return false;
 	}
 	if (pipe(outPipe) == -1)
 	{
 		close(inPipe[0]);
 		close(inPipe[1]);
 		std::cerr << "Error creating inPipe" << std::endl;
-		return ;
+		return false;
 	}
+	return true;
 }
 
 void CGI::execute_ChildProcess(int inPipe[2], int outPipe[2],
@@ -40,12 +41,14 @@ void CGI::execute_ChildProcess(int inPipe[2], int outPipe[2],
 		close(outPipe[1]);
 		exit(1);
 	}
+	close(inPipe[0]);
 	if (dup2(outPipe[1], STDOUT_FILENO) == -1)
 	{
 		close(inPipe[0]);
 		close(outPipe[1]);
 		exit(1);
 	}
+	close(outPipe[1]);
 	if (execve(scriptPath.c_str(), argv, envp) == -1)
 	{
 		close(inPipe[0]);
@@ -118,5 +121,6 @@ std::string CGI::handle_ParentProcess(int inPipe[2], int outPipe[2], pid_t pid, 
 		}
 	}
     close(outPipe[0]);
+	waitpid(pid, &status, 0);
     return buff;
 }

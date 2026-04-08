@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/01 16:23:01 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/08 03:40:16 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -175,7 +175,7 @@ Response Router::handle_GET(const Request& request, Location& location)
     if (!is_ValidMethod(location.allowedMethods, request.get_Method()))
         return make_ErrorCode(405);
     if (location.cgiPass)
-        return (cgi->execute(request));
+        return (cgi->execute(request, location));
     _absolutePath = _documentRoot + _path;
     if (!is_InsideRoot(_absolutePath, _documentRoot))
         return make_ErrorCode(403);
@@ -210,10 +210,11 @@ Response Router::handle_GET(const Request& request, Location& location)
 
 Response Router::handle_DELETE(const Request& request, Location& location)
 {
-    (void)location;
     (void)request;
     Response response(_config.errorPages);
     _absolutePath = _documentRoot + _path;
+    if (!is_ValidMethod(location.allowedMethods, request.get_Method()))
+        return make_ErrorCode(405);
     if (!is_InsideRoot(_absolutePath, _documentRoot))
         return make_ErrorCode(403);
     if (is_Directory(_absolutePath))
@@ -229,9 +230,11 @@ Response Router::handle_DELETE(const Request& request, Location& location)
 Response Router::handle_POST(const Request& request, Location& location)
 {
     Response response(_config.errorPages);
-    if (location.cgiPass)
-        return (cgi->execute(request));
     size_t maxSize = _config.config.client_max_body_size;
+    if (maxSize > 0 && request.get_Body().size() > maxSize)
+        return make_ErrorCode(413);
+    if (location.cgiPass)
+        return (cgi->execute(request, location));
     if (request.get_Body().size() > maxSize)
         return make_ErrorCode(413);
     std::string uploadDir;
@@ -245,8 +248,9 @@ Response Router::handle_POST(const Request& request, Location& location)
         filename = filename.substr(slash + 1);
     if (filename.empty())
     {
+        static size_t upload_counter = 0;
         std::stringstream ss;
-        ss << "upload_" << std::time(NULL) << ".txt";
+        ss << "upload_" << std::time(NULL) << "_" << (++upload_counter) << ".txt";
         filename = ss.str();
     }
     _absolutePath = uploadDir;
@@ -254,9 +258,15 @@ Response Router::handle_POST(const Request& request, Location& location)
         _absolutePath += '/';
     _absolutePath += filename;
     if (!is_InsideRoot(_absolutePath, uploadDir))
+    {
+        std::cout << "1teste\n";
         return make_ErrorCode(403);
+    }
     if (is_Directory(_absolutePath))
+    {
+        std::cout << "teste\n";
         return make_ErrorCode(403);
+    }
     if (check_File(_absolutePath))
         return make_ErrorCode(409);    
     std::ofstream file(_absolutePath.c_str(), std::ios::binary);
@@ -282,7 +292,7 @@ Response Router::handle_Request(const Request& request)
     }
     if (!validate_Method(request.get_Method()))
         return make_ErrorCode(405);
-    if (_config.config.client_max_body_size > 0 && request.get_Body().size() > _config.config.client_body_buffer_size)
+    if (_config.config.client_max_body_size > 0 && request.get_Body().size() > _config.config.client_max_body_size)
         return make_ErrorCode(413);
     split_PathQuery(request.get_Path());
     if (!validate_Path(_path))
