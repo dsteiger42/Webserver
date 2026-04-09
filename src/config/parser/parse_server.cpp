@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 00:54:23 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/08 03:25:08 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/09 20:33:50 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,7 @@ void	parse_ServerBlock(const std::vector<std::string> &tokens, size_t &i, Server
 		else if (tokens[i] == "client_body_buffer_size" && i + 2 < tokens.size())
 		{
 			sc.config.client_body_buffer_size = std::atoi(tokens[i + 1].c_str());
-			if (sc.config.client_body_buffer_size > sc.config.client_max_body_size)
+			if (sc.config.client_body_buffer_size > INT_MAX)
 				return ;
 			i += 3;
 			// adicionar handle MB, GB
