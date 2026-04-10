@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/01 19:43:47 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/10 03:58:24 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -244,6 +244,16 @@ static bool	is_UniqueHeader(const std::string &key)
 		|| key == "transfer-encoding");
 }
 
+static bool is_validHeader(const std::string &key)
+{
+	for (size_t i = 0; i < key.size(); i++)
+	{
+		if (!std::isalnum(key[i]) && key[i] != '-')
+			return false;
+	}
+	return true;	
+}
+
 void Request::parse_Headers(std::string &line, std::istringstream &split)
 {
 	size_t	pos;
@@ -268,6 +278,12 @@ void Request::parse_Headers(std::string &line, std::istringstream &split)
 		}
 		std::string key = line.substr(0, pos);
 		transform(key);
+		if (!is_validHeader(key))
+		{
+			_validRequest = false;
+			_statusCode = 400;
+			return ;
+		}
 		std::string value = line.substr(pos + 1);
 		if (key == "content-length" && !is_Number(value))
 		{
@@ -289,12 +305,29 @@ void Request::parse_Headers(std::string &line, std::istringstream &split)
 	}
 }
 
+static bool has_BareLF(const std::string &header)
+{
+    for (size_t i = 0; i < header.size(); i++)
+    {
+        if (header[i] == '\n' && (i == 0 || header[i - 1] != '\r'))
+            return (true);
+    }
+    return (false);
+}
+
 void Request::parse_Header(const std::string &headerStr)
 {
+	if (has_BareLF(headerStr))
+	{
+        _statusCode = 400;
+        _validRequest = false;
+        return ;
+    }
 	std::istringstream split(headerStr);
 	std::string line;
 	parse_RequestLine(line, split);
 	parse_Headers(line, split);
+
 }
 
 void Request::advanceParsing()

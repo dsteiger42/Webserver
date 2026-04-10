@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:13:49 by rafael            #+#    #+#             */
-/*   Updated: 2026/03/24 01:20:41 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/10 01:28:46 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ void CGI::build_Environment(const Request &req, const std::string &scriptPath)
 	env.push_back("REQUEST_METHOD=" + req.get_Method());
 	env.push_back("QUERY_STRING=" + req.get_Query());
 	env.push_back("CONTENT_LENGTH=" + contentLength);
-	env.push_back("CONTENT_TYPE=" + req.get_Header("Content-Type"));
+	env.push_back("CONTENT_TYPE=" + req.get_Header("content-type"));
 	env.push_back("SCRIPT_FILENAME=" + scriptPath);
 	env.push_back("SCRIPT_NAME=" + req.get_Path());
 	env.push_back("SERVER_PROTOCOL=" + req.get_Version());
