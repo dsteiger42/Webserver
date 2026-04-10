@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/08 03:40:16 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/10 17:08:51 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -258,15 +258,9 @@ Response Router::handle_POST(const Request& request, Location& location)
         _absolutePath += '/';
     _absolutePath += filename;
     if (!is_InsideRoot(_absolutePath, uploadDir))
-    {
-        std::cout << "1teste\n";
         return make_ErrorCode(403);
-    }
     if (is_Directory(_absolutePath))
-    {
-        std::cout << "teste\n";
         return make_ErrorCode(403);
-    }
     if (check_File(_absolutePath))
         return make_ErrorCode(409);    
     std::ofstream file(_absolutePath.c_str(), std::ios::binary);

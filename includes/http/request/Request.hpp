@@ -6,14 +6,13 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/01 14:46:10 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/10 15:34:07 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef REQUEST_HPP
 # define REQUEST_HPP
 
-# include <config/model/types.hpp>
 # include <config/model/types.hpp>
 # include <cstdlib>
 # include <cstring>
