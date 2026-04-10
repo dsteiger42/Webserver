@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:01:35 by rafael            #+#    #+#             */
-/*   Updated: 2026/03/24 01:02:08 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/10 15:20:08 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@ void	parse_MimeTypes(MimeTypes &MimeTypes, size_t &i, const std::vector<std::str
 	{
 		std::string type = tokens[i];
 		i++;
-		while (tokens[i] != ";")
+		while (i < tokens.size() && tokens[i] != ";")
 		{
 			std::string value = tokens[i];
 			MimeTypes.types[value] = type;

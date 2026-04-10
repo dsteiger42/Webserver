@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/23 17:33:01 by raamorim          #+#    #+#             */
-/*   Updated: 2026/04/08 03:16:34 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/10 15:18:48 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,7 +71,7 @@ void	set_Redirection(const std::vector<std::string> &tokens, size_t &i,
 	else
 		location.redirectCode = code;
 	i++;
-	if (tokens[i] != ";")
+	if (i < tokens.size() && tokens[i] != ";")
 		location.redirectUrl = tokens[i];
 	else
 		location.redirectUrl = "";
