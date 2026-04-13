@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/13 19:59:23 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/13 21:26:13 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -153,7 +153,7 @@ void Request::determine_NextState()
 	if (it != _headers.end())
 	{
 		length = std::atol(it->second.c_str());
-		if (length > MAX_BODY_SIZE)
+		if (length > MAX_BODY_SIZE || length < 0)
 		{
 			_statusCode = 413;
 			_validRequest = false;

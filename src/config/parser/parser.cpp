@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/16 15:17:16 by dsteiger          #+#    #+#             */
-/*   Updated: 2026/04/10 15:23:57 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/13 21:29:14 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,6 @@ Parser::Parser() : servers()
 bool	parse_all(const std::string &filename, Parser &parser)
 {
 	size_t	i;
-	ServerConfig sc;
 
 	std::vector<std::string> tokens = Tokenize(filename);
 	if (!countBraces(tokens))
@@ -43,6 +42,7 @@ bool	parse_all(const std::string &filename, Parser &parser)
 			+ 1] == "{")
 		{
 			i += 2; // skip "server" and "{"
+			ServerConfig sc; // novo sc por iteração
 			parse_ServerBlock(tokens, i, sc);
 			parser.servers.push_back(sc);
 		}
