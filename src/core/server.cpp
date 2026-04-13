@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/10 04:40:35 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/13 20:05:46 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,8 @@ Server::Server(int port, ServerConfig &sc) : _port(port), _router(sc)
 
 Server::~Server()
 {
+	if (_server_fd != -1)
+        close(_server_fd);	
 }
 
 void	*ft_memset(void *str, int c, size_t n)
