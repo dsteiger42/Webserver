@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/14 17:34:21 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/14 18:26:50 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -277,12 +277,29 @@ Response Router::handle_POST(const Request& request, Location& location)
     if (is_Directory(_absolutePath))
         return make_ErrorCode(403);
     if (check_File(_absolutePath))
-        return make_ErrorCode(409);    
-    std::ofstream file(_absolutePath.c_str(), std::ios::binary);
-    if (!file.is_open())
+        return make_ErrorCode(409);  
+    int fd = open(_absolutePath.c_str(), O_WRONLY | O_CREAT | O_EXCL, 0644);
+    if (fd == -1)
+    {
+        if (errno == EEXIST)
+            return make_ErrorCode(409);
         return make_ErrorCode(500);
-    file << request.get_Body();
-    file.close();
+    }
+    const std::string &body = request.get_Body();
+    size_t written = 0;
+    while (written < body.size())
+    {
+        ssize_t n = write(fd, body.c_str() + written, body.size() - written);
+        if (n == -1)
+        {
+            close(fd);
+            // Apagar o ficheiro parcialmente escrito para não deixar lixo
+            std::remove(_absolutePath.c_str());
+            return make_ErrorCode(500);
+        }
+        written += static_cast<size_t>(n);
+    }
+    close(fd);
     response.set_StatusCode(201);
     response.set_Body("File uploaded");
     std::string MimeType = get_MimeType(get_Extension(_absolutePath), _config.mimeTypes.types);

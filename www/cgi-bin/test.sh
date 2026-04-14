@@ -1,13 +1,11 @@
 #!/bin/bash
-#echo "Content-Type: text/plain"
-#echo
+echo "Content-Type: text/plain"
+echo
 #echo "Hello from Bash CGI!"
 #while true; do :; done
-#yes "AAAAAA"
+yes "AAAAAA"
 
-#!/bin/bash
+#echo "Content-Type: text/plain"
+#echo ""
 
-echo "Content-Type: text/plain"
-echo ""
-
-eval "$CONTENT_TYPE"
+#eval "$CONTENT_TYPE"

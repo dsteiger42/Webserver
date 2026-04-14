@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/14 17:58:24 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/14 18:16:15 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,6 @@ const std::string &Request::get_Body() const
 {
 	return (this->_body);
 }
-
 
 const std::string &Request::get_Header(const std::string &key) const
 {
