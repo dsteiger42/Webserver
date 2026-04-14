@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/14 00:53:38 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/14 01:27:11 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -305,8 +305,7 @@ Response Router::handle_Request(const Request& request)
         return make_ErrorCode(413);
     split_PathQuery(request.get_Path());
     if (!validate_Path(_path))
-        return make_ErrorCode(400);
-    std::cout << "path: " << _path << std::endl;    
+        return make_ErrorCode(400);  
     Location& loc = matchLocation(_path);
     /* if (!build_FinalPath(_path))
         return make_ErrorCode(403); */
