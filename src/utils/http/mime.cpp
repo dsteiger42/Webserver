@@ -6,11 +6,35 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/10 15:31:39 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/14 00:30:27 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <utils/http/mime.hpp>
+
+bool sanitize_Filename(std::string &filename)
+{
+    std::string sanitized;
+    for (size_t i = 0; i < filename.size(); i++)
+    {
+        char c = filename[i];
+        if (std::isalnum(c) || c == '_' || c == '.')
+            sanitized += c;
+    }
+	if (sanitized.empty())
+		return true;
+    if (sanitized == "." || sanitized == ".." || sanitized[0] == '.')
+        return false;
+    std::string extension = get_Extension(sanitized);
+	static char const *invalid[] = {"php", "py", "sh", "cgi", NULL};
+	transform(extension);
+	for (size_t i = 0; invalid[i]; i++)
+	{
+		if (extension == invalid[i])
+			return false;
+	}
+	return true;        
+}
 
 std::string get_Extension(std::string file)
 {

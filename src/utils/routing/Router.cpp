@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/10 17:08:51 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/14 00:53:38 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -176,6 +176,8 @@ Response Router::handle_GET(const Request& request, Location& location)
         return make_ErrorCode(405);
     if (location.cgiPass)
         return (cgi->execute(request, location));
+    if (!build_FinalPath(_path))
+        return make_ErrorCode(403);
     _absolutePath = _documentRoot + _path;
     if (!is_InsideRoot(_absolutePath, _documentRoot))
         return make_ErrorCode(403);
@@ -212,9 +214,11 @@ Response Router::handle_DELETE(const Request& request, Location& location)
 {
     (void)request;
     Response response(_config.errorPages);
-    _absolutePath = _documentRoot + _path;
     if (!is_ValidMethod(location.allowedMethods, request.get_Method()))
         return make_ErrorCode(405);
+    if (!build_FinalPath(_path))
+        return make_ErrorCode(403);
+    _absolutePath = _documentRoot + _path;
     if (!is_InsideRoot(_absolutePath, _documentRoot))
         return make_ErrorCode(403);
     if (is_Directory(_absolutePath))
@@ -242,10 +246,21 @@ Response Router::handle_POST(const Request& request, Location& location)
         uploadDir = _documentRoot;
     else
         uploadDir = location.upload_store;
-    std::string filename = _path;
-    size_t slash = filename.rfind('/');
+    if (!build_FinalPath(_path))
+        return make_ErrorCode(403);
+    std::string path = _path;
+    size_t slash1 = path.rfind('/');
+    if (slash1 != std::string::npos)
+        path = _path.substr(0, slash1 + 1);
+    size_t slash = _path.rfind('/');
+    std::string filename;
     if (slash != std::string::npos)
-        filename = filename.substr(slash + 1);
+        filename = _path.substr(slash + 1);
+    if (path != "/cgi-bin/")
+    {
+        if (!sanitize_Filename(filename))
+            return make_ErrorCode(403);
+    }
     if (filename.empty())
     {
         static size_t upload_counter = 0;
@@ -291,9 +306,10 @@ Response Router::handle_Request(const Request& request)
     split_PathQuery(request.get_Path());
     if (!validate_Path(_path))
         return make_ErrorCode(400);
-    if (!build_FinalPath(_path))
-        return make_ErrorCode(403);
+    std::cout << "path: " << _path << std::endl;    
     Location& loc = matchLocation(_path);
+    /* if (!build_FinalPath(_path))
+        return make_ErrorCode(403); */
     if (!loc.root.empty())
         _documentRoot = loc.root;
     else
