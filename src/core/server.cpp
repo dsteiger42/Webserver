@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/13 20:05:46 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/14 17:33:16 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 #include <http/routing/Router.hpp>
 #include <utils/signals/signals.hpp>
 
-Server::Server(int port, ServerConfig &sc) : _port(port), _router(sc)
+Server::Server(int port, ServerConfig &sc) : _server_fd(-1), _port(port), _router(sc)
 {
 }
 
