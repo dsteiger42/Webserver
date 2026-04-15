@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/15 21:35:17 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/15 21:52:02 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,6 @@ enum	State
 class Request
 {
   private:
-	CircularBuffer _buffer;
 	std::string _method;  // GET, POST, DELETE
 	std::string _path;    // /index.html
 	std::string _version; // HTTP/1.1
@@ -49,7 +48,8 @@ class Request
 	size_t _statusCode;
 	size_t _maxBodySize;
 	bool _validRequest;
-
+	CircularBuffer _buffer;
+	
   public:
 	void set_MaxBodySize(size_t max);
  	Request();

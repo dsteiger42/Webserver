@@ -6,14 +6,14 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/15 21:06:51 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/15 21:53:00 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <http/request/Request.hpp>
 
-Request::Request() : _buffer(MAX_HEADER_SIZE + MAX_BODY_SIZE), _state(READING_HEADER),
-	_contentLength(0), _statusCode(0), _maxBodySize(1024 * 1024) //1MB, _validRequest(false)
+Request::Request() :  _state(READING_HEADER),
+	_contentLength(0), _statusCode(0), _maxBodySize(1024 * 1024) /*1MB, _validRequest(false) */, _buffer(MAX_HEADER_SIZE + _maxBodySize)
 {
 }
 
@@ -156,6 +156,7 @@ void Request::determine_NextState()
 		{
 			_statusCode = 413;
 			_validRequest = false;
+			_state = DONE;
 			return ;
 		}
 		_contentLength = length;
