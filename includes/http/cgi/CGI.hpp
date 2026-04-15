@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/15 04:01:22 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/15 19:10:26 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,8 @@
 #include <utils/utils.hpp>
 #include <map>
 #include <fcntl.h>
+#include <config/parser/parser.hpp>
+
 
 
 #define MAX_CGI_OUTPUT 1000000

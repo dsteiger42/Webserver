@@ -6,11 +6,13 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:13:49 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/15 04:24:21 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/15 19:15:04 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <http/cgi/CGI.hpp>
+#include <http/routing/Router.hpp>
+
 
 static std::string sanitize_Env(const std::string &value)
 {
@@ -32,6 +34,7 @@ void CGI::build_Environment(const Request &req, const std::string &scriptPath)
 	length = req.get_Body().size();
 	ss << length;
 	std::string contentLength = ss.str();
+	const ServerConfig &conf = router->get_Config();
     
     env.push_back("REQUEST_METHOD=" + sanitize_Env(req.get_Method()));
     env.push_back("QUERY_STRING=" + sanitize_Env(req.get_Query()));
@@ -39,14 +42,14 @@ void CGI::build_Environment(const Request &req, const std::string &scriptPath)
     env.push_back("CONTENT_TYPE=" + sanitize_Env(req.get_Header("content-type")));
     env.push_back("SCRIPT_FILENAME=" + scriptPath);
     env.push_back("SCRIPT_NAME=" + sanitize_Env(req.get_Path()));
-    env.push_back("PATH_INFO=" + sanitize_Env(req.get_Path()));       // ← ADICIONAR
-    env.push_back("PATH_TRANSLATED=" + scriptPath);                    // ← ADICIONAR
+    env.push_back("PATH_INFO=" + sanitize_Env(req.get_Path()));
+    env.push_back("PATH_TRANSLATED=" + scriptPath);
     env.push_back("SERVER_PROTOCOL=" + sanitize_Env(req.get_Version()));
     env.push_back("GATEWAY_INTERFACE=CGI/1.1");
     env.push_back("REDIRECT_STATUS=200");
-    env.push_back("SERVER_NAME=localhost");                            // ← ADICIONAR
-    env.push_back("SERVER_PORT=8080");                                 // ← ADICIONAR
-    env.push_back("HTTP_HOST=" + sanitize_Env(req.get_Header("host"))); // ← ADICIONAR
+    env.push_back("SERVER_NAME=" + conf.config.server_name);
+	env.push_back("SERVER_PORT=" + conf.config.listen);
+	env.push_back("HTTP_HOST=" + sanitize_Env(req.get_Header("host")));
 }
 
 std::vector<char *> CGI::convert_Env(const std::vector<std::string> &env)

@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/15 02:59:11 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/15 18:56:43 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,6 +77,11 @@ std::string Router::get_AbsolutePath() const
 std::string Router::get_DocumentRoot() const
 {
     return (this->_documentRoot);
+}
+
+const ServerConfig &Router::get_Config() const
+{
+    return (this->_config);
 }
 
 bool Router::validate_Path(const std::string &path)

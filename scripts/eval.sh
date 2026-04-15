@@ -64,7 +64,7 @@ echo "$RESPONSE" | grep -q "413" && ok "413 Payload too large" || fail "413 miss
 
 # CGI
 test "CGI execution" \
-"echo -e 'GET /cgi-bin/test.php HTTP/1.1\r\nHost: localhost\r\n\r\n' | nc $HOST $PORT" \
+"echo -e 'GET /cgi-bin/test.py HTTP/1.1\r\nHost: localhost\r\n\r\n' | nc $HOST $PORT" \
 "200"
 
 # REDIRECT

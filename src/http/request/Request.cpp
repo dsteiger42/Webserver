@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/15 15:12:36 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/15 18:35:55 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -201,9 +201,15 @@ bool Request::process_Header()
 
 static bool parseHex(const std::string& str, size_t& result)
 {
+	if (str.empty() || str.size() > 8)  // max 0xFFFFFFFF é suficiente
+        return false;
     std::istringstream iss(str);
     iss >> std::hex >> result;
-    return !iss.fail() && iss.eof();
+    if (iss.fail() || !iss.eof())
+        return false;
+    if (result > MAX_BODY_SIZE)  // rejeita logo aqui
+        return false;
+    return true;
 }
 
 bool Request::consume_CRLF()
@@ -223,6 +229,11 @@ bool Request::consume_CRLF()
 
 void Request::appendToBody(size_t size)
 {
+	if (_body.size() + size > MAX_BODY_SIZE) {
+        _statusCode = 413;
+        _validRequest = false;
+        return;
+    }
     size_t oldSize = _body.size();
     _body.resize(oldSize + size);
     _buffer.read(&_body[oldSize], size);
@@ -232,13 +243,11 @@ bool Request::process_Chunked()
 {
 	while (true)
 	{
-		std::string sizeline;
 		size_t pos = _buffer.find("\r\n");
 		if (pos == std::string::npos)
 			return false;
-		sizeline.resize(pos);
+		std::string sizeline(pos , '\0');
 		_buffer.peek(&sizeline[0], pos);
-		_buffer.consume(pos + 2);
 		size_t semicolon = sizeline.find(";");
 		if (semicolon != std::string::npos)
 			sizeline = sizeline.substr(0, semicolon);
@@ -251,14 +260,23 @@ bool Request::process_Chunked()
 		}
 		if (chunkSize == 0)
 		{
+			if (_buffer.get_Size() < pos + 4)
+                return false;
+			_buffer.consume(pos + 2);
 			if (!consume_CRLF())
+			{
+				_statusCode = 400;
+                _validRequest = false;
 				return false;
+			}
 			_state = DONE;
-			_validRequest = true;
+			_validRequest = true; 
 			return true;
 		}
-		if (_buffer.get_Size() < chunkSize + 2)
+		size_t totalNeeded = pos + 2 + chunkSize + 2;
+        if (_buffer.get_Size() < totalNeeded)
             return false;
+		_buffer.consume(pos + 2);
 		appendToBody(chunkSize);
 		if (!consume_CRLF())
 		{
