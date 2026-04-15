@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/14 23:05:44 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/15 21:35:17 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@ enum	State
 	DONE
 };
 
-# define MAX_BODY_SIZE 4096
+
 # define MAX_HEADER_SIZE 8192
 
 class Request
@@ -47,10 +47,12 @@ class Request
 	State _state;
 	size_t _contentLength;
 	size_t _statusCode;
+	size_t _maxBodySize;
 	bool _validRequest;
 
   public:
-	Request();
+	void set_MaxBodySize(size_t max);
+ 	Request();
 	const std::string &get_Method() const;
 	const std::string &get_Path() const;
 	const std::string &get_Version() const;

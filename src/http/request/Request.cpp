@@ -6,14 +6,14 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/15 18:35:55 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/15 21:06:51 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <http/request/Request.hpp>
 
 Request::Request() : _buffer(MAX_HEADER_SIZE + MAX_BODY_SIZE), _state(READING_HEADER),
-	_contentLength(0), _statusCode(0), _validRequest(false)
+	_contentLength(0), _statusCode(0), _maxBodySize(1024 * 1024) //1MB, _validRequest(false)
 {
 }
 
@@ -59,6 +59,11 @@ size_t Request::get_statusCode() const
 bool Request::get_validRequest() const
 {
 	return (this->_validRequest);
+}
+
+void Request::set_MaxBodySize(size_t max)
+{
+    _maxBodySize = max;
 }
 
 void Request::reset()
@@ -147,7 +152,7 @@ void Request::determine_NextState()
 	if (it != _headers.end())
 	{
 		length = std::atol(it->second.c_str());
-		if (length > MAX_BODY_SIZE || length < 0)
+		if (length < 0 || (_maxBodySize > 0 && (size_t)length > _maxBodySize))
 		{
 			_statusCode = 413;
 			_validRequest = false;
@@ -199,7 +204,7 @@ bool Request::process_Header()
 	return (true);
 }
 
-static bool parseHex(const std::string& str, size_t& result)
+static bool parseHex(const std::string& str, size_t& result, size_t maxSize)
 {
 	if (str.empty() || str.size() > 8)  // max 0xFFFFFFFF é suficiente
         return false;
@@ -207,7 +212,7 @@ static bool parseHex(const std::string& str, size_t& result)
     iss >> std::hex >> result;
     if (iss.fail() || !iss.eof())
         return false;
-    if (result > MAX_BODY_SIZE)  // rejeita logo aqui
+    if (maxSize > 0 && result > maxSize)
         return false;
     return true;
 }
@@ -229,7 +234,8 @@ bool Request::consume_CRLF()
 
 void Request::appendToBody(size_t size)
 {
-	if (_body.size() + size > MAX_BODY_SIZE) {
+	if (_maxBodySize > 0 && _body.size() + size > _maxBodySize)
+	{
         _statusCode = 413;
         _validRequest = false;
         return;
@@ -252,7 +258,7 @@ bool Request::process_Chunked()
 		if (semicolon != std::string::npos)
 			sizeline = sizeline.substr(0, semicolon);
 		size_t chunkSize;
-		if (!parseHex(sizeline, chunkSize))
+		if (!parseHex(sizeline, chunkSize, _maxBodySize))
 		{
 			_statusCode = 400;
 			_validRequest = false;

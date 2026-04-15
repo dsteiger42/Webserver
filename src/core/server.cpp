@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/14 17:33:16 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/15 21:07:45 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -115,6 +115,8 @@ int Server::accept_NewClient(std::vector<pollfd> &fds)
 	poll.events = POLLIN;
 	fds.push_back(poll);
 	_allClients[client_fd] = Client(client_fd);
+	size_t maxBody = _router.get_Config().config.client_max_body_size;
+	_allClients[client_fd].request.set_MaxBodySize(maxBody);
 	_allClients[client_fd].lastActivity = time(NULL);
 	_allClients[client_fd].requestStart = time(NULL);
 	return (client_fd);
