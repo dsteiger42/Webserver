@@ -1,2 +1,7 @@
 implementar parse chunked
 
+find includes src \
+  -type f \
+  -exec echo "===== {} =====" \; \
+  -exec cat {} \; \
+  > 413.txt
