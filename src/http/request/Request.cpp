@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/14 23:06:43 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/15 15:04:45 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -166,7 +166,7 @@ void Request::determine_NextState()
 			std::string>::iterator ite = _headers.find("transfer-encoding");
 		if (ite != _headers.end())
 		{
-			std::string value = _headers["transfer-enconding"];
+			std::string value = _headers["transfer-encoding"];
 			transform(value);
 			if (value == "chunked")
 			{
