@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/14 18:16:15 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/14 23:06:43 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -160,6 +160,24 @@ void Request::determine_NextState()
 			return ;
 		}
 	}
+	else
+	{
+		std::map<std::string,
+			std::string>::iterator ite = _headers.find("transfer-encoding");
+		if (ite != _headers.end())
+		{
+			std::string value = _headers["transfer-enconding"];
+			transform(value);
+			if (value == "chunked")
+			{
+				_state = READING_CHUNKED;
+				return ;
+			}
+			_statusCode = 501;
+			_validRequest = false;
+			return ;
+		}
+	}
 	_state = DONE;
 }
 
@@ -179,6 +197,75 @@ bool Request::process_Header()
 	validate_Request();
 	determine_NextState();
 	return (true);
+}
+
+static bool parseHex(const std::string& str, size_t& result)
+{
+    std::istringstream iss(str);
+    iss >> std::hex >> result;
+    return !iss.fail() && iss.eof();
+}
+
+bool Request::consume_CRLF()
+{
+    if (_buffer.get_Size() < 2)
+        return false;
+
+    char crlf[2];
+    _buffer.peek(crlf, 2);
+
+    if (crlf[0] != '\r' || crlf[1] != '\n')
+        return false;
+
+    _buffer.consume(2);
+    return true;
+}
+
+void Request::appendToBody(size_t size)
+{
+    size_t oldSize = _body.size();
+    _body.resize(oldSize + size);
+    _buffer.read(&_body[oldSize], size);
+}
+
+bool Request::process_Chunked()
+{
+	while (true)
+	{
+		std::string sizeline;
+		size_t pos = _buffer.find("\r\n");
+		if (pos == std::string::npos)
+			return false;
+		sizeline.resize(pos);
+		_buffer.peek(&sizeline[0], pos);
+		_buffer.consume(pos + 2);
+		size_t semicolon = sizeline.find(";");
+		if (semicolon != std::string::npos)
+			sizeline = sizeline.substr(0, semicolon);
+		size_t chunkSize;
+		if (!parseHex(sizeline, chunkSize))
+		{
+			_statusCode = 400;
+			_validRequest = false;
+			return false;
+		}
+		if (chunkSize == 0)
+		{
+			if (!consume_CRLF())
+				return false;
+			_state = DONE;
+			return true;
+		}
+		if (_buffer.get_Size() < chunkSize + 2)
+            return false;
+		appendToBody(chunkSize);
+		if (!consume_CRLF())
+		{
+			_statusCode = 400;
+			_validRequest = false;
+			return false;   
+		}
+	}
 }
 
 bool Request::process_Body()
@@ -336,6 +423,8 @@ void Request::advanceParsing()
 			progressed = process_Header();
 		else if (_state == READING_BODY)
 			progressed = process_Body();
+		else if (_state == READING_CHUNKED)
+			progressed = process_Chunked();
 		else if (_state == DONE)
 			return ;
 	}

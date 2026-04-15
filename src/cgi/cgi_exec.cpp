@@ -6,12 +6,13 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:18:06 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/13 21:21:24 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/15 05:01:39 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <http/cgi/CGI.hpp>
 #include <poll.h>
+#include <utils/http/mime.hpp>
 
 bool CGI::create_Pipes(int inPipe[2], int outPipe[2])
 {
@@ -30,9 +31,30 @@ bool CGI::create_Pipes(int inPipe[2], int outPipe[2])
 	return true;
 }
 
-void CGI::execute_ChildProcess(int inPipe[2], int outPipe[2],
-	const std::string &scriptPath, char *const argv[], char *const envp[])
+static std::string get_CgiPath(const std::map<std::string, std::string> &cgi_Path, std::string &filename)
 {
+	std::string extension = get_Extension(filename);
+	std::map<std::string,
+		std::string>::const_iterator it = cgi_Path.find(extension);
+	if (it != cgi_Path.end())
+		return it->second;
+	return "";
+}
+
+void CGI::execute_ChildProcess(int inPipe[2], int outPipe[2],
+	const std::string &scriptPath, const std::map<std::string, std::string> &cgiPath, char *const envp[])
+{
+	std::vector<char *> argv;
+	std::string dir = scriptPath.substr(0, scriptPath.find_last_of('/') + 1);
+	if (chdir(dir.c_str()) == -1)
+	{
+		perror("chdir failed");
+		exit(1);
+	}
+	std::string filename = scriptPath.substr(scriptPath.find_last_of('/') + 1);
+	std::string extension = get_CgiPath(cgiPath, filename);
+	if (extension.empty())
+		exit(1);
 	close(inPipe[1]);
 	close(outPipe[0]);
 	if (dup2(inPipe[0], STDIN_FILENO) == -1)
@@ -49,7 +71,8 @@ void CGI::execute_ChildProcess(int inPipe[2], int outPipe[2],
 		exit(1);
 	}
 	close(outPipe[1]);
-	if (execve(scriptPath.c_str(), argv, envp) == -1)
+	argv = build_Arguments(filename, extension);
+	if (execve(extension.c_str(), &argv[0], envp) == -1)
 		exit(1);
 	exit(1);
 }

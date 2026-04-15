@@ -6,12 +6,11 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 00:53:07 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/10 15:21:52 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/15 02:16:57 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <config/parser/Location_setters.hpp>
-#include <config/parser/parser.hpp>
 
 void	parse_Location(Location &Location, size_t &i,
 		const std::vector<std::string> &tokens)
@@ -58,6 +57,10 @@ void	parse_Location(Location &Location, size_t &i,
 		{
 			i++;
 			set_CgiExt(tokens, i, Location);
+		}
+		if (tokens[i] == "cgi_types" && i + 1 < tokens.size() && !tokens[i + 1].empty() && tokens[i + 1] == "{")
+		{
+			parse_CgiTypes(tokens, i, Location);
 		}
 		if (tokens[i] == "upload_store" && i + 1 < tokens.size() && !tokens[i + 1].empty())
 		{

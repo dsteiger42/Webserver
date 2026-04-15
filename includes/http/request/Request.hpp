@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/10 15:34:07 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/14 23:05:44 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,7 @@ enum	State
 {
 	READING_HEADER,
 	READING_BODY,
+	READING_CHUNKED,
 	DONE
 };
 
@@ -65,6 +66,9 @@ class Request
 	void validate_Request();
 	bool process_Header();
 	bool process_Body();
+	bool process_Chunked();
+	bool consume_CRLF();
+	void appendToBody(size_t size);
 	void determine_NextState();
 	void parse_RequestLine(std::string &line, std::istringstream &split);
 	void parse_Headers(std::string &line, std::istringstream &split);

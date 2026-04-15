@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/14 00:30:27 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/15 04:53:59 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,7 +53,7 @@ std::string get_Extension(std::string file)
 		}
 	}
 	if (pos != -1)
-		extension = file.substr(pos + 1);
+		extension = file.substr(pos);
 	return (extension);
 }
 
@@ -72,7 +72,7 @@ bool is_acceptableExtension(const std::string &path, Location &location)
 	size_t i = 0;
 	while (i < location.cgiExt.size())
 	{
-		if (&location.cgiExt[i][1] && extension ==  location.cgiExt[i].substr(1))
+		if (&location.cgiExt[i][1] && extension ==  location.cgiExt[i].substr(0))
 			return true;
 		i++;
 	}

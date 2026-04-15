@@ -1,9 +1,2 @@
 implementar parse chunked
 
-// prevent CRLF injection
-        if (key.find('\n') != std::string::npos || key.find('\r') != std::string::npos ||
-            value.find('\n') != std::string::npos || value.find('\r') != std::string::npos)
-        {
-            _validRequest = false;
-            return;
-        }

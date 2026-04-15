@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/01 14:42:37 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/15 02:12:30 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,6 +52,7 @@ struct		Location
 	std::string upload_store;
 	std::vector<std::string> allowedMethods;
 	std::vector<std::string> cgiExt;
+	std::map<std::string, std::string> cgiPath;
 	bool	autoIndex;
 	bool	cgiPass;
 	bool	hasRedirect;

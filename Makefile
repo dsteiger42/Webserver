@@ -16,6 +16,7 @@ SRCS = \
 	src/config/parser/parser.cpp \
 	src/config/parser/parse_server.cpp \
 	src/config/parser/parse_location.cpp \
+	src/config/parser/parse_cgi.cpp \
 	src/config/parser/parse_mime.cpp \
 	src/config/parser/parse_error.cpp \
 	src/config/parser/Location_setters.cpp \
