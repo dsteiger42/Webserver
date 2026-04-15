@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/15 15:04:45 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/15 15:12:36 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -123,11 +123,11 @@ void Request::validate_Request()
 		_statusCode = 400;
 		_validRequest = false;
 	}
-	if (_headers.find("transfer-encoding") != _headers.end())
+	/* if (_headers.find("transfer-encoding") != _headers.end())
 	{
 		_statusCode = 501;
 		_validRequest = false;
-	}
+	} */
 }
 
 std::string Request::extract_HeaderFromBuffer(size_t size)
@@ -254,6 +254,7 @@ bool Request::process_Chunked()
 			if (!consume_CRLF())
 				return false;
 			_state = DONE;
+			_validRequest = true;
 			return true;
 		}
 		if (_buffer.get_Size() < chunkSize + 2)
