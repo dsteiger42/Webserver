@@ -5,3 +5,5 @@ find includes src \
   -exec echo "===== {} =====" \; \
   -exec cat {} \; \
   > 413.txt
+
+  corrigir get_extension
