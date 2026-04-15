@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/01 16:25:54 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/15 22:11:08 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,8 +25,10 @@ Response Router::make_ErrorCode(size_t code)
 			<< "Error Ocurred"
 			<< "</h1>";
 		res.set_Body(ss.str());
+		res.set_Header("Content-Type", "text/html");
 		return (res);
 	}
 	res.set_Body(page);
+	res.set_Header("Content-Type", "text/html");
 	return (res);
 }

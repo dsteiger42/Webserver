@@ -712,10 +712,10 @@ def test_http_conformance():
         code4 = int(resp4.split(b" ")[1]) if resp4 else 0
     except Exception:
         code4 = 0
-    record("fail" if code4 == 201 else "info",
-           "HTTP-04", "Transfer-Encoding: chunked → 501",
-           code4 in (501, 400),
-           f"Chunked POST → {code4} (esperado 501)")
+    record("fail" if code4 in (200, 201) else "info",
+           "HTTP-04", "Transfer-Encoding: chunked suportado",
+           code4 in (201, 200),
+           f"Chunked POST → {code4} (esperado 200 ou 201)")
 
     # 14e — Content-Length E Transfer-Encoding juntos → 400
     raw_both = (

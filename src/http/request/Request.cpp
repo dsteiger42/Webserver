@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/15 21:53:00 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/15 22:13:41 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -93,25 +93,28 @@ void Request::fill_Buffer(const std::string &request, size_t len)
 	written = 0;
 	while (written < len)
 	{
-		if (_state == READING_HEADER && _buffer.get_Size() + (len
-				- written) > MAX_HEADER_SIZE)
+		if (_state == READING_HEADER)
 		{
-			_statusCode = 431;
-			_validRequest = false;
-			return ;
+			size_t currentHeaderBytes = _buffer.get_Size();
+			if (currentHeaderBytes > MAX_HEADER_SIZE)
+			{
+				_statusCode = 431;
+				_validRequest = false;
+				return ;
+			}
 		}
 		bytesWritten = _buffer.write(request.data() + written, len - written);
 		if (bytesWritten == 0)
 		{
 			advanceParsing();
 			if (_buffer.is_Full())
-			{
 				break ;
-			}
 			continue ;
 		}
 		written += bytesWritten;
 		advanceParsing();
+		if (!_validRequest && _statusCode != 0)
+            return;
 	}
 }
 
@@ -433,6 +436,8 @@ void Request::parse_Header(const std::string &headerStr)
 	std::istringstream split(headerStr);
 	std::string line;
 	parse_RequestLine(line, split);
+	if (!_validRequest)
+		return ;
 	parse_Headers(line, split);
 
 }
