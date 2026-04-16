@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/15 22:08:48 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/16 14:29:38 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -127,7 +127,8 @@ bool Response::has_Header(std::string key) const
 void Response::prepare_Headers()
 {
 	size_t	size;
-
+	if (!has_Header("Content-Type"))
+        set_Header("Content-Type", "application/octet-stream");
 	if (!has_Header("Content-Length"))
 	{
 		size = this->_body.length();

@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/23 17:33:01 by raamorim          #+#    #+#             */
-/*   Updated: 2026/04/15 02:11:03 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/16 14:50:26 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,7 +92,10 @@ void	set_CgiExt(const std::vector<std::string> &tokens, size_t &i,
 {
 	while (i < tokens.size() && tokens[i] != ";")
 	{
-		location.cgiExt.push_back(tokens[i]);
+		std::string extension = tokens[i];
+        if (!extension.empty() && extension[0] == '.')
+            extension = extension.substr(1);
+		location.cgiExt.push_back(extension);
 		i++;
 	}
 }

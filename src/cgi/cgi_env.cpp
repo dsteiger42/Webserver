@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:13:49 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/15 19:15:04 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/16 14:25:44 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,7 +48,9 @@ void CGI::build_Environment(const Request &req, const std::string &scriptPath)
     env.push_back("GATEWAY_INTERFACE=CGI/1.1");
     env.push_back("REDIRECT_STATUS=200");
     env.push_back("SERVER_NAME=" + conf.config.server_name);
-	env.push_back("SERVER_PORT=" + conf.config.listen);
+	std::stringstream port;
+	port << conf.config.listen;
+	env.push_back("SERVER_PORT=" + port.str());
 	env.push_back("HTTP_HOST=" + sanitize_Env(req.get_Header("host")));
 }
 

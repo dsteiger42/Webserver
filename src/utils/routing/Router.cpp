@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/15 21:35:02 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/16 15:40:02 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -243,7 +243,7 @@ Response Router::handle_POST(const Request& request, Location& location)
     if (maxSize > 0 && request.get_Body().size() > maxSize)
         return make_ErrorCode(413);
     if (location.cgiPass)
-        return (cgi->execute(request, location));
+        return (cgi->execute(request, location));   
     std::string uploadDir;
     if (location.upload_store.empty())
         uploadDir = _documentRoot;
