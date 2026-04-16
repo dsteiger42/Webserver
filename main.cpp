@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/01 14:48:37 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/10 15:25:01 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,11 @@ int	main(int argc, char **argv)
         return -1;
     }
     Parser parser;
-    parse_all(configFile, parser);
+    if (!parse_all(configFile, parser))
+    {
+        std::cerr << "Error: something wrong in config file" << std::endl;
+        return -1;
+    }
     if (parser.servers.empty())
     {
         std::cerr << "Error: no server blocks found in config" << std::endl;

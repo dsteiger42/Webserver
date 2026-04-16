@@ -104,7 +104,7 @@ COUNT=$(grep -c "HTTP/" response.txt)
 ########################################
 test_title "CGI TEST"
 
-echo -e "GET /cgi-bin/test.php HTTP/1.1\r\nHost: localhost\r\n\r\n" | nc $HOST $PORT > response.txt
+echo -e "GET /cgi-bin/test.py HTTP/1.1\r\nHost: localhost\r\n\r\n" | nc $HOST $PORT > response.txt
 
 grep -q "200" response.txt && ok "CGI executed" || fail "CGI failed"
 

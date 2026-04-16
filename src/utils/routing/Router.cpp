@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/08 03:40:16 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/15 21:35:02 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,6 +77,11 @@ std::string Router::get_AbsolutePath() const
 std::string Router::get_DocumentRoot() const
 {
     return (this->_documentRoot);
+}
+
+const ServerConfig &Router::get_Config() const
+{
+    return (this->_config);
 }
 
 bool Router::validate_Path(const std::string &path)
@@ -176,6 +181,8 @@ Response Router::handle_GET(const Request& request, Location& location)
         return make_ErrorCode(405);
     if (location.cgiPass)
         return (cgi->execute(request, location));
+    if (!build_FinalPath(_path))
+        return make_ErrorCode(403);
     _absolutePath = _documentRoot + _path;
     if (!is_InsideRoot(_absolutePath, _documentRoot))
         return make_ErrorCode(403);
@@ -212,9 +219,11 @@ Response Router::handle_DELETE(const Request& request, Location& location)
 {
     (void)request;
     Response response(_config.errorPages);
-    _absolutePath = _documentRoot + _path;
     if (!is_ValidMethod(location.allowedMethods, request.get_Method()))
         return make_ErrorCode(405);
+    if (!build_FinalPath(_path))
+        return make_ErrorCode(403);
+    _absolutePath = _documentRoot + _path;
     if (!is_InsideRoot(_absolutePath, _documentRoot))
         return make_ErrorCode(403);
     if (is_Directory(_absolutePath))
@@ -235,17 +244,26 @@ Response Router::handle_POST(const Request& request, Location& location)
         return make_ErrorCode(413);
     if (location.cgiPass)
         return (cgi->execute(request, location));
-    if (request.get_Body().size() > maxSize)
-        return make_ErrorCode(413);
     std::string uploadDir;
     if (location.upload_store.empty())
         uploadDir = _documentRoot;
     else
         uploadDir = location.upload_store;
-    std::string filename = _path;
-    size_t slash = filename.rfind('/');
+    if (!build_FinalPath(_path))
+        return make_ErrorCode(403);
+    std::string path = _path;
+    size_t slash1 = path.rfind('/');
+    if (slash1 != std::string::npos)
+        path = _path.substr(0, slash1 + 1);
+    size_t slash = _path.rfind('/');
+    std::string filename;
     if (slash != std::string::npos)
-        filename = filename.substr(slash + 1);
+        filename = _path.substr(slash + 1);
+    if (path != "/cgi-bin/")
+    {
+        if (!sanitize_Filename(filename))
+            return make_ErrorCode(403);
+    }
     if (filename.empty())
     {
         static size_t upload_counter = 0;
@@ -258,22 +276,33 @@ Response Router::handle_POST(const Request& request, Location& location)
         _absolutePath += '/';
     _absolutePath += filename;
     if (!is_InsideRoot(_absolutePath, uploadDir))
-    {
-        std::cout << "1teste\n";
         return make_ErrorCode(403);
-    }
     if (is_Directory(_absolutePath))
-    {
-        std::cout << "teste\n";
         return make_ErrorCode(403);
-    }
     if (check_File(_absolutePath))
-        return make_ErrorCode(409);    
-    std::ofstream file(_absolutePath.c_str(), std::ios::binary);
-    if (!file.is_open())
+        return make_ErrorCode(409);  
+    int fd = open(_absolutePath.c_str(), O_WRONLY | O_CREAT | O_EXCL, 0644);
+    if (fd == -1)
+    {
+        if (errno == EEXIST)
+            return make_ErrorCode(409);
         return make_ErrorCode(500);
-    file << request.get_Body();
-    file.close();
+    }
+    const std::string &body = request.get_Body();
+    size_t written = 0;
+    while (written < body.size())
+    {
+        ssize_t n = write(fd, body.c_str() + written, body.size() - written);
+        if (n == -1)
+        {
+            close(fd);
+            // Apagar o ficheiro parcialmente escrito para não deixar lixo
+            std::remove(_absolutePath.c_str());
+            return make_ErrorCode(500);
+        }
+        written += static_cast<size_t>(n);
+    }
+    close(fd);
     response.set_StatusCode(201);
     response.set_Body("File uploaded");
     std::string MimeType = get_MimeType(get_Extension(_absolutePath), _config.mimeTypes.types);
@@ -296,10 +325,10 @@ Response Router::handle_Request(const Request& request)
         return make_ErrorCode(413);
     split_PathQuery(request.get_Path());
     if (!validate_Path(_path))
-        return make_ErrorCode(400);
-    if (!build_FinalPath(_path))
-        return make_ErrorCode(403);
+        return make_ErrorCode(400);  
     Location& loc = matchLocation(_path);
+    /* if (!build_FinalPath(_path))
+        return make_ErrorCode(403); */
     if (!loc.root.empty())
         _documentRoot = loc.root;
     else

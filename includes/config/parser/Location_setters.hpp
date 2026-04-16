@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/23 17:33:23 by raamorim          #+#    #+#             */
-/*   Updated: 2026/03/24 02:55:29 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/15 02:18:06 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,5 +26,7 @@ void	set_Redirection(const std::vector<std::string> &tokens, size_t &i,
 void	set_TryFiles(const std::vector<std::string> &tokens, size_t &i,Location &location);
 void	set_Path(const std::vector<std::string> &tokens, size_t &i,
 		Location &location);
+void	parse_CgiTypes(const std::vector<std::string> &tokens, size_t &i, Location &location);
+
 
 #endif

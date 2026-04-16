@@ -1,18 +1,18 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   parse_mime.cpp                                     :+:      :+:    :+:   */
+/*   parse_cgi.cpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/03/24 01:01:35 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/10 15:20:08 by rafael           ###   ########.fr       */
+/*   Created: 2026/04/15 01:57:10 by rafael            #+#    #+#             */
+/*   Updated: 2026/04/15 02:55:35 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <config/parser/parser.hpp>
+#include <config/parser/Location_setters.hpp>
 
-void	parse_MimeTypes(MimeTypes &MimeTypes, size_t &i, const std::vector<std::string> &tokens)
+void	parse_CgiTypes(const std::vector<std::string> &tokens, size_t &i, Location &location)
 {
 	i++;
 	if (tokens[i] != "{")
@@ -25,10 +25,9 @@ void	parse_MimeTypes(MimeTypes &MimeTypes, size_t &i, const std::vector<std::str
 		while (i < tokens.size() && tokens[i] != ";")
 		{
 			std::string value = tokens[i];
-			MimeTypes.types[value] = type;
+			location.cgiPath[type] = value;
 			i++;
 		}
 		i++;
 	}
-	i++;
 }

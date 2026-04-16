@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/01 14:48:13 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/15 19:15:22 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,7 @@ class Router
 	std::string _path;
 	std::string _query;
 	std::string _method;
-	std::string _documentRoot; // in the future will be at .conf
+	std::string _documentRoot;
 	std::string _absolutePath;
 
   public:
@@ -49,7 +49,8 @@ class Router
 	std::string get_Method() const;
 	std::string get_AbsolutePath() const;
 	std::string get_DocumentRoot() const;
-
+	const ServerConfig &get_Config() const;
+	
 	Response handle_GET(const Request &request, Location &location);
 	Response handle_DELETE(const Request &request, Location &location);
 	Response handle_POST(const Request &request, Location &location);

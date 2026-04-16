@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/01 19:00:05 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/15 22:08:20 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,12 +15,14 @@
 #include <http/routing/Router.hpp>
 #include <utils/signals/signals.hpp>
 
-Server::Server(int port, ServerConfig &sc) : _port(port), _router(sc)
+Server::Server(int port, ServerConfig &sc) : _server_fd(-1), _port(port), _router(sc)
 {
 }
 
 Server::~Server()
 {
+	if (_server_fd != -1)
+        close(_server_fd);	
 }
 
 void	*ft_memset(void *str, int c, size_t n)
@@ -113,6 +115,8 @@ int Server::accept_NewClient(std::vector<pollfd> &fds)
 	poll.events = POLLIN;
 	fds.push_back(poll);
 	_allClients[client_fd] = Client(client_fd);
+	size_t maxBody = _router.get_Config().config.client_max_body_size;
+	_allClients[client_fd].request.set_MaxBodySize(maxBody);
 	_allClients[client_fd].lastActivity = time(NULL);
 	_allClients[client_fd].requestStart = time(NULL);
 	return (client_fd);

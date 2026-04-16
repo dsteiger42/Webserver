@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/01 14:53:19 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/15 22:08:48 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,6 +54,8 @@ std::string Response::get_StatusMessage(int code) const
             return "Conflict";
         case 413: 
             return "Payload Too Large";
+		case 431:
+    		return "Request Header Fields Too Large"; 
         case 500: 
             return "Internal Server Error";
         case 501: 
