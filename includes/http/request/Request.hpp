@@ -77,6 +77,7 @@ class Request
 	void parse_Header(const std::string &headerStr);
 	void advanceParsing();
 	void fill_Buffer(const std::string &request, size_t pos);
+    std::string get_Leftover();
 };
 
 #endif
