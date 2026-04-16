@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/16 14:14:41 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/16 22:33:00 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -197,10 +197,23 @@ bool Request::process_Header()
 {
 	size_t	pos;
 	size_t	headersize;
-
+	size_t posLF;
+	
 	pos = _buffer.find("\r\n\r\n");
+	posLF = _buffer.find("\n\n");
+	if (posLF != std::string::npos && (pos == std::string::npos || posLF < pos))
+	{
+		_validRequest = false;
+		_statusCode = 400;
+		_state = DONE;
+		size_t sz = _buffer.get_Size();
+        if (sz > 0)
+            _buffer.consume(sz);
+		return true;
+	}
 	if (pos == std::string::npos)
 		return (false);
+	
 	headersize = pos + 4;
 	if (_buffer.get_Size() < headersize)
 		return (false);
@@ -210,6 +223,7 @@ bool Request::process_Header()
 	determine_NextState();
 	return (true);
 }
+
 
 static bool parseHex(const std::string& str, size_t& result, size_t maxSize)
 {
@@ -311,7 +325,7 @@ bool Request::process_Body()
     if (remaining == 0)
     {
         _state = DONE;
-        return (true);
+	    return (true);
     }
     available = _buffer.get_Size();
     /*
