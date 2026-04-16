@@ -124,47 +124,46 @@ int Server::accept_NewClient(std::vector<pollfd> &fds)
 
 bool Server::receive_FromClient(std::vector<pollfd> &fds, size_t index)
 {
-	int		client_fd;
-	int		bytes_received;
-	char	buffer[1024];
-	char	temp[1024];
-	size_t	n;
+    int     client_fd;
+    int     bytes_received;
+    char    buffer[1024];
 
-	client_fd = fds[index].fd;
-	Client &client = _allClients[client_fd];
-	bytes_received = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
-	if (bytes_received > 0)
-	{
-		buffer[bytes_received] = '\0';
-		if (client.readBuffer.get_Size() == 0)
-			client.requestStart = time(NULL);
-		client.lastActivity = time(NULL);
-		client.readBuffer.write(buffer, bytes_received);
-		std::cout << "Client " << client_fd << ": " << buffer << "\n";
-		n = client.readBuffer.read(temp, sizeof(temp));
-		std::string chunk(temp, n);
-		client.request.fill_Buffer(chunk, chunk.size());
-		if (client.request.is_Done() || !client.request.get_validRequest())
-		{
-			client.response = _router.handle_Request(client.request);
-			std::string rawResponse = client.response.serialize();
-			client.writeBuffer.write(rawResponse.c_str(), rawResponse.size());
-			fds[index].events |= POLLOUT;
-			client.request.reset();
-		}
-		return (true);
-	}
-	else
-	{
-		if (bytes_received == 0)
-			std::cout << "Client disconnected: fd=" << client_fd << "\n";
-		else
-			std::cerr << "Error receiving from client fd=" << client_fd << "\n";
-		close(client_fd);
-		_allClients.erase(client_fd);
-		fds.erase(fds.begin() + index);
-		return (false);
-	}
+    client_fd = fds[index].fd;
+    Client &client = _allClients[client_fd];
+    bytes_received = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
+    if (bytes_received > 0)
+    {
+        client.lastActivity = time(NULL);
+        std::cout << "Client " << client_fd << ": " << buffer << "\n";
+        std::string chunk(buffer, bytes_received);
+        client.request.fill_Buffer(chunk, chunk.size());
+
+        while (client.request.is_Done() ||
+               (!client.request.get_validRequest() && client.request.get_statusCode() != 0))
+        {
+            client.response = _router.handle_Request(client.request);
+            std::string rawResponse = client.response.serialize();
+            client.writeBuffer.write(rawResponse.c_str(), rawResponse.size());
+            fds[index].events |= POLLOUT;
+            std::string leftover = client.request.get_Leftover();
+            client.request.reset();
+            if (leftover.empty())
+                break;
+            client.request.fill_Buffer(leftover, leftover.size());
+        }
+        return (true);
+    }
+    else
+    {
+        if (bytes_received == 0)
+            std::cout << "Client disconnected: fd=" << client_fd << "\n";
+        else
+            std::cerr << "Error receiving from client fd=" << client_fd << "\n";
+        close(client_fd);
+        _allClients.erase(client_fd);
+        fds.erase(fds.begin() + index);
+        return (false);
+    }
 }
 
 SendStatus Server::send_ToClient(std::vector<pollfd> &fds, size_t index)

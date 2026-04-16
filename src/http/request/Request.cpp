@@ -78,6 +78,9 @@ void Request::reset()
 	_statusCode = 0;
 	_validRequest = false;
 	_state = READING_HEADER;
+     size_t sz = _buffer.get_Size();
+    if (sz > 0)
+        _buffer.consume(sz);
 }
 
 bool Request::is_Done() const
@@ -478,4 +481,11 @@ void Request::split_PathQuery(const std::string &path)
 		_path = path;
 		_query = "";
 	}
+}
+
+std::string Request::get_Leftover()
+{
+    std::string leftover(_buffer.get_Size(), '\0');
+    _buffer.read(&leftover[0], leftover.size());
+    return leftover;
 }
