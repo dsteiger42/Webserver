@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/16 14:14:41 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/20 03:15:01 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -134,11 +134,6 @@ void Request::validate_Request()
 		_statusCode = 400;
 		_validRequest = false;
 	}
-	/* if (_headers.find("transfer-encoding") != _headers.end())
-	{
-		_statusCode = 501;
-		_validRequest = false;
-	} */
 }
 
 std::string Request::extract_HeaderFromBuffer(size_t size)
@@ -197,10 +192,23 @@ bool Request::process_Header()
 {
 	size_t	pos;
 	size_t	headersize;
-
+	size_t posLF;
+	
 	pos = _buffer.find("\r\n\r\n");
+	posLF = _buffer.find("\n\n");
+	if (posLF != std::string::npos && (pos == std::string::npos || posLF < pos))
+	{
+		_validRequest = false;
+		_statusCode = 400;
+		_state = DONE;
+		size_t sz = _buffer.get_Size();
+        if (sz > 0)
+            _buffer.consume(sz);
+		return true;
+	}
 	if (pos == std::string::npos)
 		return (false);
+	
 	headersize = pos + 4;
 	if (_buffer.get_Size() < headersize)
 		return (false);
@@ -210,6 +218,7 @@ bool Request::process_Header()
 	determine_NextState();
 	return (true);
 }
+
 
 static bool parseHex(const std::string& str, size_t& result, size_t maxSize)
 {
@@ -291,6 +300,8 @@ bool Request::process_Chunked()
             return false;
 		_buffer.consume(pos + 2);
 		appendToBody(chunkSize);
+		if (_statusCode != 0)
+    		return false;
 		if (!consume_CRLF())
 		{
 			_statusCode = 400;
@@ -311,7 +322,7 @@ bool Request::process_Body()
     if (remaining == 0)
     {
         _state = DONE;
-        return (true);
+	    return (true);
     }
     available = _buffer.get_Size();
     /*
@@ -324,7 +335,18 @@ bool Request::process_Body()
     */
     toRead = std::min(remaining, available);
     if (toRead == 0)
+	{	
         return (false);
+	}
+	if (_maxBodySize > 0 && _body.size() + toRead >= _maxBodySize)
+    {
+        _statusCode = 413;
+        _validRequest = false;
+        _state = DONE;
+        // Consumir os dados do buffer para não ficar preso
+        _buffer.consume(available);
+        return false;
+    }
     oldSize = _body.size();
     _body.resize(oldSize + toRead);
     _buffer.read(&_body[oldSize], toRead);
