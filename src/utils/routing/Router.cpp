@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/16 15:40:02 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/20 03:12:17 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -314,7 +314,7 @@ Response Router::handle_Request(const Request& request)
 {
     
     if (!request.get_validRequest())
-    {
+    {   
         if (request.get_statusCode() != 0)
             return make_ErrorCode(request.get_statusCode());
         return make_ErrorCode(400);    

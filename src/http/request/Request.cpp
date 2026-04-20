@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/17 00:35:50 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/20 03:15:01 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -300,6 +300,8 @@ bool Request::process_Chunked()
             return false;
 		_buffer.consume(pos + 2);
 		appendToBody(chunkSize);
+		if (_statusCode != 0)
+    		return false;
 		if (!consume_CRLF())
 		{
 			_statusCode = 400;

@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:18:09 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/15 03:57:50 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/20 03:13:08 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,10 +72,12 @@ bool CGI::is_ValidCGIOutput(const std::string &output)
 	if (output.empty())
 		return false;
 	size_t pos = output.find("\r\n\r\n");
-	/* if (pos == std::string::npos)
-	{
-		return false;
-	} */
+	if (pos == std::string::npos)
+    {
+        pos = output.find("\n\n");
+        if (pos == std::string::npos)
+            return false;
+    }
 	std::string headers = output.substr(0, pos);
 	transform(headers);
 	if (headers.find("content-type:") == std::string::npos) //noralizar letra grande e pequena

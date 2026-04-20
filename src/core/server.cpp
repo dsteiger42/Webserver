@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/16 18:29:30 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/17 05:37:02 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -131,7 +131,11 @@ bool Server::receive_FromClient(std::vector<pollfd> &fds, size_t index)
     client_fd = fds[index].fd;
     Client &client = _allClients[client_fd];
     bytes_received = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
-    if (bytes_received > 0)
+    std::cerr << "[recv] fd=" << client_fd
+          << " writeBuffer=" << client.writeBuffer.get_Size()
+          << " request.done=" << client.request.is_Done()
+          << " bytes=" << bytes_received << "\n";
+	if (bytes_received > 0)
     {
         client.lastActivity = time(NULL);
         std::string chunk(buffer, bytes_received);
