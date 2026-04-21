@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
+/*   By: dsteiger <dsteiger@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/17 05:37:02 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/21 17:06:40 by dsteiger         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,14 +15,15 @@
 #include <http/routing/Router.hpp>
 #include <utils/signals/signals.hpp>
 
-Server::Server(int port, ServerConfig &sc) : _server_fd(-1), _port(port), _router(sc)
+Server::Server(int port, ServerConfig &sc) : _server_fd(-1), _port(port),
+	_router(sc)
 {
 }
 
 Server::~Server()
 {
 	if (_server_fd != -1)
-        close(_server_fd);	
+		close(_server_fd);
 }
 
 void	*ft_memset(void *str, int c, size_t n)
@@ -99,9 +100,11 @@ int Server::accept_NewClient(std::vector<pollfd> &fds)
 	socklen_t	client_len;
 	int			client_fd;
 	int			flags;
+	size_t		maxBody;
 
 	client_len = sizeof(client_addr);
-	client_fd = accept(_server_fd, (struct sockaddr *)&client_addr, &client_len);
+	client_fd = accept(_server_fd, (struct sockaddr *)&client_addr,
+			&client_len);
 	if (client_fd == -1)
 	{
 		std::cerr << "Error: accept failed\n";
@@ -115,7 +118,7 @@ int Server::accept_NewClient(std::vector<pollfd> &fds)
 	poll.events = POLLIN;
 	fds.push_back(poll);
 	_allClients[client_fd] = Client(client_fd);
-	size_t maxBody = _router.get_Config().config.client_max_body_size;
+	maxBody = _router.get_Config().config.client_max_body_size;
 	_allClients[client_fd].request.set_MaxBodySize(maxBody);
 	_allClients[client_fd].lastActivity = time(NULL);
 	_allClients[client_fd].requestStart = time(NULL);
@@ -124,50 +127,44 @@ int Server::accept_NewClient(std::vector<pollfd> &fds)
 
 bool Server::receive_FromClient(std::vector<pollfd> &fds, size_t index)
 {
-    int     client_fd;
-    int     bytes_received;
-    char    buffer[1024];
+	int		client_fd;
+	int		bytes_received;
+	char	buffer[1024];
 
-    client_fd = fds[index].fd;
-    Client &client = _allClients[client_fd];
-    bytes_received = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
-    std::cerr << "[recv] fd=" << client_fd
-          << " writeBuffer=" << client.writeBuffer.get_Size()
-          << " request.done=" << client.request.is_Done()
-          << " bytes=" << bytes_received << "\n";
+	client_fd = fds[index].fd;
+	Client &client = _allClients[client_fd];
+	bytes_received = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
 	if (bytes_received > 0)
-    {
-        client.lastActivity = time(NULL);
-        std::string chunk(buffer, bytes_received);
-        std::cout << "Client " << client_fd << ": " << chunk << "\n";
-        client.request.fill_Buffer(chunk, chunk.size());
-
-        while (client.request.is_Done() ||
-               (!client.request.get_validRequest() && client.request.get_statusCode() != 0))
-        {
-            client.response = _router.handle_Request(client.request);
-            std::string rawResponse = client.response.serialize();
-            client.writeBuffer.write(rawResponse.c_str(), rawResponse.size());
-            fds[index].events |= POLLOUT;
-            std::string leftover = client.request.get_Leftover();
-            client.request.reset();
-            if (leftover.empty())
-                break;
-            client.request.fill_Buffer(leftover, leftover.size());
-        }
-        return (true);
-    }
-    else
-    {
-        if (bytes_received == 0)
-            std::cout << "Client disconnected: fd=" << client_fd << "\n";
-        else
-            std::cerr << "Error receiving from client fd=" << client_fd << "\n";
-        close(client_fd);
-        _allClients.erase(client_fd);
-        fds.erase(fds.begin() + index);
-        return (false);
-    }
+	{
+		client.lastActivity = time(NULL);
+		std::string chunk(buffer, bytes_received);
+		std::cout << "Client " << client_fd << ": " << chunk << "\n";
+		client.request.fill_Buffer(chunk, chunk.size());
+		while (client.request.is_Done() || (!client.request.get_validRequest() && client.request.get_statusCode() != 0))
+		{
+			client.response = _router.handle_Request(client.request);
+			std::string rawResponse = client.response.serialize();
+			client.writeBuffer.write(rawResponse.c_str(), rawResponse.size());
+			fds[index].events |= POLLOUT;
+			std::string leftover = client.request.get_Leftover();
+			client.request.reset();
+			if (leftover.empty())
+				break ;
+			client.request.fill_Buffer(leftover, leftover.size());
+		}
+		return (true);
+	}
+	else
+	{
+		if (bytes_received == 0)
+			std::cout << "Client disconnected: fd=" << client_fd << "\n";
+		else
+			std::cerr << "Error receiving from client fd=" << client_fd << "\n";
+		close(client_fd);
+		_allClients.erase(client_fd);
+		fds.erase(fds.begin() + index);
+		return (false);
+	}
 }
 
 SendStatus Server::send_ToClient(std::vector<pollfd> &fds, size_t index)
@@ -216,8 +213,9 @@ SendStatus Server::send_ToClient(std::vector<pollfd> &fds, size_t index)
 void Server::cleanup_TimeoutClients(std::vector<pollfd> &fds, time_t now,
 	int timeoutSec)
 {
-	int		fd;
-	bool	timeout;
+	int			fd;
+	bool		timeout;
+	const int	INCOMPLETE_REQUEST_TIMEOUT_SEC = 5;
 
 	/*
 	** Timeout curto para requests incompletos (body não chegou a tempo).
@@ -225,15 +223,12 @@ void Server::cleanup_TimeoutClients(std::vector<pollfd> &fds, time_t now,
 	** mas activos (ex: upload grande em chunks), mas que NÃO estão a usar
 	** Transfer-Encoding: chunked (que o servidor já rejeita com 501).
 	*/
-	const int INCOMPLETE_REQUEST_TIMEOUT_SEC = 5;
-
 	std::map<int, Client>::iterator it = _allClients.begin();
 	while (it != _allClients.end())
 	{
 		fd = it->first;
 		Client &client = it->second;
 		timeout = false;
-
 		if (!client.request.is_Done())
 		{
 			/*
@@ -250,13 +245,12 @@ void Server::cleanup_TimeoutClients(std::vector<pollfd> &fds, time_t now,
 				** o NGINX faz. Isto evita que o cliente fique à espera
 				** de uma resposta que nunca chega.
 				*/
-				std::string response408 =
-					"HTTP/1.1 408 Request Timeout\r\n"
-					"Content-Type: text/plain\r\n"
-					"Content-Length: 15\r\n"
-					"Connection: close\r\n"
-					"\r\n"
-					"Request Timeout";
+				std::string response408 = "HTTP/1.1 408 Request Timeout\r\n"
+											"Content-Type: text/plain\r\n"
+											"Content-Length: 15\r\n"
+											"Connection: close\r\n"
+											"\r\n"
+											"Request Timeout";
 				send(fd, response408.c_str(), response408.size(), 0);
 				timeout = true;
 			}
@@ -293,9 +287,10 @@ void Server::handle_Clients(std::vector<Server> &servers)
 	pollfd		listen_fd;
 	SendStatus	status;
 	time_t		now;
+	const int	POLL_TIMEOUT_MS = 1000;
 
-	const int POLL_TIMEOUT_MS  = 1000;
-	const int CLIENT_TIMEOUT_SEC = 30; /* inactividade geral — aumentado de 10 para 30s */
+	const int CLIENT_TIMEOUT_SEC = 30;
+		/* inactividade geral — aumentado de 10 para 30s */
 	std::vector<pollfd> fds;
 	for (size_t s = 0; s < servers.size(); s++)
 	{
@@ -309,9 +304,9 @@ void Server::handle_Clients(std::vector<Server> &servers)
 		if (ret == -1)
 		{
 			if (errno == EINTR)
-				continue;
+				continue ;
 			std::cerr << "Error: poll failed\n";
-			break;
+			break ;
 		}
 		now = time(NULL);
 		for (size_t i = 0; i < fds.size(); i++)

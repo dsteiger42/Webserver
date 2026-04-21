@@ -291,33 +291,33 @@ check("Servidor ainda responde após stress test", st > 0, f"status={st}")
 # 8. MANDATORY — client_max_body_size (413)
 # ══════════════════════════════════════════════════════════════════════════════
 
-#section("8. client_max_body_size — 413 Payload Too Large")
+section("8. client_max_body_size — 413 Payload Too Large")
 
-# Config tem client_max_body_size 4096
-#big_body = b"X" * 8000  # > 4096
-#big_req = (
-#    f"POST /upload/ HTTP/1.1\r\n"
-#    f"Host: {HOST}\r\n"
-#    f"Content-Type: application/octet-stream\r\n"
-#    f"Content-Length: {len(big_body)}\r\n"
-#    f"\r\n"
-#).encode() + big_body
-#resp = raw_request(big_req.decode("latin-1"))
-#st = parse_status(resp)
-#check("Body > client_max_body_size → 413", st == 413, f"status={st}")
+#Config tem client_max_body_size 4096
+big_body = b"X" * 8000  # > 4096
+big_req = (
+   f"POST /upload/ HTTP/1.1\r\n"
+   f"Host: {HOST}\r\n"
+   f"Content-Type: application/octet-stream\r\n"
+   f"Content-Length: {len(big_body)}\r\n"
+   f"\r\n"
+).encode() + big_body
+resp = raw_request(big_req.decode("latin-1"))
+st = parse_status(resp)
+check("Body > client_max_body_size → 413", st == 413, f"status={st}")
 
-# Body dentro do limite → não 413
-#small_body = b"Y" * 100
-#small_req = (
-#    f"POST /upload/ HTTP/1.1\r\n"
-#    f"Host: {HOST}\r\n"
-#    f"Content-Type: text/plain\r\n"
-#    f"Content-Length: {len(small_body)}\r\n"
-#    f"\r\n"
-#).encode() + small_body
-#resp = raw_request(small_req.decode("latin-1"))
-#st = parse_status(resp)
-#check("Body dentro do limite → não 413", st != 413, f"status={st}")
+#Body dentro do limite → não 413
+small_body = b"Y" * 100
+small_req = (
+   f"POST /upload/ HTTP/1.1\r\n"
+   f"Host: {HOST}\r\n"
+   f"Content-Type: text/plain\r\n"
+   f"Content-Length: {len(small_body)}\r\n"
+   f"\r\n"
+).encode() + small_body
+resp = raw_request(small_req.decode("latin-1"))
+st = parse_status(resp)
+check("Body dentro do limite → não 413", st != 413, f"status={st}")
 
 
 # ══════════════════════════════════════════════════════════════════════════════
