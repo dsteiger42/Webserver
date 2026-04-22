@@ -136,11 +136,14 @@ bool Server::receive_FromClient(std::vector<pollfd> &fds, size_t index)
 	bytes_received = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
 	if (bytes_received > 0)
 	{
+		if (client.drain)
+			return (true); // discard data, wait for client to close
 		client.lastActivity = time(NULL);
 		std::string chunk(buffer, bytes_received);
 		std::cout << "Client " << client_fd << ": " << chunk << "\n";
 		client.request.fill_Buffer(chunk, chunk.size());
-		while (client.request.is_Done() || (!client.request.get_validRequest() && client.request.get_statusCode() != 0))
+		while (client.request.is_Done() || (!client.request.get_validRequest()
+				&& client.request.get_statusCode() != 0))
 		{
 			client.response = _router.handle_Request(client.request);
 			std::string rawResponse = client.response.serialize();
@@ -288,9 +291,10 @@ void Server::handle_Clients(std::vector<Server> &servers)
 	SendStatus	status;
 	time_t		now;
 	const int	POLL_TIMEOUT_MS = 1000;
+	const int	CLIENT_TIMEOUT_SEC = 30;
+	int			fd;
 
-	const int CLIENT_TIMEOUT_SEC = 30;
-		/* inactividade geral — aumentado de 10 para 30s */
+	/* inactividade geral — aumentado de 10 para 30s */
 	std::vector<pollfd> fds;
 	for (size_t s = 0; s < servers.size(); s++)
 	{
@@ -342,14 +346,26 @@ void Server::handle_Clients(std::vector<Server> &servers)
 					if (servers[s]._allClients.count(fds[i].fd))
 					{
 						status = servers[s].send_ToClient(fds, i);
-						if (status == SEND_DONE || status == SEND_ERROR)
+						if (status == SEND_DONE)
 						{
-							close(fds[i].fd);
-							servers[s]._allClients.erase(fds[i].fd);
-							fds.erase(fds.begin() + i);
+							fd = fds[i].fd;
+							Client &c = servers[s]._allClients[fd];
+							if (c.response.get_StatusCode() == 413)
+							{
+								// Body was never read — kernel buffer has leftover data.
+								// Drain it poll-safely to avoid RST on close.
+								c.drain = true;
+								fds[i].events = POLLIN;
+							}
+							else
+							{
+								// Normal case: body was fully read, safe to close immediately.
+								close(fd);
+								servers[s]._allClients.erase(fd);
+								fds.erase(fds.begin() + i);
+							}
 							break ;
 						}
-						break ;
 					}
 				}
 			}

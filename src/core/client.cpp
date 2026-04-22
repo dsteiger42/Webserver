@@ -12,11 +12,11 @@
 
 #include <core/client.hpp>
 
-Client::Client() : fd(-1), readBuffer(65536) /* 64kb*/, writeBuffer(4096), request(), response()
+Client::Client() : fd(-1), readBuffer(65536) /* 64kb*/, writeBuffer(4096), request(), response(), drain(false)
 {
 }
 
-Client::Client(int fileD) : fd(fileD), readBuffer(65536), writeBuffer(4096), request(), response()
+Client::Client(int fileD) : fd(fileD), readBuffer(65536), writeBuffer(4096), request(), response(), drain(false)
 {
 	lastActivity = time(NULL);
 }

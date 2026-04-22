@@ -28,6 +28,7 @@ class Client
 	Response response;
 	time_t lastActivity;
 	time_t requestStart;
+    bool drain;
 
 	Client();
 	Client(int fileD);
