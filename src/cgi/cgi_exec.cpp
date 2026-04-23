@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:18:06 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/15 05:01:39 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/23 01:25:00 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,7 +66,6 @@ void CGI::execute_ChildProcess(int inPipe[2], int outPipe[2],
 	close(inPipe[0]);
 	if (dup2(outPipe[1], STDOUT_FILENO) == -1)
 	{
-		close(inPipe[0]);
 		close(outPipe[1]);
 		exit(1);
 	}
