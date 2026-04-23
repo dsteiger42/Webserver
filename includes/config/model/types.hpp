@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/23 01:28:51 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/23 01:32:49 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,7 +58,6 @@ struct		Location
 	bool	has_tryFiles;
 	size_t	redirectCode;
 	std::string redirectUrl;
-	std::vector<std::string> try_files;
 	Location();
 };
 

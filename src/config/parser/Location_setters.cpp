@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/23 17:33:01 by raamorim          #+#    #+#             */
-/*   Updated: 2026/04/16 14:50:26 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/23 01:33:00 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,15 +77,6 @@ void	set_Redirection(const std::vector<std::string> &tokens, size_t &i,
 		location.redirectUrl = "";
 }
 
-void	set_TryFiles(const std::vector<std::string> &tokens, size_t &i,
-		Location &location)
-{
-	while (i < tokens.size() && tokens[i] != ";")
-	{
-		location.try_files.push_back(tokens[i]);
-		i++;
-	}
-}
 
 void	set_CgiExt(const std::vector<std::string> &tokens, size_t &i,
 		Location &location)
