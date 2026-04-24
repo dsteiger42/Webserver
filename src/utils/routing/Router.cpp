@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/20 03:12:17 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/23 01:38:51 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -283,11 +283,7 @@ Response Router::handle_POST(const Request& request, Location& location)
         return make_ErrorCode(409);  
     int fd = open(_absolutePath.c_str(), O_WRONLY | O_CREAT | O_EXCL, 0644);
     if (fd == -1)
-    {
-        if (errno == EEXIST)
-            return make_ErrorCode(409);
         return make_ErrorCode(500);
-    }
     const std::string &body = request.get_Body();
     size_t written = 0;
     while (written < body.size())

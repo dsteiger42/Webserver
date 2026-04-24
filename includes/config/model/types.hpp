@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/15 02:12:30 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/23 01:32:49 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,6 @@ struct		Config
 	std::string server_name;
 	std::string root;
 	std::string index;
-	size_t	client_body_buffer_size;
 	size_t	client_max_body_size;
 	int		listen;
 	Config();
@@ -59,7 +58,6 @@ struct		Location
 	bool	has_tryFiles;
 	size_t	redirectCode;
 	std::string redirectUrl;
-	std::vector<std::string> try_files;
 	Location();
 };
 
