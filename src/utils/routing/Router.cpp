@@ -299,11 +299,7 @@ Response Router::handle_POST(const Request &request, Location &location, CGIPend
         return make_ErrorCode(409);  
     int fd = open(_absolutePath.c_str(), O_WRONLY | O_CREAT | O_EXCL, 0644);
     if (fd == -1)
-    {
-        if (errno == EEXIST)
-            return make_ErrorCode(409);
         return make_ErrorCode(500);
-    }
     const std::string &body = request.get_Body();
     size_t written = 0;
     while (written < body.size())

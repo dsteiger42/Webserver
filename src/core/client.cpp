@@ -19,9 +19,8 @@ CGIPending::CGIPending() : pid(-1), outPipeFd(-1), inPipeFd(-1), clientFd(-1),  
 
 Client::Client() : fd(-1), readBuffer(65536), writeBuffer(4096),
     request(), response(), lastActivityTick(0), requestStartTick(0), drainStartTick(0), drain(false), cgi()
-{
-}
-
+    {
+    }
 Client::Client(int fileD) : fd(fileD), readBuffer(65536), writeBuffer(4096),
     request(), response(), lastActivityTick(0), requestStartTick(0), drainStartTick(0), drain(false), cgi()
 {

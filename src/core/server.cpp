@@ -308,7 +308,43 @@ void Server::cleanup_TimeoutClients(std::vector<pollfd> &fds, size_t tick)
     }
 }
 
-void Server::handle_Clients(std::vector<Server> &servers)
+void Server::build_PollList(std::vector<Server> &servers, std::vector<pollfd> &fds)
+{
+	pollfd pfd;
+	for (size_t i = 0; i < servers.size(); i++)
+	{
+		ft_memset(&pfd, 0, sizeof(pfd));
+		pfd.fd = servers[i]._server_fd;
+		pfd.events = POLLIN;
+		fds.push_back(pfd);
+	}
+}
+
+bool Server::try_AcceptClient(std::vector<Server> &servers, std::vector<pollfd> &fds, int fd)
+{
+	for (size_t s = 0; s < servers.size(); s++)
+	{
+		if (fd == servers[s]._server_fd)
+		{
+			servers[s].accept_NewClient(fds);
+			return (true);
+		}
+	}
+	return (false);
+}
+
+bool Server::process_ClientRead(std::vector<Server> &servers,
+	std::vector<pollfd> &fds, size_t i)
+{
+	for (size_t s = 0; s < servers.size(); s++)
+	{
+		if (servers[s]._allClients.count(fds[i].fd))
+			return (servers[s].receive_FromClient(fds, i));
+	}
+	return (true);
+}
+
+bool Server::process_ClientWrite(std::vector<Server> &servers, std::vector<pollfd> &fds, size_t i)
 {
 	int			ret;
 	bool		is_server_fd;
@@ -319,15 +355,58 @@ void Server::handle_Clients(std::vector<Server> &servers)
 	const int	POLL_TIMEOUT_MS  = 1000;
 	/* const int	CLIENT_TIMEOUT_SEC = 30; */
 	int			fd;
+	SendStatus	status;
 
-	tickCount = 0;
-	std::vector<pollfd> fds;
 	for (size_t s = 0; s < servers.size(); s++)
 	{
-		listen_fd.fd     = servers[s]._server_fd;
-		listen_fd.events = POLLIN;
-		fds.push_back(listen_fd);
+		if (!servers[s]._allClients.count(fds[i].fd))
+			continue ;
+		fd = fds[i].fd;
+		status = servers[s].send_ToClient(fds, i);
+		if (status == SEND_OK)
+			return (true);
+		if (status == SEND_DONE)
+		{
+			Client &c = servers[s]._allClients[fd];
+			if (c.response.get_StatusCode() == 413)
+			{
+				c.drain = true;
+				fds[i].events = POLLIN;
+				return (true);
+			}
+			close(fd);
+			servers[s]._allClients.erase(fd);
+			fds.erase(fds.begin() + i);
+			return (false);
+		}
+		close(fd);
+		servers[s]._allClients.erase(fd);
+		fds.erase(fds.begin() + i);
+		return (false);
 	}
+	return (true);
+}
+
+void Server::close_AllClients(std::vector<Server> &servers)
+{
+	for (size_t s = 0; s < servers.size(); s++)
+	{
+		for (std::map<int, Client>::iterator it = servers[s]._allClients.begin(); it != servers[s]._allClients.end(); ++it)
+			close(it->first);
+		servers[s]._allClients.clear();
+	}
+}
+
+void Server::handle_Clients(std::vector<Server> &servers)
+{
+	const int	POLL_TIMEOUT_MS = 1000;
+	const int	CLIENT_TIMEOUT_SEC = 30;
+	int			ret;
+	time_t		now;
+	short		revents;
+
+	std::vector<pollfd> fds;
+	build_PollList(servers, fds);
 	while (g_running)
 	{
 		ret = poll(fds.data(), fds.size(), POLL_TIMEOUT_MS);
@@ -338,7 +417,8 @@ void Server::handle_Clients(std::vector<Server> &servers)
 			std::cerr << "Error: poll failed\n";
 			break ;
 		}
-		tickCount++;
+		//Código Rafael s/time
+    tickCount++;
 		for (size_t i = 0; i < fds.size(); i++)
 		{
 			if (fds[i].revents == 0)
@@ -364,7 +444,7 @@ void Server::handle_Clients(std::vector<Server> &servers)
 				continue ;
 			}
 
-			// --- POLLIN ---
+			// --- POLLIN --- // código para trocar (refatorização de funcoes Duarte)
 			if (fds[i].revents & POLLIN)
 			{
 				is_server_fd = false;
@@ -388,45 +468,33 @@ void Server::handle_Clients(std::vector<Server> &servers)
 							break ;
 						}
 					}
-				}
-			}
 
-			// --- POLLOUT ---
-			if (i < fds.size() && fds[i].revents & POLLOUT)
+    //Código Duarte w/time e funcoes refatorizadas
+		now = time(NULL);
+		for (size_t i = 0; i < fds.size();) // i++ is not in here cuz i dont want to increment when continue hits
+		{
+			revents = fds[i].revents;
+			if (revents & POLLIN)
 			{
-				for (size_t s = 0; s < servers.size(); s++)
+				if (try_AcceptClient(servers, fds, fds[i].fd))
 				{
-					if (servers[s]._allClients.count(fds[i].fd))
-					{
-						status = servers[s].send_ToClient(fds, i);
-						if (status == SEND_DONE)
-						{
-							fd = fds[i].fd;
-							Client &c = servers[s]._allClients[fd];
-							if (c.response.get_StatusCode() == 413)
-							{
-								// Fechar com linger=0 para evitar RST enquanto há dados
-								// não lidos no kernel buffer — o TCP envia FIN limpo
-								c.drain = true;
-								fds[i].events = POLLIN;
-							}
-							else
-							{
-                                // Normal case: body was fully read, safe to close immediately.
-								close(fd);
-								servers[s]._allClients.erase(fd);
-								fds.erase(fds.begin() + i);
-								i--;
-							}
-						}
-						break ;
-					}
+					++i;
+					continue ;
 				}
+				if (!process_ClientRead(servers, fds, i))
+					continue ;
 			}
+			if (i < fds.size() && (fds[i].revents & POLLOUT))
+			{
+				if (!process_ClientWrite(servers, fds, i))
+					continue ;
+			}
+			++i;
 		}
 		for (size_t s = 0; s < servers.size(); s++)
 			servers[s].cleanup_TimeoutClients(fds, tickCount);
 	}
+	close_AllClients(servers);
 }
 
 

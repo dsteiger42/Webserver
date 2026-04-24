@@ -67,7 +67,6 @@ void CGI::execute_ChildProcess(int inPipe[2], int outPipe[2],
 	close(inPipe[0]);
 	if (dup2(outPipe[1], STDOUT_FILENO) == -1)
 	{
-		close(inPipe[0]);
 		close(outPipe[1]);
 		exit(1);
 	}

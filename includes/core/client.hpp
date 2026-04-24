@@ -23,8 +23,7 @@ class Client
 {
   public:
     int fd;
-    CircularBuffer readBuffer;
-    CircularBuffer writeBuffer;
+    CircularBuffer writeBuffer;  // the server writes a response to the client
     Request        request;
     Response       response;
     size_t         lastActivityTick;
