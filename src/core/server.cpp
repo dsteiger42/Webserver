@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/24 04:10:13 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/24 14:11:24 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -407,14 +407,8 @@ void Server::handle_Clients(std::vector<Server> &servers)
 							{
 								// Fechar com linger=0 para evitar RST enquanto há dados
 								// não lidos no kernel buffer — o TCP envia FIN limpo
-								struct linger sl;
-								sl.l_onoff  = 1;
-								sl.l_linger = 1;  // espera 1 segundo para o TCP drenar
-								setsockopt(fd, SOL_SOCKET, SO_LINGER, &sl, sizeof(sl));
-								close(fd);
-								servers[s]._allClients.erase(fd);
-								fds.erase(fds.begin() + i);
-								i--;
+								c.drain = true;
+								fds[i].events = POLLIN;
 							}
 							else
 							{
