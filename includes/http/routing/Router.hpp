@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/15 19:15:22 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/24 02:07:57 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@
 # include <sstream>
 # include <utils/http/mime.hpp>
 # include <utils/utils.hpp>
+#include <http/cgi/CGIPending.hpp> 
 
 // serve para analisar um Request HTTP e decidir qual recurso devolver, construindo a Response adequada (ficheiro ou erro).
 
@@ -51,16 +52,16 @@ class Router
 	std::string get_DocumentRoot() const;
 	const ServerConfig &get_Config() const;
 	
-	Response handle_GET(const Request &request, Location &location);
+	Response handle_GET(const Request &request, Location &location, CGIPending *outCgi);
+	Response handle_POST(const Request &request, Location &location, CGIPending *outCgi);
 	Response handle_DELETE(const Request &request, Location &location);
-	Response handle_POST(const Request &request, Location &location);
 
 	bool validate_Path(const std::string &path);
 	void split_PathQuery(const std::string &path);
 	std::vector<std::string> split_Path(const std::string &path);
 	bool build_FinalPath(std::string &path);
 	bool build_DocumentRoot(std::string &documentRoot);
-	Response handle_Request(const Request &request);
+	Response handle_Request(const Request &request, CGIPending *outCgi);
 	Location &matchLocation(const std::string &path);
 	Response redirect(int redirectCode, std::string redirectUrl);
 };

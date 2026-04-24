@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dsteiger <dsteiger@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/21 17:06:40 by dsteiger         ###   ########.fr       */
+/*   Updated: 2026/04/24 03:03:52 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -93,7 +93,7 @@ int Server::setup_Socket()
 	return (0);
 }
 
-int Server::accept_NewClient(std::vector<pollfd> &fds)
+int Server::accept_NewClient(std::vector<pollfd> &fds, size_t tick)
 {
 	pollfd		poll;
 	sockaddr_in	client_addr;
@@ -120,12 +120,12 @@ int Server::accept_NewClient(std::vector<pollfd> &fds)
 	_allClients[client_fd] = Client(client_fd);
 	maxBody = _router.get_Config().config.client_max_body_size;
 	_allClients[client_fd].request.set_MaxBodySize(maxBody);
-	_allClients[client_fd].lastActivity = time(NULL);
-	_allClients[client_fd].requestStart = time(NULL);
+	_allClients[client_fd].lastActivityTick  = tick;
+    _allClients[client_fd].requestStartTick  = tick; 
 	return (client_fd);
 }
 
-bool Server::receive_FromClient(std::vector<pollfd> &fds, size_t index)
+bool Server::receive_FromClient(std::vector<pollfd> &fds, size_t index, size_t tick)
 {
 	int		client_fd;
 	int		bytes_received;
@@ -138,25 +138,54 @@ bool Server::receive_FromClient(std::vector<pollfd> &fds, size_t index)
 	{
 		if (client.drain)
 			return (true); // discard data, wait for client to close
-		client.lastActivity = time(NULL);
+		client.lastActivityTick = tick;
 		std::string chunk(buffer, bytes_received);
 		std::cout << "Client " << client_fd << ": " << chunk << "\n";
 		client.request.fill_Buffer(chunk, chunk.size());
 		while (client.request.is_Done() || (!client.request.get_validRequest()
 				&& client.request.get_statusCode() != 0))
 		{
-			client.response = _router.handle_Request(client.request);
-			std::string rawResponse = client.response.serialize();
-			client.writeBuffer.write(rawResponse.c_str(), rawResponse.size());
-			fds[index].events |= POLLOUT;
-			std::string leftover = client.request.get_Leftover();
-			client.request.reset();
-			if (leftover.empty())
-				break ;
-			client.request.fill_Buffer(leftover, leftover.size());
-		}
-		return (true);
-	}
+			
+            client.response = _router.handle_Request(client.request, &client.cgi);
+			if (client.cgi.active)
+            {
+                // CGI assíncrono iniciado
+                client.cgi.clientFd  = client_fd;
+                client.cgi.startTick = tick;
+                // Adicionar outPipe ao poll (leitura)
+                pollfd cgi_out;
+                std::memset(&cgi_out, 0, sizeof(cgi_out));
+                cgi_out.fd     = client.cgi.outPipeFd;
+                cgi_out.events = POLLIN;
+                fds.push_back(cgi_out);
+                _pipeToClient[client.cgi.outPipeFd] = client_fd;
+                // Se há body para enviar, adicionar inPipe ao poll (escrita)
+                if (client.cgi.inPipeFd != -1)
+                {
+                    pollfd cgi_in;
+                    std::memset(&cgi_in, 0, sizeof(cgi_in));
+                    cgi_in.fd     = client.cgi.inPipeFd;
+                    cgi_in.events = POLLOUT;
+                    fds.push_back(cgi_in);
+                    _pipeToClient[client.cgi.inPipeFd] = client_fd;
+                }
+            }
+            else
+            {
+                // Resposta imediata (não-CGI)
+                std::string raw = client.response.serialize();
+                client.writeBuffer.write(raw.c_str(), raw.size());
+                fds[index].events |= POLLOUT;
+            }
+
+            std::string leftover = client.request.get_Leftover();
+            client.request.reset();
+            if (leftover.empty())
+                break;
+            client.request.fill_Buffer(leftover, leftover.size());
+        }
+        return true;
+    }
 	else
 	{
 		if (bytes_received == 0)
@@ -195,110 +224,102 @@ SendStatus Server::send_ToClient(std::vector<pollfd> &fds, size_t index)
 	return (SEND_OK);
 }
 
-/*
-** FIX — Bug 1:
-**   O problema original era: um cliente que enviava o header com
-**   Content-Length: 5 mas não enviava os bytes do body ficava pendente
-**   indefinidamente (até ao timeout de 10s de CLIENT_TIMEOUT_SEC).
-**   O subject exige que o servidor nunca fique bloqueado e seja resiliente.
-**
-**   A correção introduz dois timeouts distintos:
-**     - INCOMPLETE_REQUEST_TIMEOUT_SEC (5s): aplicado enquanto o request
-**       ainda não chegou a DONE (body incompleto). Quando expira, o servidor
-**       responde com 408 Request Timeout e fecha a ligação de forma limpa,
-**       em vez de manter o fd aberto para sempre.
-**     - CLIENT_TIMEOUT_SEC (30s): tempo máximo de inactividade geral
-**       (mantido para ligações keep-alive ou clientes lentos mas activos).
-**
-**   Nota: enviar a resposta 408 antes de fechar é boa prática HTTP/1.1 e
-**   é o que o NGINX faz (pode ser verificado com telnet, conforme o subject).
-*/
-void Server::cleanup_TimeoutClients(std::vector<pollfd> &fds, time_t now,
-	int timeoutSec)
+void Server::cleanup_TimeoutClients(std::vector<pollfd> &fds, size_t tick)
 {
-	int			fd;
-	bool		timeout;
-	const int	INCOMPLETE_REQUEST_TIMEOUT_SEC = 5;
+    const size_t INCOMPLETE_TIMEOUT = 5;   // ~5 ticks ≈ 5s
+    const size_t CLIENT_TIMEOUT     = 30;  // ~30 ticks ≈ 30s
+    const size_t CGI_TIMEOUT        = 30;  // ~30 ticks ≈ 30s
 
-	/*
-	** Timeout curto para requests incompletos (body não chegou a tempo).
-	** Valor separado para não penalizar clientes que estão genuinamente lentos
-	** mas activos (ex: upload grande em chunks), mas que NÃO estão a usar
-	** Transfer-Encoding: chunked (que o servidor já rejeita com 501).
-	*/
-	std::map<int, Client>::iterator it = _allClients.begin();
-	while (it != _allClients.end())
-	{
-		fd = it->first;
-		Client &client = it->second;
-		timeout = false;
-		if (!client.request.is_Done())
-		{
-			/*
-			** FIX Bug 1: usar timeout curto para requests incompletos.
-			** Antes usava-se o mesmo timeoutSec (10s) para tudo, o que
-			** fazia o servidor esperar muito tempo antes de fechar um
-			** cliente que enviou header mas não enviou o body.
-			*/
-			if (now - client.requestStart > INCOMPLETE_REQUEST_TIMEOUT_SEC)
-			{
-				std::cout << "Client " << fd << " timed out (incomplete request)\n";
-				/*
-				** Envia 408 Request Timeout antes de fechar, tal como
-				** o NGINX faz. Isto evita que o cliente fique à espera
-				** de uma resposta que nunca chega.
-				*/
-				std::string response408 = "HTTP/1.1 408 Request Timeout\r\n"
-											"Content-Type: text/plain\r\n"
-											"Content-Length: 15\r\n"
-											"Connection: close\r\n"
-											"\r\n"
-											"Request Timeout";
-				send(fd, response408.c_str(), response408.size(), 0);
-				timeout = true;
-			}
-		}
-		else
-		{
-			if (now - client.lastActivity > timeoutSec)
-				timeout = true;
-		}
-		if (timeout)
-		{
-			close(fd);
-			for (size_t i = 0; i < fds.size(); i++)
-			{
-				if (fds[i].fd == fd)
-				{
-					fds.erase(fds.begin() + i);
-					break ;
-				}
-			}
-			std::map<int, Client>::iterator toErase = it;
-			++it;
-			_allClients.erase(toErase);
-		}
-		else
-			++it;
-	}
+    std::map<int, Client>::iterator it = _allClients.begin();
+    while (it != _allClients.end())
+    {
+        int     fd     = it->first;
+        Client &client = it->second;
+        bool    doClose = false;
+        std::string errorResponse;
+
+        // Timeout de CGI em curso
+        if (client.cgi.active &&
+            tick - client.cgi.startTick > CGI_TIMEOUT)
+        {
+            kill(client.cgi.pid, SIGKILL);
+            waitpid(client.cgi.pid, NULL, WNOHANG);
+            // Limpar outPipe do poll
+            for (size_t i = 0; i < fds.size(); i++)
+                if (fds[i].fd == client.cgi.outPipeFd)
+                    { close(client.cgi.outPipeFd); _pipeToClient.erase(client.cgi.outPipeFd); fds.erase(fds.begin() + i); break; }
+            // Fechar inPipe se ainda aberto
+            if (client.cgi.inPipeFd != -1)
+            {
+                for (size_t i = 0; i < fds.size(); i++)
+                    if (fds[i].fd == client.cgi.inPipeFd)
+                        { close(client.cgi.inPipeFd); _pipeToClient.erase(client.cgi.inPipeFd); fds.erase(fds.begin() + i); break; }
+            }
+            // Enfileirar 504 Gateway Timeout
+            Response r = _router.make_ErrorCode(504);
+            std::string raw = r.serialize();
+            client.writeBuffer.write(raw.c_str(), raw.size());
+            client.cgi.active = false;
+            for (size_t i = 0; i < fds.size(); i++)
+                if (fds[i].fd == fd) { fds[i].events |= POLLOUT; break; }
+            ++it;
+            continue;
+        }
+
+        // Timeout de request incompleto
+        if (!client.request.is_Done() && !client.cgi.active)
+        {
+            if (tick - client.requestStartTick > INCOMPLETE_TIMEOUT)
+            {
+                // Enfileirar 408 no writeBuffer (não enviar directo — respeitar o poll)
+                std::string r408 = "HTTP/1.1 408 Request Timeout\r\n"
+                                   "Content-Type: text/plain\r\n"
+                                   "Content-Length: 15\r\n"
+                                   "Connection: close\r\n\r\n"
+                                   "Request Timeout";
+                client.writeBuffer.write(r408.c_str(), r408.size());
+                for (size_t i = 0; i < fds.size(); i++)
+                    if (fds[i].fd == fd) { fds[i].events = POLLOUT; break; }
+                doClose = true;
+            }
+        }
+        else if (!client.cgi.active)
+        {
+            if (tick - client.lastActivityTick > CLIENT_TIMEOUT)
+                doClose = true;
+        }
+
+        if (doClose)
+        {
+            close(fd);
+            for (size_t i = 0; i < fds.size(); i++)
+                if (fds[i].fd == fd) { fds.erase(fds.begin() + i); break; }
+            std::map<int, Client>::iterator toErase = it;
+            ++it;
+            _allClients.erase(toErase);
+        }
+        else
+            ++it;
+    }
 }
 
 void Server::handle_Clients(std::vector<Server> &servers)
 {
 	int			ret;
 	bool		is_server_fd;
+	bool		isCgiPipe;
 	pollfd		listen_fd;
 	SendStatus	status;
-	time_t		now;
-	const int	POLL_TIMEOUT_MS = 1000;
-	const int	CLIENT_TIMEOUT_SEC = 30;
+	size_t		tickCount;
+	const int	POLL_TIMEOUT_MS  = 1000;
+	/* const int	CLIENT_TIMEOUT_SEC = 30; */
 	int			fd;
 
-	/* inactividade geral — aumentado de 10 para 30s */
+	tickCount = 0;
 	std::vector<pollfd> fds;
 	for (size_t s = 0; s < servers.size(); s++)
 	{
-		listen_fd.fd = servers[s]._server_fd;
+		listen_fd.fd     = servers[s]._server_fd;
 		listen_fd.events = POLLIN;
 		fds.push_back(listen_fd);
 	}
@@ -312,9 +333,33 @@ void Server::handle_Clients(std::vector<Server> &servers)
 			std::cerr << "Error: poll failed\n";
 			break ;
 		}
-		now = time(NULL);
+		tickCount++;
 		for (size_t i = 0; i < fds.size(); i++)
 		{
+			if (fds[i].revents == 0)
+				continue ;
+
+			// --- CGI pipe ---
+			isCgiPipe = false;
+			for (size_t s = 0; s < servers.size(); s++)
+			{
+				if (servers[s]._pipeToClient.count(fds[i].fd))
+				{
+					isCgiPipe = true;
+					if (fds[i].events & POLLOUT)
+						servers[s].handle_CgiWrite(fds, i);
+					else
+						servers[s].handle_CgiRead(fds, i, tickCount);
+					break ;
+				}
+			}
+			if (isCgiPipe)
+			{
+				i--;
+				continue ;
+			}
+
+			// --- POLLIN ---
 			if (fds[i].revents & POLLIN)
 			{
 				is_server_fd = false;
@@ -322,7 +367,7 @@ void Server::handle_Clients(std::vector<Server> &servers)
 				{
 					if (fds[i].fd == servers[s]._server_fd)
 					{
-						servers[s].accept_NewClient(fds);
+						servers[s].accept_NewClient(fds, tickCount);
 						is_server_fd = true;
 						break ;
 					}
@@ -333,13 +378,16 @@ void Server::handle_Clients(std::vector<Server> &servers)
 					{
 						if (servers[s]._allClients.count(fds[i].fd))
 						{
-							servers[s].receive_FromClient(fds, i);
+							if (!servers[s].receive_FromClient(fds, i, tickCount))
+								i--;
 							break ;
 						}
 					}
 				}
 			}
-			if (fds[i].revents & POLLOUT)
+
+			// --- POLLOUT ---
+			if (i < fds.size() && fds[i].revents & POLLOUT)
 			{
 				for (size_t s = 0; s < servers.size(); s++)
 				{
@@ -352,25 +400,166 @@ void Server::handle_Clients(std::vector<Server> &servers)
 							Client &c = servers[s]._allClients[fd];
 							if (c.response.get_StatusCode() == 413)
 							{
-								// Body was never read — kernel buffer has leftover data.
-								// Drain it poll-safely to avoid RST on close.
+                                // Body was never read — kernel buffer has leftover data.
+								// Drain it poll-safely to avoid RST on close
 								c.drain = true;
 								fds[i].events = POLLIN;
 							}
 							else
 							{
-								// Normal case: body was fully read, safe to close immediately.
+                                // Normal case: body was fully read, safe to close immediately.
 								close(fd);
 								servers[s]._allClients.erase(fd);
 								fds.erase(fds.begin() + i);
+								i--;
 							}
-							break ;
 						}
+						break ;
 					}
 				}
 			}
 		}
 		for (size_t s = 0; s < servers.size(); s++)
-			servers[s].cleanup_TimeoutClients(fds, now, CLIENT_TIMEOUT_SEC);
+			servers[s].cleanup_TimeoutClients(fds, tickCount);
 	}
+}
+
+
+// POLLOUT no inPipeFd — escrever body ao CGI
+void Server::handle_CgiWrite(std::vector<pollfd> &fds, size_t index)
+{
+    int pipeFd   = fds[index].fd;
+    int clientFd = _pipeToClient[pipeFd];
+    if (!_allClients.count(clientFd))
+    {
+        close(pipeFd);
+        _pipeToClient.erase(pipeFd);
+        fds.erase(fds.begin() + index);
+        return;
+    }
+    CGIPending &cgi = _allClients[clientFd].cgi;
+    const std::string &body = cgi.bodyToWrite;
+    size_t remaining = body.size() - cgi.bodyWritten;
+
+    ssize_t n = write(pipeFd, body.c_str() + cgi.bodyWritten, remaining);
+    if (n > 0)
+        cgi.bodyWritten += n;
+
+    // Quando tudo foi escrito (ou erro) — fechar stdin do CGI
+    if (n <= 0 || cgi.bodyWritten >= body.size())
+    {
+        close(pipeFd);
+        cgi.inPipeFd = -1;
+        _pipeToClient.erase(pipeFd);
+        fds.erase(fds.begin() + index);
+    }
+}
+
+// POLLIN/POLLHUP no outPipeFd — ler output do CGI
+void Server::handle_CgiRead(std::vector<pollfd> &fds, size_t index, size_t tick)
+{
+    int pipeFd   = fds[index].fd;
+    int clientFd = _pipeToClient[pipeFd];
+    if (!_allClients.count(clientFd))
+    {
+        close(pipeFd);
+        _pipeToClient.erase(pipeFd);
+        fds.erase(fds.begin() + index);
+        return;
+    }
+    CGIPending &cgi = _allClients[clientFd].cgi;
+
+    if (fds[index].revents & POLLIN)
+    {
+        char   temp[4096];
+        ssize_t n = read(pipeFd, temp, sizeof(temp));
+        if (n > 0)
+        {
+            if (cgi.outputBuffer.size() + n > MAX_CGI_OUTPUT)
+            {
+                // Output demasiado grande — matar o processo
+                kill(cgi.pid, SIGKILL);
+                waitpid(cgi.pid, NULL, WNOHANG);
+                finalize_Cgi(clientFd, fds);
+                return;
+            }
+            cgi.outputBuffer.append(temp, n);
+            return; // aguardar mais dados
+        }
+        if (n == 0 || (n == -1 && errno != EAGAIN && errno != EWOULDBLOCK))
+        {
+            // EOF ou erro real — CGI terminou
+            finalize_Cgi(clientFd, fds);
+        }
+        // n == -1 && EAGAIN: poll voltará a notificar
+    }
+    else if (fds[index].revents & (POLLHUP | POLLERR))
+    {
+        // Ler o que restar antes de finalizar
+        char   temp[4096];
+        ssize_t n;
+        while ((n = read(pipeFd, temp, sizeof(temp))) > 0)
+        {
+            if (cgi.outputBuffer.size() + n <= MAX_CGI_OUTPUT)
+                cgi.outputBuffer.append(temp, n);
+        }
+        finalize_Cgi(clientFd, fds);
+    }
+    (void)tick;
+}
+
+void Server::finalize_Cgi(int clientFd, std::vector<pollfd> &fds)
+{
+    if (!_allClients.count(clientFd))
+        return;
+    Client    &client = _allClients[clientFd];
+    CGIPending &cgi   = client.cgi;
+
+    // Recolher o exit status sem bloquear
+    waitpid(cgi.pid, &cgi.waitStatus, WNOHANG);
+
+    // Fechar e remover outPipe do poll
+    for (size_t i = 0; i < fds.size(); i++)
+    {
+        if (fds[i].fd == cgi.outPipeFd)
+        {
+            close(cgi.outPipeFd);
+            _pipeToClient.erase(cgi.outPipeFd);
+            fds.erase(fds.begin() + i);
+            break;
+        }
+    }
+    cgi.outPipeFd = -1;
+    cgi.active    = false;
+
+    // Construir a Response
+    CGI &cgiObj = *_router.cgi;
+    Response res;
+    if (!WIFEXITED(cgi.waitStatus) || WEXITSTATUS(cgi.waitStatus) != 0
+        || !cgiObj.is_ValidCGIOutput(cgi.outputBuffer))
+    {
+        res = _router.make_ErrorCode(502);
+    }
+    else
+    {
+        CGI::CGIResult result = cgiObj.parse_CGIOutput(cgi.outputBuffer);
+        res.set_StatusCode(result.status);
+        res.set_Header("Content-Type", result.contentType);
+        if (result.headers.count("Location"))
+            res.set_Header("Location", result.headers.at("Location"));
+        res.set_Body(result.body);
+    }
+
+    std::string raw = res.serialize();
+    client.writeBuffer.write(raw.c_str(), raw.size());
+
+    // Activar POLLOUT no socket do cliente
+    for (size_t i = 0; i < fds.size(); i++)
+    {
+        if (fds[i].fd == clientFd)
+        {
+            fds[i].events |= POLLOUT;
+            break;
+        }
+    }
 }

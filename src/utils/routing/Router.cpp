@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/20 03:12:17 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/24 02:09:47 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -172,7 +172,7 @@ Response Router::redirect(int redirectCode, std::string redirectUrl)
     return response;
 }
 
-Response Router::handle_GET(const Request& request, Location& location)
+Response Router::handle_GET(const Request &request, Location &location, CGIPending *outCgi)
 {
     Response response(_config.errorPages);
     if (location.hasRedirect)
@@ -180,7 +180,15 @@ Response Router::handle_GET(const Request& request, Location& location)
     if (!is_ValidMethod(location.allowedMethods, request.get_Method()))
         return make_ErrorCode(405);
     if (location.cgiPass)
-        return (cgi->execute(request, location));
+    {
+        CGIStartResult r = cgi->start(request, location);
+        if (r.started && outCgi)
+        {
+            *outCgi = r.pending;
+            return Response();
+        }
+        return r.errorResponse;
+    }
     if (!build_FinalPath(_path))
         return make_ErrorCode(403);
     _absolutePath = _documentRoot + _path;
@@ -236,14 +244,22 @@ Response Router::handle_DELETE(const Request& request, Location& location)
     return response;
 }
 
-Response Router::handle_POST(const Request& request, Location& location)
+Response Router::handle_POST(const Request &request, Location &location, CGIPending *outCgi)
 {
     Response response(_config.errorPages);
     size_t maxSize = _config.config.client_max_body_size;
     if (maxSize > 0 && request.get_Body().size() > maxSize)
         return make_ErrorCode(413);
     if (location.cgiPass)
-        return (cgi->execute(request, location));   
+    {
+        CGIStartResult r = cgi->start(request, location);
+        if (r.started && outCgi)
+        {
+            *outCgi = r.pending;
+            return Response();
+        }
+        return r.errorResponse;
+    }   
     std::string uploadDir;
     if (location.upload_store.empty())
         uploadDir = _documentRoot;
@@ -310,7 +326,7 @@ Response Router::handle_POST(const Request& request, Location& location)
     return response;
 }
 
-Response Router::handle_Request(const Request& request)
+Response Router::handle_Request(const Request &request, CGIPending *outCgi)
 {
     
     if (!request.get_validRequest())
@@ -338,11 +354,11 @@ Response Router::handle_Request(const Request& request)
     if (!is_ValidMethod(loc.allowedMethods, request.get_Method()))
         return make_ErrorCode(405);
     if (request.get_Method() == "GET")
-        return handle_GET(request, loc);
+        return handle_GET(request, loc, outCgi);
     else if (request.get_Method() == "DELETE")
         return handle_DELETE(request, loc);
     else if (request.get_Method() == "POST")
-        return handle_POST(request, loc);
+        return handle_POST(request, loc, outCgi);
     return make_ErrorCode(405);
 }
 

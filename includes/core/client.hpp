@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   path_utils.cpp                                     :+:      :+:    :+:   */
+/*   client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/03/24 02:59:09 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/24 03:00:25 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,22 +16,24 @@
 # include <http/buffer/CircularBuffer.hpp>
 # include <http/request/Request.hpp>
 # include <http/response/Response.hpp>
+# include <http/cgi/CGIPending.hpp>
 # include <iostream>
 
 class Client
 {
   public:
-	int fd;
-	CircularBuffer readBuffer;  // the server reads a request from the client
-	CircularBuffer writeBuffer; // the server writes a response to the client
-	Request request;
-	Response response;
-	time_t lastActivity;
-	time_t requestStart;
-    bool drain;
+    int fd;
+    CircularBuffer readBuffer;
+    CircularBuffer writeBuffer;
+    Request        request;
+    Response       response;
+    size_t         lastActivityTick;
+    size_t         requestStartTick;
+    bool           drain;
+    CGIPending     cgi;
 
-	Client();
-	Client(int fileD);
+    Client();
+    Client(int fileD);
 };
 
 #endif

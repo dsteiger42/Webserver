@@ -6,17 +6,23 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/20 03:08:45 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/24 03:06:57 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <core/client.hpp>
 
-Client::Client() : fd(-1), readBuffer(65536) /* 64kb*/, writeBuffer(4096), request(), response(), drain(false)
+
+CGIPending::CGIPending() : pid(-1), outPipeFd(-1), inPipeFd(-1), clientFd(-1),  waitStatus(0), bodyWritten(0), startTick(0), active(false)
 {
 }
 
-Client::Client(int fileD) : fd(fileD), readBuffer(65536), writeBuffer(4096), request(), response(), drain(false)
+Client::Client() : fd(-1), readBuffer(65536), writeBuffer(4096),
+    request(), response(), lastActivityTick(0), requestStartTick(0), drain(false), cgi()
 {
-	lastActivity = time(NULL);
+}
+
+Client::Client(int fileD) : fd(fileD), readBuffer(65536), writeBuffer(4096),
+    request(), response(), lastActivityTick(0), requestStartTick(0), drain(false), cgi()
+{
 }
