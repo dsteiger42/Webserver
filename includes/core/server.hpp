@@ -41,6 +41,7 @@ enum	SendStatus
 	SEND_ERROR
 };
 
+// static allows me to call a function without object
 class Server
 {
   private:
@@ -58,6 +59,11 @@ class Server
 	bool receive_FromClient(std::vector<pollfd> &fds, size_t index);
 	SendStatus send_ToClient(std::vector<pollfd> &fds, size_t index);
 	void cleanup_TimeoutClients(std::vector<pollfd> &fds, time_t now, int timeoutSec);
+    static void build_PollList(std::vector<Server> &servers, std::vector<pollfd> &fds);
+    static bool try_AcceptClient(std::vector<Server> &servers, std::vector<pollfd> &fds, int fd);
+    static bool process_ClientRead(std::vector<Server> &servers, std::vector<pollfd> &fds, size_t i);
+    static bool process_ClientWrite(std::vector<Server> &servers, std::vector<pollfd> &fds, size_t i);
+    static void close_AllClients(std::vector<Server> &servers);
 	static void handle_Clients(std::vector<Server> &servers);
 };
 void handle_Sigint(int sig);

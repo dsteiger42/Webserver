@@ -22,12 +22,12 @@ class Client
 {
   public:
 	int fd;
-	CircularBuffer readBuffer;  // the server reads a request from the client
 	CircularBuffer writeBuffer; // the server writes a response to the client
 	Request request;
 	Response response;
 	time_t lastActivity;
 	time_t requestStart;
+    bool drain;
 
 	Client();
 	Client(int fileD);

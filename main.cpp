@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
+/*   By: dsteiger <dsteiger@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/10 15:25:01 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/21 16:35:10 by dsteiger         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,7 @@ int	main(int argc, char **argv)
         std::cerr << "Usage: ./webserv [configuration file]" << std::endl;
         return -1;
     }
+    signal(SIGINT, handle_Sigint);
     Parser parser;
     if (!parse_all(configFile, parser))
     {
