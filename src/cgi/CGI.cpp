@@ -1,0 +1,92 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   CGI.cpp                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
+/*   Updated: 2026/04/16 15:57:35 by rafael           ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include <http/cgi/CGI.hpp>
+#include <http/routing/Router.hpp>
+
+CGI::CGI()
+{
+}
+
+CGI::~CGI()
+{
+}
+
+void CGI::setRouter(Router *r)
+{
+	router = r;
+}
+
+std::string CGI::resolve_ScriptPath(const std::string &path)
+{
+	std::string locPath = router->matchLocation(path).path;
+	std::string relativePath = path.substr(locPath.size() - 1);
+	if (!relativePath.empty() && relativePath[0] == '/')
+		relativePath.erase(0, 1);
+	std::string fullPath = router->get_DocumentRoot();
+	if (!fullPath.empty() && fullPath[fullPath.size() - 1] != '/')
+		fullPath += '/';
+	return (fullPath + relativePath);
+}
+
+std::vector<char *> CGI::build_Arguments(const std::string &scriptPath, std::string &interpreter)
+{
+	_args.clear();
+	_args.push_back(interpreter);
+	_args.push_back(scriptPath);
+	std::vector<char *> argv;
+	argv.push_back(const_cast<char *>(_args[0].c_str()));
+	argv.push_back(const_cast<char *>(_args[1].c_str()));
+	argv.push_back(NULL);
+	return (argv);
+}
+
+Response CGI::execute(const Request &req, Location &location)
+{
+	Response res;
+	int inPipe[2];
+	int outPipe[2];
+	int status = 0;
+	pid_t pid;
+	std::string output;
+	std::string scriptPath = resolve_ScriptPath(req.get_Path());
+	if (!is_acceptableExtension(req.get_Path(), location))
+		return (router->make_ErrorCode(404));
+	if (!is_InsideRoot(scriptPath, router->get_DocumentRoot()))
+		return (router->make_ErrorCode(403));
+	if (!check_File(scriptPath))
+		return (router->make_ErrorCode(404));
+	if (!is_Executable(scriptPath))
+		return (router->make_ErrorCode(403));
+	build_Environment(req, scriptPath);
+	std::vector<char *> envp = convert_Env(env);
+	if (!create_Pipes(inPipe, outPipe))
+		return router->make_ErrorCode(500);
+	pid = fork();
+	if (pid == -1)
+		return (router->make_ErrorCode(500));
+	if (pid == 0)
+		execute_ChildProcess(inPipe, outPipe, scriptPath, location.cgiPath, &envp[0]);
+	if (pid > 0)
+		output = handle_ParentProcess(inPipe, outPipe, pid, status, req);
+	if (!WIFEXITED(status) || WEXITSTATUS(status) != 0)
+		return (router->make_ErrorCode(500));
+	if (!is_ValidCGIOutput(output))
+		return (router->make_ErrorCode(502));
+	CGIResult result = parse_CGIOutput(output);
+	res.set_StatusCode(result.status);
+	res.set_Header("Content-Type", result.contentType);
+	if (result.headers.count("Location"))
+		res.set_Header("Location", result.headers["Location"]);
+	res.set_Body(result.body);
+	return (res);
+}

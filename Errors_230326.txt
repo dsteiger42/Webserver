@@ -1,0 +1,18 @@
+implementar parse chunked
+
+find includes src \
+  -type f \
+  -exec echo "===== {} =====" \; \
+  -exec cat {} \; \
+  > 413.txt
+
+  corrigir get_extension
+
+
+  1. Detetar 413
+2. Construir resposta com "Connection: close"
+3. Enviar resposta (POLLOUT)
+4. Drenar receive buffer (POLLIN, descartar bytes) até:
+   - recv() == 0  (cliente fechou) → close() seguro (FIN)
+   - timeout 1-2s → close() (pode haver RST, mas resposta já chegou)
+5. close(fd)
