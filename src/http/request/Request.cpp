@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dsteiger <dsteiger@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/21 16:41:07 by dsteiger         ###   ########.fr       */
+/*   Updated: 2026/04/24 04:11:41 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,7 +78,7 @@ void Request::reset()
 	_statusCode = 0;
 	_validRequest = false;
 	_state = READING_HEADER;
-     size_t sz = _buffer.get_Size();
+    size_t sz = _buffer.get_Size();
     if (sz > 0)
         _buffer.consume(sz);
 }

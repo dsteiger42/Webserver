@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/24 03:03:52 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/24 04:10:13 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -173,6 +173,8 @@ bool Server::receive_FromClient(std::vector<pollfd> &fds, size_t index, size_t t
             else
             {
                 // Resposta imediata (não-CGI)
+				if (client.response.get_StatusCode() == 413)
+        			client.drain = true;
                 std::string raw = client.response.serialize();
                 client.writeBuffer.write(raw.c_str(), raw.size());
                 fds[index].events |= POLLOUT;
@@ -247,7 +249,11 @@ void Server::cleanup_TimeoutClients(std::vector<pollfd> &fds, size_t tick)
             // Limpar outPipe do poll
             for (size_t i = 0; i < fds.size(); i++)
                 if (fds[i].fd == client.cgi.outPipeFd)
-                    { close(client.cgi.outPipeFd); _pipeToClient.erase(client.cgi.outPipeFd); fds.erase(fds.begin() + i); break; }
+                { close(client.cgi.outPipeFd); 
+						_pipeToClient.erase(client.cgi.outPipeFd); 
+						fds.erase(fds.begin() + i); 
+						break; 
+				}
             // Fechar inPipe se ainda aberto
             if (client.cgi.inPipeFd != -1)
             {
@@ -265,7 +271,6 @@ void Server::cleanup_TimeoutClients(std::vector<pollfd> &fds, size_t tick)
             ++it;
             continue;
         }
-
         // Timeout de request incompleto
         if (!client.request.is_Done() && !client.cgi.active)
         {
@@ -400,10 +405,16 @@ void Server::handle_Clients(std::vector<Server> &servers)
 							Client &c = servers[s]._allClients[fd];
 							if (c.response.get_StatusCode() == 413)
 							{
-                                // Body was never read — kernel buffer has leftover data.
-								// Drain it poll-safely to avoid RST on close
-								c.drain = true;
-								fds[i].events = POLLIN;
+								// Fechar com linger=0 para evitar RST enquanto há dados
+								// não lidos no kernel buffer — o TCP envia FIN limpo
+								struct linger sl;
+								sl.l_onoff  = 1;
+								sl.l_linger = 1;  // espera 1 segundo para o TCP drenar
+								setsockopt(fd, SOL_SOCKET, SO_LINGER, &sl, sizeof(sl));
+								close(fd);
+								servers[s]._allClients.erase(fd);
+								fds.erase(fds.begin() + i);
+								i--;
 							}
 							else
 							{
