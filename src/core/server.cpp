@@ -137,7 +137,7 @@ bool Server::receive_FromClient(std::vector<pollfd> &fds, size_t index)
 	if (bytes_received > 0)
 	{
 		if (client.drain)
-			return (true); // discard data, wait for client to close
+			return (true);
 		client.lastActivity = time(NULL);
 		std::string chunk(buffer, bytes_received);
 		std::cout << "Client " << client_fd << ": " << chunk << "\n";
@@ -283,25 +283,97 @@ void Server::cleanup_TimeoutClients(std::vector<pollfd> &fds, time_t now,
 	}
 }
 
-void Server::handle_Clients(std::vector<Server> &servers)
+void Server::build_PollList(std::vector<Server> &servers, std::vector<pollfd> &fds)
 {
-	int			ret;
-	bool		is_server_fd;
-	pollfd		listen_fd;
-	SendStatus	status;
-	time_t		now;
-	const int	POLL_TIMEOUT_MS = 1000;
-	const int	CLIENT_TIMEOUT_SEC = 30;
-	int			fd;
+	pollfd pfd;
+	for (size_t i = 0; i < servers.size(); i++)
+	{
+		ft_memset(&pfd, 0, sizeof(pfd));
+		pfd.fd = servers[i]._server_fd;
+		pfd.events = POLLIN;
+		fds.push_back(pfd);
+	}
+}
 
-	/* inactividade geral — aumentado de 10 para 30s */
-	std::vector<pollfd> fds;
+bool Server::try_AcceptClient(std::vector<Server> &servers, std::vector<pollfd> &fds, int fd)
+{
 	for (size_t s = 0; s < servers.size(); s++)
 	{
-		listen_fd.fd = servers[s]._server_fd;
-		listen_fd.events = POLLIN;
-		fds.push_back(listen_fd);
+		if (fd == servers[s]._server_fd)
+		{
+			servers[s].accept_NewClient(fds);
+			return (true);
+		}
 	}
+	return (false);
+}
+
+bool Server::process_ClientRead(std::vector<Server> &servers,
+	std::vector<pollfd> &fds, size_t i)
+{
+	for (size_t s = 0; s < servers.size(); s++)
+	{
+		if (servers[s]._allClients.count(fds[i].fd))
+			return (servers[s].receive_FromClient(fds, i));
+	}
+	return (true);
+}
+
+bool Server::process_ClientWrite(std::vector<Server> &servers, std::vector<pollfd> &fds, size_t i)
+{
+	int			fd;
+	SendStatus	status;
+
+	for (size_t s = 0; s < servers.size(); s++)
+	{
+		if (!servers[s]._allClients.count(fds[i].fd))
+			continue ;
+		fd = fds[i].fd;
+		status = servers[s].send_ToClient(fds, i);
+		if (status == SEND_OK)
+			return (true);
+		if (status == SEND_DONE)
+		{
+			Client &c = servers[s]._allClients[fd];
+			if (c.response.get_StatusCode() == 413)
+			{
+				c.drain = true;
+				fds[i].events = POLLIN;
+				return (true);
+			}
+			close(fd);
+			servers[s]._allClients.erase(fd);
+			fds.erase(fds.begin() + i);
+			return (false);
+		}
+		close(fd);
+		servers[s]._allClients.erase(fd);
+		fds.erase(fds.begin() + i);
+		return (false);
+	}
+	return (true);
+}
+
+void Server::close_AllClients(std::vector<Server> &servers)
+{
+	for (size_t s = 0; s < servers.size(); s++)
+	{
+		for (std::map<int, Client>::iterator it = servers[s]._allClients.begin(); it != servers[s]._allClients.end(); ++it)
+			close(it->first);
+		servers[s]._allClients.clear();
+	}
+}
+
+void Server::handle_Clients(std::vector<Server> &servers)
+{
+	const int	POLL_TIMEOUT_MS = 1000;
+	const int	CLIENT_TIMEOUT_SEC = 30;
+	int			ret;
+	time_t		now;
+	short		revents;
+
+	std::vector<pollfd> fds;
+	build_PollList(servers, fds);
 	while (g_running)
 	{
 		ret = poll(fds.data(), fds.size(), POLL_TIMEOUT_MS);
@@ -313,64 +385,28 @@ void Server::handle_Clients(std::vector<Server> &servers)
 			break ;
 		}
 		now = time(NULL);
-		for (size_t i = 0; i < fds.size(); i++)
+		for (size_t i = 0; i < fds.size();) // i++ is not in here cuz i dont want to increment when continue hits
 		{
-			if (fds[i].revents & POLLIN)
+			revents = fds[i].revents;
+			if (revents & POLLIN)
 			{
-				is_server_fd = false;
-				for (size_t s = 0; s < servers.size(); s++)
+				if (try_AcceptClient(servers, fds, fds[i].fd))
 				{
-					if (fds[i].fd == servers[s]._server_fd)
-					{
-						servers[s].accept_NewClient(fds);
-						is_server_fd = true;
-						break ;
-					}
+					++i;
+					continue ;
 				}
-				if (!is_server_fd)
-				{
-					for (size_t s = 0; s < servers.size(); s++)
-					{
-						if (servers[s]._allClients.count(fds[i].fd))
-						{
-							servers[s].receive_FromClient(fds, i);
-							break ;
-						}
-					}
-				}
+				if (!process_ClientRead(servers, fds, i))
+					continue ;
 			}
-			if (fds[i].revents & POLLOUT)
+			if (i < fds.size() && (fds[i].revents & POLLOUT))
 			{
-				for (size_t s = 0; s < servers.size(); s++)
-				{
-					if (servers[s]._allClients.count(fds[i].fd))
-					{
-						status = servers[s].send_ToClient(fds, i);
-						if (status == SEND_DONE)
-						{
-							fd = fds[i].fd;
-							Client &c = servers[s]._allClients[fd];
-							if (c.response.get_StatusCode() == 413)
-							{
-								// Body was never read — kernel buffer has leftover data.
-								// Drain it poll-safely to avoid RST on close.
-								c.drain = true;
-								fds[i].events = POLLIN;
-							}
-							else
-							{
-								// Normal case: body was fully read, safe to close immediately.
-								close(fd);
-								servers[s]._allClients.erase(fd);
-								fds.erase(fds.begin() + i);
-							}
-							break ;
-						}
-					}
-				}
+				if (!process_ClientWrite(servers, fds, i))
+					continue ;
 			}
+			++i;
 		}
 		for (size_t s = 0; s < servers.size(); s++)
 			servers[s].cleanup_TimeoutClients(fds, now, CLIENT_TIMEOUT_SEC);
 	}
+	close_AllClients(servers);
 }
