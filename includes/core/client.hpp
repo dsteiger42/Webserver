@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   path_utils.cpp                                     :+:      :+:    :+:   */
+/*   client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/03/24 02:59:09 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/25 04:17:02 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 # include <http/request/Request.hpp>
 # include <http/response/Response.hpp>
 # include <iostream>
+# include <http/cgi/CgiContext.hpp>
 
 class Client
 {
@@ -28,6 +29,7 @@ class Client
 	time_t lastActivity;
 	time_t requestStart;
     bool drain;
+	CgiContext      cgi;
 
 	Client();
 	Client(int fileD);

@@ -9,6 +9,7 @@ SRCS = \
 	src/http/buffer/CircularBuffer.cpp \
 	\
 	src/cgi/CGI.cpp \
+	src/cgi/CgiContext.cpp \
 	src/cgi/cgi_exec.cpp \
 	src/cgi/cgi_env.cpp \
 	src/cgi/cgi_parse.cpp \
