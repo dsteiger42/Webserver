@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/27 03:40:51 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/27 03:42:56 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/27 04:21:49 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,18 +71,7 @@ void Server::abort_Cgi(Client &client, std::vector<pollfd> &fds)
 	ctx.reset();
 }
 
-/*
-** FIX Bug 4 — process_CgiWrite
-**
-** O write() num fd O_NONBLOCK pode retornar -1 com errno == EAGAIN
-** quando o pipe está cheio.  Isso NÃO é um erro fatal — significa
-** "tenta mais tarde".  O poll() voltará a disparar POLLOUT quando
-** houver espaço no pipe.
-**
-** Só fechamos inFd quando:
-**   a) todos os bytes foram enviados (bodyOffset >= bodyToSend.size())
-**   b) write() retornou um erro real (!= EAGAIN && != EINTR)
-*/
+
 void Server::process_CgiWrite(std::vector<pollfd> &fds, size_t i)
 {
     int         pipeFd   = fds[i].fd;
@@ -98,7 +87,6 @@ void Server::process_CgiWrite(std::vector<pollfd> &fds, size_t i)
     if (written > 0)
     {
         ctx.bodyOffset += (size_t)written;
-        // If all bytes sent, close inFd to signal EOF to CGI stdin
         if (ctx.bodyOffset >= ctx.bodyToSend.size())
         {
             remove_PipeFd(fds, pipeFd, true);
@@ -109,28 +97,11 @@ void Server::process_CgiWrite(std::vector<pollfd> &fds, size_t i)
 
     if (written == -1 && (errno == EAGAIN || errno == EINTR))
         return; // Pipe full or interrupted — poll() will retry
-
-    // Real write error: close pipe, CGI stdin gets EOF unexpectedly.
-    // The CGI process will likely exit with an error; process_CgiRead
-    // will handle the rest when outFd fires or times out.
     remove_PipeFd(fds, pipeFd, true);
     ctx.inFd = -1;
 }
 
-/*
-** FIX Bug 3 — process_CgiRead
-**
-** Com O_NONBLOCK, read() pode retornar -1 com errno == EAGAIN quando
-** não há dados disponíveis no pipe.  Isso NÃO é EOF — o CGI ainda
-** está a correr.  Só tratamos como EOF quando n == 0.
-**
-** Tabela de comportamento:
-**   n > 0             → dados lidos, acumula em ctx.output, continua
-**   n == -1 && EAGAIN → sem dados agora, poll() voltará quando houver
-**   n == -1 && EINTR  → interrupção por sinal, ignora e continua
-**   n == 0            → EOF real, CGI fechou stdout, processa resposta
-**   n == -1 (outro)   → erro real do pipe, aborta com 502
-*/
+
 void Server::process_CgiRead(std::vector<pollfd> &fds, size_t i)
 {
 	int		pipeFd;
@@ -146,7 +117,6 @@ void Server::process_CgiRead(std::vector<pollfd> &fds, size_t i)
 	n = read(pipeFd, buf, sizeof(buf));
 	if (n > 0)
 	{
-		// Output too large: abort and send 502
 		if (ctx.output.size() + (size_t)n > MAX_CGI_OUTPUT)
 		{
 			abort_Cgi(client, fds);
@@ -164,14 +134,12 @@ void Server::process_CgiRead(std::vector<pollfd> &fds, size_t i)
 			return ;
 		}
 		ctx.output.append(buf, n);
-		return ; // More data may come; stay in poll()
+		return ;
 	}
-	// FIX: distinguish EAGAIN/EINTR from real EOF
 	if (n == -1)
 	{
 		if (errno == EAGAIN || errno == EINTR)
 			return ; // No data right now — poll() will fire again
-		// Real read error: treat as bad CGI output
 		remove_PipeFd(fds, pipeFd, true);
 		ctx.outFd = -1;
 		if (ctx.inFd != -1)
@@ -198,22 +166,17 @@ void Server::process_CgiRead(std::vector<pollfd> &fds, size_t i)
 	// n == 0: real EOF — CGI process closed stdout
 	remove_PipeFd(fds, pipeFd, true);
 	ctx.outFd = -1;
-	// If inFd still open (e.g. CGI exited before we finished writing),
-	// close it now so we don't leak.
-	if (ctx.inFd != -1)
+		if (ctx.inFd != -1)
 	{
 		remove_PipeFd(fds, ctx.inFd, true);
 		ctx.inFd = -1;
 	}
-	// Collect child exit status
 	waitStatus = 0;
 	waitpid(ctx.pid, &waitStatus, 0);
-	// Build HTTP response from accumulated CGI output
 	client.response = _router.cgi->finish(ctx, waitStatus);
 	ctx.reset();
 	std::string raw = client.response.serialize();
 	client.writeBuffer.write(raw.c_str(), raw.size());
-	// Arm POLLOUT on the client fd
 	for (size_t j = 0; j < fds.size(); j++)
 	{
 		if (fds[j].fd == clientFd)
