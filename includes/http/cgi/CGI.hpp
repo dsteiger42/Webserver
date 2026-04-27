@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/25 05:15:24 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/27 04:10:56 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,28 +42,7 @@ class CGI
         std::map<std::string, std::string> headers;
     };
 
-    /*
-    ** launch() replaces the old synchronous execute().
-    **
-    ** It validates the script, sets up pipes, forks the child process,
-    ** sets both pipe ends to O_NONBLOCK, and populates ctx with the
-    ** live file descriptors and process state.
-    **
-    ** Returns true on success.  On failure it leaves ctx.active = false
-    ** and returns false; the caller must return a 500 response.
-    **
-    ** After launch() returns true the caller must:
-    **   1. Register ctx.inFd  in the main poll() with POLLOUT (if body non-empty).
-    **      If the body is empty, close inFd immediately.
-    **   2. Register ctx.outFd in the main poll() with POLLIN.
-    */
     int launch(const Request &req, Location &location, CgiContext &ctx);
-
-    /*
-    ** finish() is called by the server after EOF is read from ctx.outFd.
-    ** It calls waitpid(), parses CGI output, and builds the HTTP Response.
-    ** ctx.outFd must already be closed by the caller before calling finish().
-    */
     Response finish(CgiContext &ctx, int waitStatus);
 
     CGIResult parse_CGIOutput(const std::string &output);

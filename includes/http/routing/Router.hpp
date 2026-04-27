@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/25 00:00:00 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/27 04:12:51 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,12 +50,6 @@ class Router
     const ServerConfig &get_Config()      const;
 
     Response make_ErrorCode(size_t code);
-
-    /*
-    ** Returns true if the request targets a CGI location.
-    ** Does NOT execute the CGI — purely a classification check.
-    ** Used by the server to decide between the sync and async paths.
-    */
     bool is_CgiRequest(const Request &request);
 
     Response handle_GET(const Request &request, Location &location);
