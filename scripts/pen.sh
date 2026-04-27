@@ -36,7 +36,7 @@ echo "=== LARGE HEADER ==="
 
 test_case "Huge header" \
 "GET / HTTP/1.1\r\nHost: test\r\nX: $(python3 -c 'print("A"*5000)')\r\n\r\n" \
-"400"
+"431"
 
 echo "=== INVALID METHOD ==="
 

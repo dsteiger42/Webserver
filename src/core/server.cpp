@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/27 03:53:23 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/27 19:14:09 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -336,7 +336,7 @@ bool Server::process_ClientWrite(std::vector<Server> &servers,
 		if (status == SEND_DONE)
 		{
 			Client &c = servers[s]._allClients[fd];
-			if (c.response.get_StatusCode() == 413)
+			if (c.response.get_StatusCode() == 413 || c.response.get_StatusCode() == 431)
 			{
 				c.drain = true;
 				fds[i].events = POLLIN;
