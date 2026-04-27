@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/15 21:52:02 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/27 04:05:30 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,7 @@ enum	State
 };
 
 
-# define MAX_HEADER_SIZE 8192
+# define MAX_HEADER_SIZE 4096
 
 class Request
 {

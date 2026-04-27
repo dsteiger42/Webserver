@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:18:06 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/25 05:32:51 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/27 03:55:20 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,22 +79,7 @@ void CGI::execute_ChildProcess(int inPipe[2], int outPipe[2],
 	exit(1);
 }
 
-/*
-** launch() — non-blocking CGI startup.
-**
-** Validates the script, creates pipes, forks, sets the parent-side
-** pipe ends to O_NONBLOCK, and populates ctx.
-**
-** The child process is set up synchronously (execute_ChildProcess handles
-** that entirely before execve).  Only the parent-side descriptors are made
-** non-blocking; the child inherits the blocking ends, closes them after
-** dup2, and never sees O_NONBLOCK.
-**
-** On success: ctx.active == true, ctx.inFd and ctx.outFd are valid
-** O_NONBLOCK file descriptors ready to be registered in the main poll().
-**
-** On failure: all fds are closed, ctx.active remains false, returns false.
-*/
+
 int CGI::launch(const Request &req, Location &location, CgiContext &ctx)
 {
 	int		inPipe[2];
@@ -126,16 +111,12 @@ int CGI::launch(const Request &req, Location &location, CgiContext &ctx)
 	}
 	if (pid == 0)
 	{
-		// Child: blocking descriptors, exec, never returns
 		execute_ChildProcess(inPipe, outPipe, scriptPath, location.cgiPath,
 			&envp[0]);
-		exit(1); // unreachable but defensive
+		exit(1);
 	}
-	// Parent: close child-side ends
 	close(inPipe[0]);
 	close(outPipe[1]);
-	// Set parent-side ends non-blocking so they can participate in the
-	// single main poll() without ever blocking the event loop.
 	flags = fcntl(inPipe[1], F_GETFL, 0);
 	if (flags == -1 || fcntl(inPipe[1], F_SETFL, flags | O_NONBLOCK) == -1)
 	{
@@ -154,7 +135,6 @@ int CGI::launch(const Request &req, Location &location, CgiContext &ctx)
 		waitpid(pid, NULL, 0);
 		return (500);
 	}
-	// Populate context
 	ctx.active = true;
 	ctx.pid = pid;
 	ctx.inFd = inPipe[1];
@@ -166,16 +146,7 @@ int CGI::launch(const Request &req, Location &location, CgiContext &ctx)
 	return (0);
 }
 
-/*
-** finish() — called after EOF on outPipe[0].
-**
-** outFd must already be closed by the caller (Server) before calling
-** this function so that ctx.outFd == -1.
-**
-** Parses the accumulated CGI output and builds the HTTP Response.
-** If the CGI exited abnormally or the output is invalid, an error
-** response is returned.
-*/
+
 Response CGI::finish(CgiContext &ctx, int waitStatus)
 {
 	CGIResult	result;

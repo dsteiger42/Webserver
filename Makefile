@@ -3,6 +3,7 @@ SRCS = \
 	\
 	src/core/client.cpp \
 	src/core/server.cpp \
+	src/core/server_CGI.cpp \
 	\
 	src/http/request/Request.cpp \
 	src/http/response/Response.cpp \

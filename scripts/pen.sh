@@ -35,7 +35,7 @@ test_case "Traversal ../../" \
 echo "=== LARGE HEADER ==="
 
 test_case "Huge header" \
-"GET / HTTP/1.1\r\nHost: test\r\nX: $(python3 -c 'print("A"5000)')\r\n\r\n" \
+"GET / HTTP/1.1\r\nHost: test\r\nX: $(python3 -c 'print("A"*5000)')\r\n\r\n" \
 "400"
 
 echo "=== INVALID METHOD ==="
