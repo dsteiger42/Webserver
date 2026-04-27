@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/20 03:11:54 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/25 05:34:28 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,43 +30,45 @@ int Response::get_StatusCode() const
 
 std::string Response::get_StatusMessage(int code) const
 {
-    switch (code)
-    {
-        case 200: 
-            return "OK";
-        case 201: 
-            return "Created";
-        case 204: 
-            return "No Content";
-        case 301: 
-            return "Moved Permanently";
-        case 302: 
-            return "Found";
-        case 400: 
-            return "Bad Request";
-        case 403: 
-            return "Forbidden";
-        case 404: 
-            return "Not Found";
-        case 405: 
-            return "Method Not Allowed";
-        case 409: 
-            return "Conflict";
-        case 413: 
-            return "Payload Too Large";
-		case 431:
-    		return "Request Header Fields Too Large"; 
-        case 500: 
-            return "Internal Server Error";
-        case 501: 
-            return "Not Implemented";
-        case 502: 
-            return "Bad Gateway";
-        case 503: 
-            return "Service Unavailable";
-        default: 
-            return "Unknown";
-    }
+	switch (code)
+	{
+	case 200:
+		return ("OK");
+	case 201:
+		return ("Created");
+	case 204:
+		return ("No Content");
+	case 301:
+		return ("Moved Permanently");
+	case 302:
+		return ("Found");
+	case 400:
+		return ("Bad Request");
+	case 403:
+		return ("Forbidden");
+	case 404:
+		return ("Not Found");
+	case 405:
+		return ("Method Not Allowed");
+	case 409:
+		return ("Conflict");
+	case 413:
+		return ("Payload Too Large");
+	case 431:
+		return ("Request Header Fields Too Large");
+	case 500:
+		return ("Internal Server Error");
+	case 501:
+		return ("Not Implemented");
+	case 502:
+		return ("Bad Gateway");
+	case 503:
+		return ("Service Unavailable");
+	case 504:
+		return "Gateway Time-out";
+	default:
+		return "Unknown";
+	}
 }
 
 std::string Response::get_FilePath() const
@@ -127,8 +129,9 @@ bool Response::has_Header(std::string key) const
 void Response::prepare_Headers()
 {
 	size_t	size;
+
 	if (!has_Header("Content-Type"))
-        set_Header("Content-Type", "application/octet-stream");
+		set_Header("Content-Type", "application/octet-stream");
 	if (!has_Header("Content-Length"))
 	{
 		size = this->_body.length();
@@ -165,10 +168,10 @@ void Response::build_Body(std::string &result)
 
 std::string Response::serialize()
 {
-    prepare_Headers();
-    std::string response;
-    response = build_StatusLine();
-    build_Header(response);
-    build_Body(response);
-    return (response);
+	prepare_Headers();
+	std::string response;
+	response = build_StatusLine();
+	build_Header(response);
+	build_Body(response);
+	return (response);
 }
