@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dsteiger <dsteiger@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/21 16:41:07 by dsteiger         ###   ########.fr       */
+/*   Updated: 2026/04/27 19:13:19 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -401,6 +401,7 @@ void Request::parse_Headers(std::string &line, std::istringstream &split)
 			break ;
 		if (line.size() > MAX_HEADER_SIZE)
 		{
+			_statusCode = 431;
 			_validRequest = false;
 			return ;
 		}
