@@ -215,9 +215,7 @@ SendStatus Server::send_ToClient(std::vector<pollfd> &fds, size_t index)
 	return (SEND_OK);
 }
 
-
-void Server::cleanup_TimeoutClients(std::vector<pollfd> &fds, time_t now,
-	int timeoutSec)
+void Server::cleanup_TimeoutClients(std::vector<pollfd> &fds, time_t now, int timeoutSec)
 {
 	const int	INCOMPLETE_REQUEST_TIMEOUT_SEC = 5;
 	int			fd;
@@ -236,36 +234,31 @@ void Server::cleanup_TimeoutClients(std::vector<pollfd> &fds, time_t now,
 			client.response = _router.make_ErrorCode(504);
 			std::string raw = client.response.serialize();
 			client.writeBuffer.write(raw.c_str(), raw.size());
+
 			for (size_t i = 0; i < fds.size(); i++)
 			{
 				if (fds[i].fd == fd)
 				{
 					fds[i].events |= POLLOUT;
-					break ;
+					break;
 				}
 			}
 			++it;
-			continue ;
+			continue;
 		}
 		if (!client.request.is_Done() && !client.cgi.active)
 		{
 			if (now - client.requestStart > INCOMPLETE_REQUEST_TIMEOUT_SEC)
 			{
 				std::cout << "Client " << fd << " timed out (incomplete request)\n";
-				std::string response408 = "HTTP/1.1 408 Request Timeout\r\n"
-											"Content-Type: text/plain\r\n"
-											"Content-Length: 15\r\n"
-											"Connection: close\r\n"
-											"\r\n"
-											"Request Timeout";
-				send(fd, response408.c_str(), response408.size(), 0);
+				client.response = _router.make_ErrorCode(408);
+				std::string raw = client.response.serialize();
+				send(fd, raw.c_str(), raw.size(), 0);
 				doKill = true;
 			}
 		}
 		else if (!client.cgi.active && (now - client.lastActivity) > timeoutSec)
-		{
-			doKill = true;
-		}
+		    doKill = true;
 		if (doKill)
 		{
 			close(fd);
@@ -274,7 +267,7 @@ void Server::cleanup_TimeoutClients(std::vector<pollfd> &fds, time_t now,
 				if (fds[i].fd == fd)
 				{
 					fds.erase(fds.begin() + i);
-					break ;
+					break;
 				}
 			}
 			std::map<int, Client>::iterator toErase = it;
@@ -287,15 +280,13 @@ void Server::cleanup_TimeoutClients(std::vector<pollfd> &fds, time_t now,
 }
 
 
-void Server::build_PollList(std::vector<Server> &servers,
-	std::vector<pollfd> &fds)
+void Server::build_PollList(std::vector<Server> &servers, std::vector<pollfd> &fds)
 {
 	for (size_t i = 0; i < servers.size(); i++)
 		add_PollFd(fds, servers[i]._server_fd, POLLIN);
 }
 
-bool Server::try_AcceptClient(std::vector<Server> &servers,
-	std::vector<pollfd> &fds, int fd)
+bool Server::try_AcceptClient(std::vector<Server> &servers, std::vector<pollfd> &fds, int fd)
 {
 	for (size_t s = 0; s < servers.size(); s++)
 	{
@@ -308,8 +299,7 @@ bool Server::try_AcceptClient(std::vector<Server> &servers,
 	return false;
 }
 
-bool Server::process_ClientRead(std::vector<Server> &servers,
-	std::vector<pollfd> &fds, size_t i)
+bool Server::process_ClientRead(std::vector<Server> &servers, std::vector<pollfd> &fds, size_t i)
 {
 	for (size_t s = 0; s < servers.size(); s++)
 	{
@@ -319,8 +309,7 @@ bool Server::process_ClientRead(std::vector<Server> &servers,
 	return true;
 }
 
-bool Server::process_ClientWrite(std::vector<Server> &servers,
-	std::vector<pollfd> &fds, size_t i)
+bool Server::process_ClientWrite(std::vector<Server> &servers, std::vector<pollfd> &fds, size_t i)
 {
 	int			fd;
 	SendStatus	status;
