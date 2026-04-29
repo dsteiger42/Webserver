@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/29 23:59:16 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/30 00:21:54 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,7 +89,7 @@ size_t CircularBuffer::peek(char *temp, size_t len) const
 		for (size_t i = 0; i < secondChunk; i++)
 		{
 			temp[firstChunk + i] = _buffer[i];
-		}
+		} //trocar p memcpy
 	}
 	return (bytesToCopy);
 }
