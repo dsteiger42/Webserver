@@ -14,7 +14,6 @@
 # define CGICONTEXT_HPP
 
 # include <string>
-# include <ctime>
 # include <sys/types.h>
 
 
@@ -30,7 +29,7 @@ struct CgiContext
     std::string bodyToSend;   // full request body to forward
     size_t      bodyOffset;   // bytes already written to inFd
     std::string output;       // accumulated CGI stdout
-    time_t      startTime;    // for timeout enforcement
+    unsigned long startTime;    // for timeout enforcement
 
     CgiContext();
     void reset();

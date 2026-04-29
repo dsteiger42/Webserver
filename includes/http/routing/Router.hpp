@@ -15,7 +15,6 @@
 
 # include <algorithm>
 # include <config/parser/parser.hpp>
-# include <ctime>
 # include <dirent.h>
 # include <http/cgi/CGI.hpp>
 # include <http/request/Request.hpp>

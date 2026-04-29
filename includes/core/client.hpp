@@ -26,13 +26,13 @@ class Client
 	CircularBuffer writeBuffer; // the server writes a response to the client
 	Request request;
 	Response response;
-	time_t lastActivity;
-	time_t requestStart;
+	unsigned long lastActivity;
+	unsigned long requestStart;
     bool drain;
 	CgiContext      cgi;
 
 	Client();
-	Client(int fileD);
+	Client(int fileD, unsigned long tick);
 };
 
 #endif

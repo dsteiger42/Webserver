@@ -13,13 +13,13 @@
 #include <core/server.hpp>
 
 bool Server::start_Cgi(Client &client, const Request &req,
-	std::vector<pollfd> &fds)
+	std::vector<pollfd> &fds, unsigned long tick)
 {
 	int	result;
 
 	CgiContext &ctx = client.cgi;
 	Location &loc = _router.matchLocation(req.get_Path());
-	result = _router.cgi->launch(req, loc, ctx);
+	result = _router.cgi->launch(req, loc, ctx, tick);
 	if (result != 0)
 	{
 		client.response = _router.make_ErrorCode(result);

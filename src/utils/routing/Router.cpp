@@ -262,7 +262,7 @@ Response Router::handle_POST(const Request &request, Location &location)
 	size_t	maxSize;
 	size_t	slash1;
 	size_t	slash;
-		static size_t upload_counter = 0;
+	static size_t upload_counter = 0;
 	int		fd;
 	size_t	written;
 	ssize_t	n;
@@ -294,7 +294,7 @@ Response Router::handle_POST(const Request &request, Location &location)
 	if (filename.empty())
 	{
 		std::stringstream ss;
-		ss << "upload_" << std::time(NULL) << "_" << (++upload_counter) << ".txt";
+		ss << "upload_" << (++upload_counter) << ".txt";
 		filename = ss.str();
 	}
 	_absolutePath = uploadDir;
