@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/23 17:33:23 by raamorim          #+#    #+#             */
-/*   Updated: 2026/04/15 02:18:06 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/29 19:26:44 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,12 +21,12 @@ void	set_AllowedMethods(const std::vector<std::string> &tokens, size_t &i,
 void	set_CgiPass(const std::string &value, Location &location);
 void	set_Root(const std::string &value, Location &location);
 void 	set_CgiExt(const std::vector<std::string> &tokens, size_t &i, Location &location);
-void	set_Redirection(const std::vector<std::string> &tokens, size_t &i,
+bool	set_Redirection(const std::vector<std::string> &tokens, size_t &i,
 		Location &location);
 void	set_TryFiles(const std::vector<std::string> &tokens, size_t &i,Location &location);
 void	set_Path(const std::vector<std::string> &tokens, size_t &i,
 		Location &location);
-void	parse_CgiTypes(const std::vector<std::string> &tokens, size_t &i, Location &location);
+bool	parse_CgiTypes(const std::vector<std::string> &tokens, size_t &i, Location &location);
 
 
 #endif

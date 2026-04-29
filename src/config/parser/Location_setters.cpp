@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/23 17:33:01 by raamorim          #+#    #+#             */
-/*   Updated: 2026/04/23 01:33:00 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/29 19:23:04 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,17 +57,17 @@ void	set_CgiPass(const std::string &value, Location &location)
 		location.cgiPass = false;
 }
 
-void	set_Redirection(const std::vector<std::string> &tokens, size_t &i,
+bool	set_Redirection(const std::vector<std::string> &tokens, size_t &i,
 		Location &location)
 {
 	long	code;
 
 	if (!is_Number(tokens[i]))
-		return ;
+		return false;
 	location.hasRedirect = true;
 	code = std::atol(tokens[i].c_str());
 	if (code > INT_MAX || code < INT_MIN)
-		location.redirectCode = 0;
+		return false;
 	else
 		location.redirectCode = code;
 	i++;
@@ -75,6 +75,7 @@ void	set_Redirection(const std::vector<std::string> &tokens, size_t &i,
 		location.redirectUrl = tokens[i];
 	else
 		location.redirectUrl = "";
+	return true;
 }
 
 

@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/16 15:18:48 by dsteiger          #+#    #+#             */
-/*   Updated: 2026/04/15 02:09:53 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/29 19:30:22 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,9 +35,9 @@ struct	Parser
 };
 
 bool	parse_all(const std::string &filename, Parser &parse);
-void	parse_ServerBlock(const std::vector<std::string> &tokens, size_t &i, ServerConfig &sc);
-void	parse_ErrorPage(const std::vector<std::string> &tokens, size_t &i, ErrorPages &errorPages);
-void	parse_MimeTypes(MimeTypes &MimeTypes, size_t &i, const std::vector<std::string> &tokens);
-void	parse_Location(Location &Location, size_t &i, const std::vector<std::string> &tokens);
+bool	parse_ServerBlock(const std::vector<std::string> &tokens, size_t &i, ServerConfig &sc);
+bool	parse_ErrorPage(const std::vector<std::string> &tokens, size_t &i, ErrorPages &errorPages);
+bool	parse_MimeTypes(MimeTypes &MimeTypes, size_t &i, const std::vector<std::string> &tokens);
+bool	parse_Location(Location &Location, size_t &i, const std::vector<std::string> &tokens);
 
 #endif
