@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/25 05:34:28 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/29 15:42:34 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,6 +50,8 @@ std::string Response::get_StatusMessage(int code) const
 		return ("Not Found");
 	case 405:
 		return ("Method Not Allowed");
+	case 408:
+		return ("Request Timeout");
 	case 409:
 		return ("Conflict");
 	case 413:
