@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/27 03:40:51 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/27 04:21:49 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/29 23:36:56 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,12 +78,9 @@ void Server::process_CgiWrite(std::vector<pollfd> &fds, size_t i)
     int         clientFd = _pipeToClient[pipeFd];
     Client     &client   = _allClients[clientFd];
     CgiContext &ctx      = client.cgi;
-
     const char *data    = ctx.bodyToSend.c_str() + ctx.bodyOffset;
     size_t      rem     = ctx.bodyToSend.size() - ctx.bodyOffset;
-
     ssize_t written = write(pipeFd, data, rem);
-
     if (written > 0)
     {
         ctx.bodyOffset += (size_t)written;
@@ -94,9 +91,8 @@ void Server::process_CgiWrite(std::vector<pollfd> &fds, size_t i)
         }
         return;
     }
-
-    if (written == -1 && (errno == EAGAIN || errno == EINTR))
-        return; // Pipe full or interrupted — poll() will retry
+    if (written == -1)
+        return;
     remove_PipeFd(fds, pipeFd, true);
     ctx.inFd = -1;
 }
