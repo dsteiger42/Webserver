@@ -80,7 +80,7 @@ void CGI::execute_ChildProcess(int inPipe[2], int outPipe[2],
 }
 
 
-int CGI::launch(const Request &req, Location &location, CgiContext &ctx)
+int CGI::launch(const Request &req, Location &location, CgiContext &ctx, unsigned long tick)
 {
 	int		inPipe[2];
 	int		outPipe[2];
@@ -142,7 +142,7 @@ int CGI::launch(const Request &req, Location &location, CgiContext &ctx)
 	ctx.bodyToSend = req.get_Body();
 	ctx.bodyOffset = 0;
 	ctx.output.clear();
-	ctx.startTime = time(NULL);
+	ctx.startTime  = tick;
 	return (0);
 }
 

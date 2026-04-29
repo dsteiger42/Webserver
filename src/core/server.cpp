@@ -18,7 +18,6 @@
 #include <signal.h>
 #include <utils/signals/signals.hpp>
 
-
 static void	*ft_memset(void *str, int c, size_t n)
 {
 	unsigned char	*mem;
@@ -39,9 +38,7 @@ void	add_PollFd(std::vector<pollfd> &fds, int fd, short events)
 	fds.push_back(pfd);
 }
 
-
-Server::Server(int port, ServerConfig &sc) : _server_fd(-1), _port(port),
-	_router(sc)
+Server::Server(int port, ServerConfig &sc) : _server_fd(-1), _port(port), _router(sc)
 {
 }
 
@@ -101,7 +98,7 @@ int Server::setup_Socket()
 	return (0);
 }
 
-int Server::accept_NewClient(std::vector<pollfd> &fds)
+int Server::accept_NewClient(std::vector<pollfd> &fds, unsigned long tick)
 {
 	pollfd		poll;
 	sockaddr_in	client_addr;
@@ -111,8 +108,7 @@ int Server::accept_NewClient(std::vector<pollfd> &fds)
 	size_t		maxBody;
 
 	client_len = sizeof(client_addr);
-	client_fd = accept(_server_fd, (struct sockaddr *)&client_addr,
-			&client_len);
+	client_fd = accept(_server_fd, (struct sockaddr *)&client_addr, &client_len);
 	if (client_fd == -1)
 	{
 		std::cerr << "Error: accept failed\n";
@@ -125,15 +121,13 @@ int Server::accept_NewClient(std::vector<pollfd> &fds)
 	poll.fd = client_fd;
 	poll.events = POLLIN;
 	fds.push_back(poll);
-	_allClients[client_fd] = Client(client_fd);
+	_allClients[client_fd] = Client(client_fd, tick);
 	maxBody = _router.get_Config().config.client_max_body_size;
 	_allClients[client_fd].request.set_MaxBodySize(maxBody);
-	_allClients[client_fd].lastActivity = time(NULL);
-	_allClients[client_fd].requestStart = time(NULL);
 	return (client_fd);
 }
 
-bool Server::receive_FromClient(std::vector<pollfd> &fds, size_t index)
+bool Server::receive_FromClient(std::vector<pollfd> &fds, size_t index, unsigned long tick)
 {
 	int		client_fd;
 	char	buffer[1024];
@@ -146,20 +140,16 @@ bool Server::receive_FromClient(std::vector<pollfd> &fds, size_t index)
 	{
 		if (client.drain)
 			return (true);
-		client.lastActivity = time(NULL);
+		client.lastActivity = tick;
 		std::string chunk(buffer, bytes_received);
 		std::cout << "Client " << client_fd << ": " << chunk << "\n";
 		client.request.fill_Buffer(chunk, chunk.size());
-		while (client.request.is_Done() || (!client.request.get_validRequest()
-				&& client.request.get_statusCode() != 0))
+		while (client.request.is_Done() || (!client.request.get_validRequest() && client.request.get_statusCode() != 0))
 		{
 			if (_router.is_CgiRequest(client.request))
 			{
-				if (!start_Cgi(client, client.request, fds))
-				{
+				if (!start_Cgi(client, client.request, fds, tick))
 					fds[index].events |= POLLOUT;
-				}
-
 				client.request.reset();
 				break ;
 			}
@@ -215,13 +205,12 @@ SendStatus Server::send_ToClient(std::vector<pollfd> &fds, size_t index)
 	return (SEND_OK);
 }
 
-
-void Server::cleanup_TimeoutClients(std::vector<pollfd> &fds, time_t now,
-	int timeoutSec)
+void Server::cleanup_TimeoutClients(std::vector<pollfd> &fds,
+	unsigned long tick, int timeoutTicks)
 {
-	const int	INCOMPLETE_REQUEST_TIMEOUT_SEC = 5;
-	int			fd;
+	const int	INCOMPLETE_REQUEST_TIMEOUT_TICKS = 30;
 	bool		doKill;
+	int			fd;
 
 	std::map<int, Client>::iterator it = _allClients.begin();
 	while (it != _allClients.end())
@@ -229,7 +218,8 @@ void Server::cleanup_TimeoutClients(std::vector<pollfd> &fds, time_t now,
 		fd = it->first;
 		Client &client = it->second;
 		doKill = false;
-		if (client.cgi.active && (now - client.cgi.startTime) > CGI_TIMEOUT_SEC)
+		if (client.cgi.active && (tick
+				- client.cgi.startTime) > (unsigned long)CGI_TIMEOUT_SEC)
 		{
 			std::cout << "CGI timeout for client " << fd << "\n";
 			abort_Cgi(client, fds);
@@ -249,23 +239,17 @@ void Server::cleanup_TimeoutClients(std::vector<pollfd> &fds, time_t now,
 		}
 		if (!client.request.is_Done() && !client.cgi.active)
 		{
-			if (now - client.requestStart > INCOMPLETE_REQUEST_TIMEOUT_SEC)
+			if (tick - client.requestStart > (unsigned long)INCOMPLETE_REQUEST_TIMEOUT_TICKS)
 			{
 				std::cout << "Client " << fd << " timed out (incomplete request)\n";
-				std::string response408 = "HTTP/1.1 408 Request Timeout\r\n"
-											"Content-Type: text/plain\r\n"
-											"Content-Length: 15\r\n"
-											"Connection: close\r\n"
-											"\r\n"
-											"Request Timeout";
-				send(fd, response408.c_str(), response408.size(), 0);
+				client.response = _router.make_ErrorCode(408);
+				std::string raw = client.response.serialize();
+				send(fd, raw.c_str(), raw.size(), 0);
 				doKill = true;
 			}
 		}
-		else if (!client.cgi.active && (now - client.lastActivity) > timeoutSec)
-		{
+		else if (!client.cgi.active && (tick - client.lastActivity) > (unsigned long)timeoutTicks)
 			doKill = true;
-		}
 		if (doKill)
 		{
 			close(fd);
@@ -286,41 +270,36 @@ void Server::cleanup_TimeoutClients(std::vector<pollfd> &fds, time_t now,
 	}
 }
 
-
-void Server::build_PollList(std::vector<Server> &servers,
-	std::vector<pollfd> &fds)
+void Server::build_PollList(std::vector<Server> &servers, std::vector<pollfd> &fds)
 {
 	for (size_t i = 0; i < servers.size(); i++)
 		add_PollFd(fds, servers[i]._server_fd, POLLIN);
 }
 
-bool Server::try_AcceptClient(std::vector<Server> &servers,
-	std::vector<pollfd> &fds, int fd)
+bool Server::try_AcceptClient(std::vector<Server> &servers, std::vector<pollfd> &fds, int fd, unsigned long tick)
 {
 	for (size_t s = 0; s < servers.size(); s++)
 	{
 		if (fd == servers[s]._server_fd)
 		{
-			servers[s].accept_NewClient(fds);
+			servers[s].accept_NewClient(fds, tick);
 			return (true);
 		}
 	}
-	return false;
+	return (false);
 }
 
-bool Server::process_ClientRead(std::vector<Server> &servers,
-	std::vector<pollfd> &fds, size_t i)
+bool Server::process_ClientRead(std::vector<Server> &servers, std::vector<pollfd> &fds, size_t i, unsigned long tick)
 {
 	for (size_t s = 0; s < servers.size(); s++)
 	{
 		if (servers[s]._allClients.count(fds[i].fd))
-			return servers[s].receive_FromClient(fds, i);
+			return (servers[s].receive_FromClient(fds, i, tick));
 	}
-	return true;
+	return (true);
 }
 
-bool Server::process_ClientWrite(std::vector<Server> &servers,
-	std::vector<pollfd> &fds, size_t i)
+bool Server::process_ClientWrite(std::vector<Server> &servers, std::vector<pollfd> &fds, size_t i)
 {
 	int			fd;
 	SendStatus	status;
@@ -332,7 +311,7 @@ bool Server::process_ClientWrite(std::vector<Server> &servers,
 		fd = fds[i].fd;
 		status = servers[s].send_ToClient(fds, i);
 		if (status == SEND_OK)
-			return true;
+			return (true);
 		if (status == SEND_DONE)
 		{
 			Client &c = servers[s]._allClients[fd];
@@ -340,21 +319,20 @@ bool Server::process_ClientWrite(std::vector<Server> &servers,
 			{
 				c.drain = true;
 				fds[i].events = POLLIN;
-				return true;
+				return (true);
 			}
 			close(fd);
 			servers[s]._allClients.erase(fd);
 			fds.erase(fds.begin() + i);
-			return false;
+			return (false);
 		}
 		close(fd);
 		servers[s]._allClients.erase(fd);
 		fds.erase(fds.begin() + i);
-		return false;
+		return (false);
 	}
-	return true;
+	return (true);
 }
-
 
 void Server::close_AllClients(std::vector<Server> &servers)
 {
@@ -368,18 +346,22 @@ void Server::close_AllClients(std::vector<Server> &servers)
 	}
 }
 
-
 void Server::handle_Clients(std::vector<Server> &servers)
 {
-	const int POLL_TIMEOUT_MS = 1000;
-	const int CLIENT_TIMEOUT_SEC = 30;
+	const int		POLL_TIMEOUT_MS = 1000;
+	const int		CLIENT_TIMEOUT_TICKS = 30;
+	unsigned long	tick;
+	int				ret;
+	short			revents;
+	int				fd;
+	bool			isCgiPipe;
 
+	tick = 0;
 	std::vector<pollfd> fds;
 	build_PollList(servers, fds);
-
 	while (g_running)
 	{
-		int ret = poll(fds.data(), fds.size(), POLL_TIMEOUT_MS);
+		ret = poll(fds.data(), fds.size(), POLL_TIMEOUT_MS);
 		if (ret == -1)
 		{
 			if (errno == EINTR)
@@ -387,22 +369,22 @@ void Server::handle_Clients(std::vector<Server> &servers)
 			std::cerr << "Error: poll failed\n";
 			break ;
 		}
-		time_t now = time(NULL);
+		++tick;
 		for (size_t i = 0; i < fds.size();)
 		{
-			short revents = fds[i].revents;
-			int fd = fds[i].fd;
+			revents = fds[i].revents;
+			fd = fds[i].fd;
 			if (revents == 0)
 			{
 				++i;
 				continue ;
 			}
-			if ((revents & POLLIN) && try_AcceptClient(servers, fds, fd))
+			if ((revents & POLLIN) && try_AcceptClient(servers, fds, fd, tick))
 			{
 				++i;
 				continue ;
 			}
-			bool isCgiPipe = false;
+			isCgiPipe = false;
 			for (size_t s = 0; s < servers.size(); s++)
 			{
 				if (servers[s]._pipeToClient.count(fd))
@@ -421,7 +403,7 @@ void Server::handle_Clients(std::vector<Server> &servers)
 			}
 			if (revents & POLLIN)
 			{
-				if (!process_ClientRead(servers, fds, i))
+				if (!process_ClientRead(servers, fds, i, tick))
 					continue ;
 			}
 			if (i < fds.size() && fds[i].fd == fd && (revents & POLLOUT))
@@ -432,7 +414,7 @@ void Server::handle_Clients(std::vector<Server> &servers)
 			++i;
 		}
 		for (size_t s = 0; s < servers.size(); s++)
-			servers[s].cleanup_TimeoutClients(fds, now, CLIENT_TIMEOUT_SEC);
+			servers[s].cleanup_TimeoutClients(fds, tick, CLIENT_TIMEOUT_TICKS);
 	}
 	close_AllClients(servers);
 }
