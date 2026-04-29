@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   path_utils.cpp                                     :+:      :+:    :+:   */
+/*   CircularBuffer.cpp                                 :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/03/24 02:59:09 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/29 21:46:36 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,10 +44,10 @@ size_t CircularBuffer::write(const char *data, size_t len)
 	freeSpace = (_capacity - _size);
 	toWrite = std::min(len, freeSpace);
 	firstChunk = std::min(toWrite, _capacity - _head);
-	std::memcpy(&_buffer[_head], data, firstChunk); // trocar
+	std::memcpy(&_buffer[_head], data, firstChunk);
 	secondChunk = toWrite - firstChunk;
 	if (secondChunk)
-		std::memcpy(&_buffer[0], data + firstChunk, secondChunk); // trocar
+		std::memcpy(&_buffer[0], data + firstChunk, secondChunk);
 	_head = (_head + toWrite) % _capacity;
 	_size += toWrite;
 	return (toWrite);
@@ -60,10 +60,11 @@ size_t CircularBuffer::read(char *out, size_t len)
 	if (is_Empty())
 		return (0);
 	toRead = std::min(len, _size);
-	for (size_t i = 0; i < toRead; i++)
+	size_t firstChunk = std::min(toRead, _capacity - _tail);
+	std::memcpy(out, &_buffer[_tail], firstChunk);
+    if (toRead > firstChunk)
 	{
-		out[i] = _buffer[_tail];
-		_tail = (_tail + 1) % _capacity;
+        std::memcpy(out + firstChunk, &_buffer[0], toRead - firstChunk);
 	}
 	_size -= toRead;
 	return (toRead);
