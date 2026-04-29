@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/27 19:13:19 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/29 21:41:23 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -338,7 +338,7 @@ bool Request::process_Body()
 	{	
         return (false);
 	}
-	if (_maxBodySize > 0 && _body.size() + toRead >= _maxBodySize)
+	if (_maxBodySize > 0 && _body.size() + toRead > _maxBodySize)
     {
         _statusCode = 413;
         _validRequest = false;
