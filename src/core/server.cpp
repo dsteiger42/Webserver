@@ -18,7 +18,6 @@
 #include <signal.h>
 #include <utils/signals/signals.hpp>
 
-
 static void	*ft_memset(void *str, int c, size_t n)
 {
 	unsigned char	*mem;
@@ -39,9 +38,7 @@ void	add_PollFd(std::vector<pollfd> &fds, int fd, short events)
 	fds.push_back(pfd);
 }
 
-
-Server::Server(int port, ServerConfig &sc) : _server_fd(-1), _port(port),
-	_router(sc)
+Server::Server(int port, ServerConfig &sc) : _server_fd(-1), _port(port), _router(sc)
 {
 }
 
@@ -111,8 +108,7 @@ int Server::accept_NewClient(std::vector<pollfd> &fds, unsigned long tick)
 	size_t		maxBody;
 
 	client_len = sizeof(client_addr);
-	client_fd = accept(_server_fd, (struct sockaddr *)&client_addr,
-			&client_len);
+	client_fd = accept(_server_fd, (struct sockaddr *)&client_addr, &client_len);
 	if (client_fd == -1)
 	{
 		std::cerr << "Error: accept failed\n";
@@ -148,16 +144,12 @@ bool Server::receive_FromClient(std::vector<pollfd> &fds, size_t index, unsigned
 		std::string chunk(buffer, bytes_received);
 		std::cout << "Client " << client_fd << ": " << chunk << "\n";
 		client.request.fill_Buffer(chunk, chunk.size());
-		while (client.request.is_Done() || (!client.request.get_validRequest()
-				&& client.request.get_statusCode() != 0))
+		while (client.request.is_Done() || (!client.request.get_validRequest() && client.request.get_statusCode() != 0))
 		{
 			if (_router.is_CgiRequest(client.request))
 			{
 				if (!start_Cgi(client, client.request, fds, tick))
-				{
 					fds[index].events |= POLLOUT;
-				}
-
 				client.request.reset();
 				break ;
 			}
@@ -213,77 +205,70 @@ SendStatus Server::send_ToClient(std::vector<pollfd> &fds, size_t index)
 	return (SEND_OK);
 }
 
-void Server::cleanup_TimeoutClients(std::vector<pollfd> &fds, unsigned long tick, int timeoutTicks)
+void Server::cleanup_TimeoutClients(std::vector<pollfd> &fds,
+	unsigned long tick, int timeoutTicks)
 {
-    const int INCOMPLETE_REQUEST_TIMEOUT_TICKS = 30;
-    bool      doKill;
+	const int	INCOMPLETE_REQUEST_TIMEOUT_TICKS = 30;
+	bool		doKill;
+	int			fd;
 
-    std::map<int, Client>::iterator it = _allClients.begin();
-    while (it != _allClients.end())
-    {
-        int     fd     = it->first;
-        Client &client = it->second;
-        doKill = false;
-
-        if (client.cgi.active &&
-            (tick - client.cgi.startTime) > (unsigned long)CGI_TIMEOUT_SEC)
-        {
-            std::cout << "CGI timeout for client " << fd << "\n";
-            abort_Cgi(client, fds);
-            client.response = _router.make_ErrorCode(504);
-            std::string raw = client.response.serialize();
-            client.writeBuffer.write(raw.c_str(), raw.size());
-            for (size_t i = 0; i < fds.size(); i++)
-            {
-                if (fds[i].fd == fd)
-                {
-                    fds[i].events |= POLLOUT;
-                    break;
-                }
-            }
-            ++it;
-            continue;
-        }
-
-        if (!client.request.is_Done() && !client.cgi.active)
-        {
-            if (tick - client.requestStart >
-                (unsigned long)INCOMPLETE_REQUEST_TIMEOUT_TICKS)
-            {
-                std::cout << "Client " << fd
-                          << " timed out (incomplete request)\n";
-                client.response = _router.make_ErrorCode(408);
-                std::string raw = client.response.serialize();
-                send(fd, raw.c_str(), raw.size(), 0);
-                doKill = true;
-            }
-        }
-        else if (!client.cgi.active &&
-                 (tick - client.lastActivity) > (unsigned long)timeoutTicks)
-        {
-            doKill = true;
-        }
-
-        if (doKill)
-        {
-            close(fd);
-            for (size_t i = 0; i < fds.size(); i++)
-            {
-                if (fds[i].fd == fd)
-                {
-                    fds.erase(fds.begin() + i);
-                    break;
-                }
-            }
-            std::map<int, Client>::iterator toErase = it;
-            ++it;
-            _allClients.erase(toErase);
-        }
-        else
-            ++it;
-    }
+	std::map<int, Client>::iterator it = _allClients.begin();
+	while (it != _allClients.end())
+	{
+		fd = it->first;
+		Client &client = it->second;
+		doKill = false;
+		if (client.cgi.active && (tick
+				- client.cgi.startTime) > (unsigned long)CGI_TIMEOUT_SEC)
+		{
+			std::cout << "CGI timeout for client " << fd << "\n";
+			abort_Cgi(client, fds);
+			client.response = _router.make_ErrorCode(504);
+			std::string raw = client.response.serialize();
+			client.writeBuffer.write(raw.c_str(), raw.size());
+			for (size_t i = 0; i < fds.size(); i++)
+			{
+				if (fds[i].fd == fd)
+				{
+					fds[i].events |= POLLOUT;
+					break ;
+				}
+			}
+			++it;
+			continue ;
+		}
+		if (!client.request.is_Done() && !client.cgi.active)
+		{
+			if (tick - client.requestStart > (unsigned long)INCOMPLETE_REQUEST_TIMEOUT_TICKS)
+			{
+				std::cout << "Client " << fd << " timed out (incomplete request)\n";
+				client.response = _router.make_ErrorCode(408);
+				std::string raw = client.response.serialize();
+				send(fd, raw.c_str(), raw.size(), 0);
+				doKill = true;
+			}
+		}
+		else if (!client.cgi.active && (tick - client.lastActivity) > (unsigned long)timeoutTicks)
+			doKill = true;
+		if (doKill)
+		{
+			close(fd);
+			for (size_t i = 0; i < fds.size(); i++)
+			{
+				if (fds[i].fd == fd)
+				{
+					fds.erase(fds.begin() + i);
+					break ;
+				}
+			}
+			std::map<int, Client>::iterator toErase = it;
+			++it;
+			_allClients.erase(toErase);
+		}
+		else
+			++it;
+	}
 }
-
 
 void Server::build_PollList(std::vector<Server> &servers, std::vector<pollfd> &fds)
 {
@@ -301,7 +286,7 @@ bool Server::try_AcceptClient(std::vector<Server> &servers, std::vector<pollfd> 
 			return (true);
 		}
 	}
-	return false;
+	return (false);
 }
 
 bool Server::process_ClientRead(std::vector<Server> &servers, std::vector<pollfd> &fds, size_t i, unsigned long tick)
@@ -309,9 +294,9 @@ bool Server::process_ClientRead(std::vector<Server> &servers, std::vector<pollfd
 	for (size_t s = 0; s < servers.size(); s++)
 	{
 		if (servers[s]._allClients.count(fds[i].fd))
-			return servers[s].receive_FromClient(fds, i, tick);
+			return (servers[s].receive_FromClient(fds, i, tick));
 	}
-	return true;
+	return (true);
 }
 
 bool Server::process_ClientWrite(std::vector<Server> &servers, std::vector<pollfd> &fds, size_t i)
@@ -326,7 +311,7 @@ bool Server::process_ClientWrite(std::vector<Server> &servers, std::vector<pollf
 		fd = fds[i].fd;
 		status = servers[s].send_ToClient(fds, i);
 		if (status == SEND_OK)
-			return true;
+			return (true);
 		if (status == SEND_DONE)
 		{
 			Client &c = servers[s]._allClients[fd];
@@ -334,21 +319,20 @@ bool Server::process_ClientWrite(std::vector<Server> &servers, std::vector<pollf
 			{
 				c.drain = true;
 				fds[i].events = POLLIN;
-				return true;
+				return (true);
 			}
 			close(fd);
 			servers[s]._allClients.erase(fd);
 			fds.erase(fds.begin() + i);
-			return false;
+			return (false);
 		}
 		close(fd);
 		servers[s]._allClients.erase(fd);
 		fds.erase(fds.begin() + i);
-		return false;
+		return (false);
 	}
-	return true;
+	return (true);
 }
-
 
 void Server::close_AllClients(std::vector<Server> &servers)
 {
@@ -362,19 +346,22 @@ void Server::close_AllClients(std::vector<Server> &servers)
 	}
 }
 
-
 void Server::handle_Clients(std::vector<Server> &servers)
 {
-	const int POLL_TIMEOUT_MS = 1000;
-	const int CLIENT_TIMEOUT_TICKS = 30;
-    unsigned long tick = 0;
+	const int		POLL_TIMEOUT_MS = 1000;
+	const int		CLIENT_TIMEOUT_TICKS = 30;
+	unsigned long	tick;
+	int				ret;
+	short			revents;
+	int				fd;
+	bool			isCgiPipe;
 
+	tick = 0;
 	std::vector<pollfd> fds;
 	build_PollList(servers, fds);
-
 	while (g_running)
 	{
-		int ret = poll(fds.data(), fds.size(), POLL_TIMEOUT_MS);
+		ret = poll(fds.data(), fds.size(), POLL_TIMEOUT_MS);
 		if (ret == -1)
 		{
 			if (errno == EINTR)
@@ -385,8 +372,8 @@ void Server::handle_Clients(std::vector<Server> &servers)
 		++tick;
 		for (size_t i = 0; i < fds.size();)
 		{
-			short revents = fds[i].revents;
-			int fd = fds[i].fd;
+			revents = fds[i].revents;
+			fd = fds[i].fd;
 			if (revents == 0)
 			{
 				++i;
@@ -397,7 +384,7 @@ void Server::handle_Clients(std::vector<Server> &servers)
 				++i;
 				continue ;
 			}
-			bool isCgiPipe = false;
+			isCgiPipe = false;
 			for (size_t s = 0; s < servers.size(); s++)
 			{
 				if (servers[s]._pipeToClient.count(fd))
