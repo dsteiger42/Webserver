@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/29 21:46:36 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/29 23:23:48 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,11 +60,10 @@ size_t CircularBuffer::read(char *out, size_t len)
 	if (is_Empty())
 		return (0);
 	toRead = std::min(len, _size);
-	size_t firstChunk = std::min(toRead, _capacity - _tail);
-	std::memcpy(out, &_buffer[_tail], firstChunk);
-    if (toRead > firstChunk)
+	for (size_t i = 0; i < toRead; i++)
 	{
-        std::memcpy(out + firstChunk, &_buffer[0], toRead - firstChunk);
+		out[i] = _buffer[_tail];
+		_tail = (_tail + 1) % _capacity;
 	}
 	_size -= toRead;
 	return (toRead);
