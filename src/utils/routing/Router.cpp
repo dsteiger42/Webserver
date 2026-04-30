@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/25 05:34:34 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/29 16:43:52 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,10 +38,9 @@ Router::Router(const Router &other) : _config(other._config),
 
 Router &Router::operator=(const Router &other)
 {
-		delete cgi;
-
 	if (this != &other)
 	{
+		delete cgi;
 		_config = other._config;
 		_path = other._path;
 		_query = other._query;

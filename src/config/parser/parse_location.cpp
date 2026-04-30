@@ -6,20 +6,20 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 00:53:07 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/23 01:33:09 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/29 19:27:33 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <config/parser/Location_setters.hpp>
 
-void	parse_Location(Location &Location, size_t &i,
+bool	parse_Location(Location &Location, size_t &i,
 		const std::vector<std::string> &tokens)
 {
 	i++;
 	set_Path(tokens, i, Location);
 	i++;
 	if (tokens[i] != "{")
-		throw std::runtime_error("Expected '{'");
+		return false;
 	while (i < tokens.size() && tokens[i] != "}")
 	{
 		if (tokens[i] == "autoindex")
@@ -45,7 +45,8 @@ void	parse_Location(Location &Location, size_t &i,
 		if (tokens[i] == "return" && i + 1 < tokens.size() && !tokens[i + 1].empty())
 		{
 			i++;
-			set_Redirection(tokens, i, Location);
+			if (!set_Redirection(tokens, i, Location))
+				return false;
 		}
 		if (tokens[i] == "cgi_ext" && i + 1 < tokens.size() && !tokens[i + 1].empty())
 		{
@@ -54,7 +55,8 @@ void	parse_Location(Location &Location, size_t &i,
 		}
 		if (tokens[i] == "cgi_types" && i + 1 < tokens.size() && !tokens[i + 1].empty() && tokens[i + 1] == "{")
 		{
-			parse_CgiTypes(tokens, i, Location);
+			if (!parse_CgiTypes(tokens, i, Location))
+				return false;
 		}
 		if (tokens[i] == "upload_store" && i + 1 < tokens.size() && !tokens[i + 1].empty())
 		{
@@ -65,4 +67,5 @@ void	parse_Location(Location &Location, size_t &i,
 		i++;
 	}
 	i++;
+	return true;
 }

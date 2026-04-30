@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   path_utils.cpp                                     :+:      :+:    :+:   */
+/*   CircularBuffer.cpp                                 :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/03/24 02:59:09 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/30 01:20:53 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,10 +44,10 @@ size_t CircularBuffer::write(const char *data, size_t len)
 	freeSpace = (_capacity - _size);
 	toWrite = std::min(len, freeSpace);
 	firstChunk = std::min(toWrite, _capacity - _head);
-	std::memcpy(&_buffer[_head], data, firstChunk); // trocar
+	std::memcpy(&_buffer[_head], data, firstChunk);
 	secondChunk = toWrite - firstChunk;
 	if (secondChunk)
-		std::memcpy(&_buffer[0], data + firstChunk, secondChunk); // trocar
+		std::memcpy(&_buffer[0], data + firstChunk, secondChunk);
 	_head = (_head + toWrite) % _capacity;
 	_size += toWrite;
 	return (toWrite);
@@ -55,36 +55,36 @@ size_t CircularBuffer::write(const char *data, size_t len)
 
 size_t CircularBuffer::read(char *out, size_t len)
 {
-	size_t	toRead;
+    if (is_Empty())
+        return (0);
 
-	if (is_Empty())
-		return (0);
-	toRead = std::min(len, _size);
-	for (size_t i = 0; i < toRead; i++)
-	{
-		out[i] = _buffer[_tail];
-		_tail = (_tail + 1) % _capacity;
-	}
-	_size -= toRead;
-	return (toRead);
+    size_t toRead = std::min(len, _size);
+    size_t firstChunk = std::min(toRead, _capacity - _tail);
+    std::memcpy(out, &_buffer[_tail], firstChunk);
+    if (firstChunk < toRead)
+    {
+        size_t secondChunk = toRead - firstChunk;
+        std::memcpy(out + firstChunk, &_buffer[0], secondChunk);
+        _tail = secondChunk;
+    }
+    else
+    {
+        _tail = (_tail + toRead) % _capacity;
+    }
+    _size -= toRead;
+    return (toRead);
 }
 
 size_t CircularBuffer::peek(char *temp, size_t len) const
 {
 	size_t bytesToCopy = std::min(len, this->_size);
 	size_t firstChunk = std::min(bytesToCopy, _capacity - _tail);
-	for (size_t i = 0; i < firstChunk; i++)
-	{
-		temp[i] = _buffer[(_tail + i) % _capacity];
-	}
-	if (bytesToCopy > firstChunk)
-	{
-		size_t secondChunk = bytesToCopy - firstChunk;
-		for (size_t i = 0; i < secondChunk; i++)
-		{
-			temp[firstChunk + i] = _buffer[i];
-		}
-	}
+	std::memcpy(temp, _buffer.data() + _tail, firstChunk);
+    if (bytesToCopy > firstChunk)
+    {
+        size_t secondChunk = bytesToCopy - firstChunk;
+        std::memcpy(temp + firstChunk, _buffer.data(), secondChunk);
+    }
 	return (bytesToCopy);
 }
 
