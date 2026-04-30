@@ -12,10 +12,10 @@
 
 #include <core/client.hpp>
 
-Client::Client() : fd(-1), writeBuffer(4096), request(), response(), drain(false)
+Client::Client() : fd(-1), writeBuffer(4096), request(), response(), drain(false), shouldClose(false)
 {
 }
 
-Client::Client(int fileD, unsigned long tick) : fd(fileD), writeBuffer(4096), request(), response(), lastActivity(tick), requestStart(tick), drain(false)
+Client::Client(int fileD, unsigned long tick) : fd(fileD), writeBuffer(4096), request(), response(), lastActivity(tick), requestStart(tick), drain(false), shouldClose(false)
 {
 }
