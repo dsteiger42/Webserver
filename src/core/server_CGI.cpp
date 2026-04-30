@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/27 03:40:51 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/29 23:36:56 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/30 01:55:02 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -134,8 +134,6 @@ void Server::process_CgiRead(std::vector<pollfd> &fds, size_t i)
 	}
 	if (n == -1)
 	{
-		if (errno == EAGAIN || errno == EINTR)
-			return ; // No data right now — poll() will fire again
 		remove_PipeFd(fds, pipeFd, true);
 		ctx.outFd = -1;
 		if (ctx.inFd != -1)
