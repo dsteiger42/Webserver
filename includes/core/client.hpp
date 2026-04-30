@@ -29,6 +29,7 @@ class Client
 	unsigned long lastActivity;
 	unsigned long requestStart;
     bool drain;
+    bool shouldClose;
 	CgiContext      cgi;
 
 	Client();
