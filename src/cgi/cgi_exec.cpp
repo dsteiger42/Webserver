@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:18:06 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/27 03:55:20 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/30 03:02:43 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,7 +85,6 @@ int CGI::launch(const Request &req, Location &location, CgiContext &ctx, unsigne
 	int		inPipe[2];
 	int		outPipe[2];
 	pid_t	pid;
-	int		flags;
 
 	std::string scriptPath = resolve_ScriptPath(req.get_Path());
 	if (!is_acceptableExtension(req.get_Path(), location))
@@ -117,8 +116,7 @@ int CGI::launch(const Request &req, Location &location, CgiContext &ctx, unsigne
 	}
 	close(inPipe[0]);
 	close(outPipe[1]);
-	flags = fcntl(inPipe[1], F_GETFL, 0);
-	if (flags == -1 || fcntl(inPipe[1], F_SETFL, flags | O_NONBLOCK) == -1)
+	if (fcntl(inPipe[1], F_SETFL, O_NONBLOCK) == -1)
 	{
 		close(inPipe[1]);
 		close(outPipe[0]);
@@ -126,8 +124,7 @@ int CGI::launch(const Request &req, Location &location, CgiContext &ctx, unsigne
 		waitpid(pid, NULL, 0);
 		return (500);
 	}
-	flags = fcntl(outPipe[0], F_GETFL, 0);
-	if (flags == -1 || fcntl(outPipe[0], F_SETFL, flags | O_NONBLOCK) == -1)
+	if (fcntl(outPipe[0], F_SETFL, O_NONBLOCK) == -1)
 	{
 		close(inPipe[1]);
 		close(outPipe[0]);
