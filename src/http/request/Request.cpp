@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/30 00:52:36 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/30 01:26:21 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -127,17 +127,20 @@ void Request::validate_Request()
 	{
 		_statusCode = 400;
 		_validRequest = false;
+		return ;
 	}
 	if (_version != "HTTP/1.1")
 	{
 		_statusCode = 505;
 		_validRequest = false;
+		return ;
 	}
 	if (_headers.find("content-length") != _headers.end()
 		&& _headers.find("transfer-encoding") != _headers.end())
 	{
 		_statusCode = 400;
 		_validRequest = false;
+		return ;
 	}
 }
 

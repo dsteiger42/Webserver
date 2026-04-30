@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/30 00:21:54 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/30 01:20:53 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,18 +79,12 @@ size_t CircularBuffer::peek(char *temp, size_t len) const
 {
 	size_t bytesToCopy = std::min(len, this->_size);
 	size_t firstChunk = std::min(bytesToCopy, _capacity - _tail);
-	for (size_t i = 0; i < firstChunk; i++)
-	{
-		temp[i] = _buffer[(_tail + i) % _capacity];
-	}
-	if (bytesToCopy > firstChunk)
-	{
-		size_t secondChunk = bytesToCopy - firstChunk;
-		for (size_t i = 0; i < secondChunk; i++)
-		{
-			temp[firstChunk + i] = _buffer[i];
-		} //trocar p memcpy
-	}
+	std::memcpy(temp, _buffer.data() + _tail, firstChunk);
+    if (bytesToCopy > firstChunk)
+    {
+        size_t secondChunk = bytesToCopy - firstChunk;
+        std::memcpy(temp + firstChunk, _buffer.data(), secondChunk);
+    }
 	return (bytesToCopy);
 }
 
