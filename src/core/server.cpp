@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/05/04 19:22:45 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/04 19:36:29 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -241,7 +241,6 @@ void Server::cleanup_TimeoutClients(std::vector<pollfd> &fds,
 		{
 			if (tick - client.requestStart > (unsigned long)INCOMPLETE_REQUEST_TIMEOUT_TICKS)
 			{
-				std::cerr << "KKKKKKK\n";
 				std::cout << "Client " << fd << " timed out (incomplete request)\n";
 				client.response = _router.make_ErrorCode(408);
 				std::string raw = client.response.serialize();
