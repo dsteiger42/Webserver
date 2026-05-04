@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/05/04 17:23:00 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/04 18:05:40 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -348,7 +348,7 @@ void Server::close_AllClients(std::vector<Server> &servers)
 
 void Server::handle_Clients(std::vector<Server> &servers)
 {
-	const int		POLL_TIMEOUT_MS = 1000;
+	const int		POLL_TIMEOUT_MS = 325;
 	const int		CLIENT_TIMEOUT_TICKS = 30;
 	unsigned long	tick;
 	int				ret;
