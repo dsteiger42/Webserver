@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/05/04 19:36:29 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/04 19:40:34 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -208,7 +208,7 @@ SendStatus Server::send_ToClient(std::vector<pollfd> &fds, size_t index)
 void Server::cleanup_TimeoutClients(std::vector<pollfd> &fds,
 	unsigned long tick, int timeoutTicks)
 {
-	const int	INCOMPLETE_REQUEST_TIMEOUT_TICKS = 100000000;
+	const int	INCOMPLETE_REQUEST_TIMEOUT_TICKS = 30;
 	bool		doKill;
 	int			fd;
 
