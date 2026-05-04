@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 00:53:07 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/29 19:27:33 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/04 20:37:03 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,8 @@ bool	parse_Location(Location &Location, size_t &i,
 		if (tokens[i] == "autoindex")
 		{
 			i++;
-			set_Autoindex(tokens[i], Location);
+			if (!set_Autoindex(tokens[i], Location))
+				return false;
 		}
 		if (tokens[i] == "allowed_methods" && i + 1 < tokens.size() && !tokens[i + 1].empty())
 		{

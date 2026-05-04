@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/23 17:33:01 by raamorim          #+#    #+#             */
-/*   Updated: 2026/04/29 19:23:04 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/04 20:36:05 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,12 +20,20 @@ void	set_Path(const std::vector<std::string> &tokens, size_t &i,
 	else
 		location.path = "/";
 }
-void	set_Autoindex(const std::string &value, Location &location)
+bool	set_Autoindex(const std::string &value, Location &location)
 {
 	if (value == "on")
+	{
 		location.autoIndex = true;
-	else
+		return true;	
+	}
+	else if (value == "off")
+	{
 		location.autoIndex = false;
+		return true;
+	}
+	else
+		return false;
 }
 
 void	set_AllowedMethods(const std::vector<std::string> &tokens, size_t &i,

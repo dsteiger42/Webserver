@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/23 17:33:23 by raamorim          #+#    #+#             */
-/*   Updated: 2026/04/29 19:26:44 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/04 20:37:46 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 
 #include <config/model/types.hpp>
 
-void	set_Autoindex(const std::string &value, Location &location);
+bool	set_Autoindex(const std::string &value, Location &location);
 void	set_AllowedMethods(const std::vector<std::string> &tokens, size_t &i,
 	Location &location);
 void	set_CgiPass(const std::string &value, Location &location);
