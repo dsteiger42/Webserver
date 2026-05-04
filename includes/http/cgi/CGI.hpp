@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/27 04:10:56 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/04 23:33:03 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@
 # include <utils/utils.hpp>
 # include <vector>
 
-class Router; // forward declaration
+class Router;
 
 class CGI
 {
