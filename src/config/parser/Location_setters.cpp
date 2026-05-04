@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/23 17:33:01 by raamorim          #+#    #+#             */
-/*   Updated: 2026/05/04 20:36:05 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/04 20:45:05 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,12 +57,20 @@ void	set_Root(const std::string &value, Location &location)
 		location.root = "";
 }
 
-void	set_CgiPass(const std::string &value, Location &location)
+bool	set_CgiPass(const std::string &value, Location &location)
 {
 	if (value == "on")
+	{
 		location.cgiPass = true;
-	else
+		return true;
+	}
+	else if (value == "off")
+	{
 		location.cgiPass = false;
+		return true;
+	}
+	else
+		return false;
 }
 
 bool	set_Redirection(const std::vector<std::string> &tokens, size_t &i,

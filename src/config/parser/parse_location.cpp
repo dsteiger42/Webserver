@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 00:53:07 by rafael            #+#    #+#             */
-/*   Updated: 2026/05/04 20:37:03 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/04 20:47:31 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,8 @@ bool	parse_Location(Location &Location, size_t &i,
 		if (tokens[i] == "cgi_pass" && i + 1 < tokens.size() && !tokens[i + 1].empty())
 		{
 			i++;
-			set_CgiPass(tokens[i], Location);
+			if (!set_CgiPass(tokens[i], Location))
+				return false;
 		}
 		if (tokens[i] == "return" && i + 1 < tokens.size() && !tokens[i + 1].empty())
 		{
