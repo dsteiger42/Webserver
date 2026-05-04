@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:18:09 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/20 03:13:08 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/04 17:07:48 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,9 +58,7 @@ CGI::CGIResult CGI::parse_CGIOutput(const std::string &output)
 		}
 		if (key == "Location")
 		{
-			result.headers[key] = value;
-			//se cgi nao enviou o status troca para 302
-			if (result.status == 200)
+			result.headers[key] = value;			if (result.status == 200)
 				result.status = 302;
 		}
 	}

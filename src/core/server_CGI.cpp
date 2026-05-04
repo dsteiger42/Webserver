@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/27 03:40:51 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/30 04:33:35 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/04 15:20:52 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -132,21 +132,19 @@ void Server::process_CgiRead(std::vector<pollfd> &fds, size_t i)
 		ctx.output.append(buf, n);
 		return ;
 	}
-	if (n == -1)
+	if (n == 0)
 	{
-		if (errno == EAGAIN || errno == EINTR)
-			return ; // No data right now — poll() will fire again CHECK THISSS
 		remove_PipeFd(fds, pipeFd, true);
 		ctx.outFd = -1;
-		if (ctx.inFd != -1)
+			if (ctx.inFd != -1)
 		{
 			remove_PipeFd(fds, ctx.inFd, true);
 			ctx.inFd = -1;
 		}
-		kill(ctx.pid, SIGKILL);
-		waitpid(ctx.pid, NULL, 0);
+		waitStatus = 0;
+		waitpid(ctx.pid, &waitStatus, 0);
+		client.response = _router.cgi->finish(ctx, waitStatus);
 		ctx.reset();
-		client.response = _router.make_ErrorCode(502);
 		std::string raw = client.response.serialize();
 		client.writeBuffer.write(raw.c_str(), raw.size());
 		for (size_t j = 0; j < fds.size(); j++)
@@ -156,29 +154,6 @@ void Server::process_CgiRead(std::vector<pollfd> &fds, size_t i)
 				fds[j].events |= POLLOUT;
 				break ;
 			}
-		}
-		return ;
-	}
-	// n == 0: real EOF — CGI process closed stdout
-	remove_PipeFd(fds, pipeFd, true);
-	ctx.outFd = -1;
-		if (ctx.inFd != -1)
-	{
-		remove_PipeFd(fds, ctx.inFd, true);
-		ctx.inFd = -1;
-	}
-	waitStatus = 0;
-	waitpid(ctx.pid, &waitStatus, 0);
-	client.response = _router.cgi->finish(ctx, waitStatus);
-	ctx.reset();
-	std::string raw = client.response.serialize();
-	client.writeBuffer.write(raw.c_str(), raw.size());
-	for (size_t j = 0; j < fds.size(); j++)
-	{
-		if (fds[j].fd == clientFd)
-		{
-			fds[j].events |= POLLOUT;
-			break ;
 		}
 	}
 }
