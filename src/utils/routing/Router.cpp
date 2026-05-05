@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/05/04 23:19:49 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/05 01:54:53 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -369,8 +369,6 @@ Response Router::handle_Request(const Request &request)
 
 Location &Router::matchLocation(const std::string &path)
 {
-	if (_config.location.empty())
-		throw std::runtime_error("No locations configured");
 	Location *bestMatch = NULL;
 	size_t bestLength = 0;
 

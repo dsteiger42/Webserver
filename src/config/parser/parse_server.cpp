@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 00:54:23 by rafael            #+#    #+#             */
-/*   Updated: 2026/05/04 22:27:09 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/05 01:54:06 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,5 +67,7 @@ bool	parse_ServerBlock(const std::vector<std::string> &tokens, size_t &i, Server
 			i++;
 	}
 	i++; // skip the closing "}"
+	if (sc.location.empty())
+        return false;
 	return true;
 }
