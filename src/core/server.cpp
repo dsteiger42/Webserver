@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/05/05 16:39:22 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/05 18:12:49 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -112,7 +112,12 @@ int Server::accept_NewClient(std::vector<pollfd> &fds, unsigned long tick)
 		return (-1);
 	}
 	std::cout << "Client connected: fd=" << client_fd << "\n";
-	fcntl(client_fd, F_SETFL, O_NONBLOCK);
+	if (fcntl(client_fd, F_SETFL, O_NONBLOCK) == -1)
+	{
+		std::cerr << "Error: fcntl O_NONBLOCK failed on client fd=" << client_fd << "\n";
+		close(client_fd);
+    	return (-1);
+	}
 	ft_memset(&poll, 0, sizeof(poll));
 	poll.fd = client_fd;
 	poll.events = POLLIN;
