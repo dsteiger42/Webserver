@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:18:09 by rafael            #+#    #+#             */
-/*   Updated: 2026/05/04 17:07:48 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/05 02:13:28 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,6 +44,8 @@ CGI::CGIResult CGI::parse_CGIOutput(const std::string &output)
 		if (line.empty())
 			break ;
 		colon = line.find(':');
+		if (colon == std::string::npos)
+    		continue;
 		std::string key = line.substr(0, colon);
 		std::string value = line.substr(colon + 1);
 		while (!value.empty() && (value[0] == ' ' || value[0] == '\t'))
