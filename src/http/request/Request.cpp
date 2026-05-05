@@ -6,14 +6,14 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/30 01:26:21 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/04 22:28:48 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <http/request/Request.hpp>
 
 Request::Request() :  _state(READING_HEADER),
-	_contentLength(0), _statusCode(0), _maxBodySize(1024 * 1024) /*1MB */, _validRequest(false), _buffer(MAX_HEADER_SIZE + _maxBodySize)
+	_contentLength(0), _statusCode(0), _maxBodySize(1024 * 1024), _validRequest(false), _buffer(MAX_HEADER_SIZE + _maxBodySize)
 {
 }
 

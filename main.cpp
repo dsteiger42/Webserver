@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dsteiger <dsteiger@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/21 16:35:10 by dsteiger         ###   ########.fr       */
+/*   Updated: 2026/05/04 23:00:39 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 int	main(int argc, char **argv)
 {
     std::string configFile;
+    Parser parser;
     if (argc == 1)
         configFile = "./webserver.conf";
     else if (argc == 2)
@@ -27,16 +28,23 @@ int	main(int argc, char **argv)
         return -1;
     }
     signal(SIGINT, handle_Sigint);
-    Parser parser;
-    if (!parse_all(configFile, parser))
+    try
     {
-        std::cerr << "Error: something wrong in config file" << std::endl;
-        return -1;
+        if (!parse_all(configFile, parser))
+        {
+            std::cerr << "Error: something wrong in config file" << std::endl;
+            return -1;
+        }
+        if (parser.servers.empty())
+        {
+            std::cerr << "Error: no server blocks found in config" << std::endl;
+            return -1;
+        }    
     }
-    if (parser.servers.empty())
+    catch(const std::exception& e)
     {
-        std::cerr << "Error: no server blocks found in config" << std::endl;
-        return -1;
+        std::cerr << e.what() << std::endl;
+        return 1;
     }
     std::vector<Server> servers;
     for (size_t i = 0; i < parser.servers.size(); i++)

@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/27 19:16:40 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/04 23:32:32 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,9 +37,9 @@ enum	State
 class Request
 {
   private:
-	std::string _method;  // GET, POST, DELETE
-	std::string _path;    // /index.html
-	std::string _version; // HTTP/1.1
+	std::string _method;
+	std::string _path;
+	std::string _version;
 	std::string _body;
 	std::string _query;
 	std::map<std::string, std::string> _headers;

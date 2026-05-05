@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 00:53:07 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/29 19:27:33 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/05 02:02:30 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,40 +25,42 @@ bool	parse_Location(Location &Location, size_t &i,
 		if (tokens[i] == "autoindex")
 		{
 			i++;
-			set_Autoindex(tokens[i], Location);
+			if (!set_Autoindex(tokens[i], Location))
+				return false;
 		}
-		if (tokens[i] == "allowed_methods" && i + 1 < tokens.size() && !tokens[i + 1].empty())
+		else if (tokens[i] == "allowed_methods" && i + 1 < tokens.size() && !tokens[i + 1].empty())
 		{
 			i++;
 			set_AllowedMethods(tokens, i, Location);
 		}
-		if (tokens[i] == "root" && i + 1 < tokens.size() && !tokens[i + 1].empty())
+		else if (tokens[i] == "root" && i + 1 < tokens.size() && !tokens[i + 1].empty())
 		{
 			i++;
 			set_Root(tokens[i], Location);
 		}
-		if (tokens[i] == "cgi_pass" && i + 1 < tokens.size() && !tokens[i + 1].empty())
+		else if (tokens[i] == "cgi_pass" && i + 1 < tokens.size() && !tokens[i + 1].empty())
 		{
 			i++;
-			set_CgiPass(tokens[i], Location);
+			if (!set_CgiPass(tokens[i], Location))
+				return false;
 		}
-		if (tokens[i] == "return" && i + 1 < tokens.size() && !tokens[i + 1].empty())
+		else if (tokens[i] == "return" && i + 1 < tokens.size() && !tokens[i + 1].empty())
 		{
 			i++;
 			if (!set_Redirection(tokens, i, Location))
 				return false;
 		}
-		if (tokens[i] == "cgi_ext" && i + 1 < tokens.size() && !tokens[i + 1].empty())
+		else if (tokens[i] == "cgi_ext" && i + 1 < tokens.size() && !tokens[i + 1].empty())
 		{
 			i++;
 			set_CgiExt(tokens, i, Location);
 		}
-		if (tokens[i] == "cgi_types" && i + 1 < tokens.size() && !tokens[i + 1].empty() && tokens[i + 1] == "{")
+		else if (tokens[i] == "cgi_types" && i + 1 < tokens.size() && !tokens[i + 1].empty() && tokens[i + 1] == "{")
 		{
 			if (!parse_CgiTypes(tokens, i, Location))
 				return false;
 		}
-		if (tokens[i] == "upload_store" && i + 1 < tokens.size() && !tokens[i + 1].empty())
+		else if (tokens[i] == "upload_store" && i + 1 < tokens.size() && !tokens[i + 1].empty())
 		{
 			i++;
 			if (tokens[i] != ";")

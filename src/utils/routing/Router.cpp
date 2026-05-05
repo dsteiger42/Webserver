@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/29 16:43:52 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/05 01:54:53 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -350,8 +350,6 @@ Response Router::handle_Request(const Request &request)
 	if (!validate_Path(_path))
 		return make_ErrorCode(400);
 	Location &loc = matchLocation(_path);
-	/* if (!build_FinalPath(_path))
-		return make_ErrorCode(403); */
 	if (!loc.root.empty())
 		_documentRoot = loc.root;
 	else
@@ -371,8 +369,6 @@ Response Router::handle_Request(const Request &request)
 
 Location &Router::matchLocation(const std::string &path)
 {
-	if (_config.location.empty())
-		throw std::runtime_error("No locations configured");
 	Location *bestMatch = NULL;
 	size_t bestLength = 0;
 
