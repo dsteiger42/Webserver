@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/16 15:17:16 by dsteiger          #+#    #+#             */
-/*   Updated: 2026/05/04 22:38:44 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/05 01:47:10 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,7 @@ bool	parse_all(const std::string &filename, Parser &parser)
 {
 	size_t	i;
 
-	std::vector<std::string> tokens = Tokenize(filename);
+	std::vector<std::string> tokens;
 	try
     {
         tokens = Tokenize(filename);
