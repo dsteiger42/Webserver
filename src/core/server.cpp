@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/05/04 19:40:34 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/05 16:39:22 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -179,11 +179,11 @@ bool Server::receive_FromClient(std::vector<pollfd> &fds, size_t index, unsigned
 SendStatus Server::send_ToClient(std::vector<pollfd> &fds, size_t index)
 {
 	int		fd;
+	int		sent;
 	size_t	available;
 	char	temp[1024];
 	size_t	toSend;
 	size_t	copied;
-	size_t	sent;
 
 	fd = fds[index].fd;
 	Client &client = _allClients[fd];
