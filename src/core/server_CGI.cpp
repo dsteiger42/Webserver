@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/27 03:40:51 by rafael            #+#    #+#             */
-/*   Updated: 2026/05/04 15:20:52 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/05 16:46:34 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,7 +63,7 @@ void Server::abort_Cgi(Client &client, std::vector<pollfd> &fds)
 	if (!ctx.active)
 		return ;
 	kill(ctx.pid, SIGKILL);
-	waitpid(ctx.pid, NULL, 0);
+	waitpid(ctx.pid, NULL, WNOHANG);
 	if (ctx.inFd != -1)
 		remove_PipeFd(fds, ctx.inFd, true);
 	if (ctx.outFd != -1)
@@ -142,7 +142,7 @@ void Server::process_CgiRead(std::vector<pollfd> &fds, size_t i)
 			ctx.inFd = -1;
 		}
 		waitStatus = 0;
-		waitpid(ctx.pid, &waitStatus, 0);
+		waitpid(ctx.pid, &waitStatus, WNOHANG);
 		client.response = _router.cgi->finish(ctx, waitStatus);
 		ctx.reset();
 		std::string raw = client.response.serialize();
