@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/25 00:00:00 by rafael            #+#    #+#             */
-/*   Updated: 2026/05/04 17:26:30 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/06 19:00:34 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,22 +16,22 @@
 # include <string>
 # include <sys/types.h>
 
+
 # define CGI_TIMEOUT_SEC 10
-# define MAX_CGI_OUTPUT 1000000
+# define MAX_CGI_OUTPUT  1000000
 
-struct				CgiContext
+struct CgiContext
 {
-	bool			active;
-	pid_t			pid;
-	int				inFd;
-	int				outFd;
-	std::string bodyToSend;
-	size_t			bodyOffset;
-	std::string output;
-	unsigned long	startTime;
-
-	CgiContext();
-	void reset();
+    bool        active;
+    pid_t       pid;
+    int         inFd;
+    int         outFd;   
+    std::string bodyToSend;
+    size_t      bodyOffset;
+    std::string output;
+    unsigned long startTime;
+    CgiContext();
+    void reset();
 };
 
 #endif

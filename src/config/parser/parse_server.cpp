@@ -6,17 +6,14 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 00:54:23 by rafael            #+#    #+#             */
-/*   Updated: 2026/05/05 18:02:34 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/06 19:01:39 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <config/parser/parser.hpp>
 
-bool	parse_ServerBlock(const std::vector<std::string> &tokens, size_t &i,
-		ServerConfig &sc)
+bool	parse_ServerBlock(const std::vector<std::string> &tokens, size_t &i, ServerConfig &sc)
 {
-			Location loc;
-
 	while (i < tokens.size() && tokens[i] != "}")
 	{
 		if (tokens[i] == "listen" && i + 2 < tokens.size())
@@ -25,7 +22,7 @@ bool	parse_ServerBlock(const std::vector<std::string> &tokens, size_t &i,
 				return false;
 			sc.config.listen = std::atoi(tokens[i + 1].c_str());
 			if (sc.config.listen < 1 || sc.config.listen > 65535)
-				return (false);
+				return false;
 			i += 3;
 		}
 		else if (tokens[i] == "server_name" && i + 2 < tokens.size())
@@ -49,26 +46,25 @@ bool	parse_ServerBlock(const std::vector<std::string> &tokens, size_t &i,
 				return false;
 			sc.config.client_max_body_size = std::atoi(tokens[i + 1].c_str());
 			if (sc.config.client_max_body_size > INT_MAX)
-				return (false);
+				return false;
 			i += 3;
 		}
 		else if (tokens[i] == "error_page" && i + 2 < tokens.size())
 		{
 			i++;
 			if (!parse_ErrorPage(tokens, i, sc.errorPages))
-				return (false);
+				return false;
 		}
-		else if (tokens[i] == "mime_types" && i + 1 < tokens.size() && tokens[i
-			+ 1] == "{")
+		else if (tokens[i] == "mime_types" && i + 1 < tokens.size() && tokens[i + 1] == "{")
 		{
 			if (!parse_MimeTypes(sc.mimeTypes, i, tokens))
-				return (false);
+				return false;
 		}
-		else if (tokens[i] == "location" && i + 2 < tokens.size() && tokens[i
-			+ 2] == "{")
+		else if (tokens[i] == "location" && i + 2 < tokens.size() && tokens[i + 2] == "{")
 		{
+			Location loc;
 			if (!parse_Location(loc, i, tokens))
-				return (false);
+				return false;
 			sc.location.push_back(loc);
 		}
 		else
@@ -76,6 +72,6 @@ bool	parse_ServerBlock(const std::vector<std::string> &tokens, size_t &i,
 	}
 	i++;
 	if (sc.location.empty())
-		return (false);
-	return (true);
+        return false;
+	return true;
 }

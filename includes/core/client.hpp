@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/05/06 03:11:00 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/06 18:58:44 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,10 +14,10 @@
 # define CLIENT_HPP
 
 # include <http/buffer/CircularBuffer.hpp>
-# include <http/cgi/CgiContext.hpp>
 # include <http/request/Request.hpp>
 # include <http/response/Response.hpp>
 # include <iostream>
+# include <http/cgi/CgiContext.hpp>
 
 class Client
 {
@@ -28,9 +28,9 @@ class Client
 	Response response;
 	unsigned long lastActivity;
 	unsigned long requestStart;
-	bool drain;
-	bool shouldClose;
-	CgiContext cgi;
+    bool drain;
+    bool shouldClose;
+	CgiContext      cgi;
 
 	Client();
 	Client(int fileD, unsigned long tick, size_t maxBodySize);

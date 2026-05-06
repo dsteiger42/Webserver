@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/05/06 03:43:13 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/06 19:04:15 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@ Router::Router(ServerConfig &sc) : _config(sc)
 	_path = "";
 	_query = "";
 	_method = "";
-	_documentRoot = sc.config.root; //"./www/"
+	_documentRoot = sc.config.root;
 	_absolutePath = "";
 	cgi = new CGI;
 	cgi->setRouter(this);

@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/16 15:17:16 by dsteiger          #+#    #+#             */
-/*   Updated: 2026/05/05 01:47:10 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/06 19:01:59 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,9 +19,8 @@ Config::Config() : server_name(""), root(""), index(""),
 {
 }
 
-Location::Location() : path(""), root(""), upload_store(""), autoIndex(false),
-	cgiPass(false), hasRedirect(false), has_tryFiles(false), redirectCode(0),
-	redirectUrl("")
+Location::Location() : path(""), root(""), upload_store(""), autoIndex(false), cgiPass(false),
+	hasRedirect(false), has_tryFiles(false), redirectCode(0), redirectUrl("")
 {
 }
 
@@ -32,20 +31,19 @@ Parser::Parser() : servers()
 bool	parse_all(const std::string &filename, Parser &parser)
 {
 	size_t	i;
-	ServerConfig sc;
 
 	std::vector<std::string> tokens;
 	try
-	{
-		tokens = Tokenize(filename);
-	}
-	catch (const std::exception &e)
-	{
-		std::cerr << e.what() << std::endl;
-		return (false);
-	}
+    {
+        tokens = Tokenize(filename);
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << e.what() << std::endl;
+        return false;
+    }
 	if (!countBraces(tokens))
-		return (false);
+		return false;
 	i = 0;
 	while (i < tokens.size())
 	{
@@ -53,12 +51,13 @@ bool	parse_all(const std::string &filename, Parser &parser)
 			+ 1] == "{")
 		{
 			i += 2;
+			ServerConfig sc;
 			if (!parse_ServerBlock(tokens, i, sc))
-				return (false);
+				return false;
 			parser.servers.push_back(sc);
 		}
 		else
 			i++;
 	}
-	return (true);
+	return true;
 }

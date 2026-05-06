@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:32:35 by rafael            #+#    #+#             */
-/*   Updated: 2026/05/05 17:56:55 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/06 18:43:52 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,8 +37,7 @@ bool	is_Space(char c)
 	return ((c >= 9 && c <= 13) || c == 32);
 }
 
-bool	is_ValidMethod(std::vector<std::string> &allowedMethods,
-		const std::string &method)
+bool is_ValidMethod(std::vector<std::string> &allowedMethods, const std::string &method)
 {
 	for (size_t i = 0; i < allowedMethods.size(); i++)
 	{
@@ -50,14 +49,15 @@ bool	is_ValidMethod(std::vector<std::string> &allowedMethods,
 
 bool	validate_Method(const std::string &method)
 {
-	return (method == "GET" || method == "POST" || method == "DELETE");
+    return method == "GET" || method == "POST" || method == "DELETE";
 }
 
-void	transform(std::string &string)
+void transform(std::string &string)
 {
 	for (size_t i = 0; i < string.length(); i++)
 	{
 		if (string[i] >= 65 && string[i] <= 90)
-			string[i] += 32;
+		  	string[i] += 32;
 	}
 }
+
