@@ -12,8 +12,9 @@
 
 #include <http/request/Request.hpp>
 
-Request::Request() :  _state(READING_HEADER),
-	_contentLength(0), _statusCode(0), _maxBodySize(1024 * 1024), _validRequest(false), _buffer(MAX_HEADER_SIZE + _maxBodySize)
+Request::Request() : _state(READING_HEADER), _contentLength(0), _statusCode(0),
+	_maxBodySize(1024 * 1024), _validRequest(false), _buffer(MAX_HEADER_SIZE
+	+ _maxBodySize)
 {
 }
 
@@ -63,11 +64,13 @@ bool Request::get_validRequest() const
 
 void Request::set_MaxBodySize(size_t max)
 {
-    _maxBodySize = max;
+	_maxBodySize = max;
 }
 
 void Request::reset()
 {
+	size_t	sz;
+
 	_method.clear();
 	_path.clear();
 	_version.clear();
@@ -78,9 +81,9 @@ void Request::reset()
 	_statusCode = 0;
 	_validRequest = false;
 	_state = READING_HEADER;
-     size_t sz = _buffer.get_Size();
-    if (sz > 0)
-        _buffer.consume(sz);
+	sz = _buffer.get_Size();
+	if (sz > 0)
+		_buffer.consume(sz);
 }
 
 bool Request::is_Done() const
@@ -92,13 +95,14 @@ void Request::fill_Buffer(const std::string &request, size_t len)
 {
 	size_t	written;
 	size_t	bytesWritten;
+	size_t	currentHeaderBytes;
 
 	written = 0;
 	while (written < len)
 	{
 		if (_state == READING_HEADER)
 		{
-			size_t currentHeaderBytes = _buffer.get_Size();
+			currentHeaderBytes = _buffer.get_Size();
 			if (currentHeaderBytes > MAX_HEADER_SIZE)
 			{
 				_statusCode = 431;
@@ -117,7 +121,7 @@ void Request::fill_Buffer(const std::string &request, size_t len)
 		written += bytesWritten;
 		advanceParsing();
 		if (!_validRequest && _statusCode != 0)
-            return;
+			return ;
 	}
 }
 
@@ -200,8 +204,9 @@ bool Request::process_Header()
 {
 	size_t	pos;
 	size_t	headersize;
-	size_t posLF;
-	
+	size_t	posLF;
+	size_t	sz;
+
 	pos = _buffer.find("\r\n\r\n");
 	posLF = _buffer.find("\n\n");
 	if (posLF != std::string::npos && (pos == std::string::npos || posLF < pos))
@@ -209,14 +214,13 @@ bool Request::process_Header()
 		_validRequest = false;
 		_statusCode = 400;
 		_state = DONE;
-		size_t sz = _buffer.get_Size();
-        if (sz > 0)
-            _buffer.consume(sz);
-		return true;
+		sz = _buffer.get_Size();
+		if (sz > 0)
+			_buffer.consume(sz);
+		return (true);
 	}
 	if (pos == std::string::npos)
 		return (false);
-	
 	headersize = pos + 4;
 	if (_buffer.get_Size() < headersize)
 		return (false);
@@ -227,138 +231,147 @@ bool Request::process_Header()
 	return (true);
 }
 
-
-static bool parseHex(const std::string& str, size_t& result, size_t maxSize)
+static bool	parseHex(const std::string &str, size_t &result, size_t maxSize)
 {
-	if (str.empty() || str.size() > 8)  // max 0xFFFFFFFF é suficiente
-        return false;
-    std::istringstream iss(str);
-    iss >> std::hex >> result;
-    if (iss.fail() || !iss.eof())
-        return false;
-    if (maxSize > 0 && result > maxSize)
-        return false;
-    return true;
+	if (str.empty() || str.size() > 8) // max 0xFFFFFFFF é suficiente
+		return (false);
+	std::istringstream iss(str);
+	iss >> std::hex >> result;
+	if (iss.fail() || !iss.eof())
+		return (false);
+	if (maxSize > 0 && result > maxSize)
+		return (false);
+	return (true);
 }
 
 bool Request::consume_CRLF()
 {
-    if (_buffer.get_Size() < 2)
-        return false;
-    char crlf[2];
-    _buffer.peek(crlf, 2);
-    if (crlf[0] != '\r' || crlf[1] != '\n')
-        return false;
-    _buffer.consume(2);
-    return true;
+	char	crlf[2];
+
+	if (_buffer.get_Size() < 2)
+		return (false);
+	_buffer.peek(crlf, 2);
+	if (crlf[0] != '\r' || crlf[1] != '\n')
+		return (false);
+	_buffer.consume(2);
+	return (true);
 }
 
 void Request::appendToBody(size_t size)
 {
+	size_t	oldSize;
+
 	if (_maxBodySize > 0 && _body.size() + size > _maxBodySize)
 	{
-        _statusCode = 413;
-        _validRequest = false;
-        return;
-    }
-    size_t oldSize = _body.size();
-    _body.resize(oldSize + size);
-    _buffer.read(&_body[oldSize], size);
+		_statusCode = 413;
+		_validRequest = false;
+		return ;
+	}
+	oldSize = _body.size();
+	_body.resize(oldSize + size);
+	_buffer.read(&_body[oldSize], size);
 }
 
 bool Request::process_Chunked()
 {
-    while (true)
-    {
-        size_t pos = _buffer.find("\r\n");
-        if (pos == std::string::npos)
-            return false;
-        std::string sizeline(pos, '\0');
-        _buffer.peek(&sizeline[0], pos);
-        size_t semicolon = sizeline.find(";");
-        if (semicolon != std::string::npos)
-            sizeline = sizeline.substr(0, semicolon);
-        size_t start = sizeline.find_first_not_of(" \t");
-        size_t end   = sizeline.find_last_not_of(" \t");
-        if (start == std::string::npos)
-        {
-            _statusCode = 400;
-            _validRequest = false;
-            return false;
-        }
-        sizeline = sizeline.substr(start, end - start + 1);
-        size_t chunkSize;
-        if (!parseHex(sizeline, chunkSize, _maxBodySize))
-        {
-            _statusCode = 400;
-            _validRequest = false;
-            return false;
-        }
-        if (chunkSize == 0)
-        {
-            _buffer.consume(pos + 2);
-            while (true)
-            {
-                size_t trailerPos = _buffer.find("\r\n");
-                if (trailerPos == std::string::npos)
-                    return false;
-                _buffer.consume(trailerPos + 2);
-                if (trailerPos == 0)
-                {
-                    _state = DONE;
-                    _validRequest = true;
-                    return true;
-                }
-            }
-        }
-        size_t totalNeeded = pos + 2 + chunkSize + 2;
-        if (_buffer.get_Size() < totalNeeded)
-            return false;
-        _buffer.consume(pos + 2);
-        appendToBody(chunkSize);
-        if (_statusCode != 0)
-            return false;
-        if (!consume_CRLF())
-        {
-            _statusCode = 400;
-            _validRequest = false;
-            return false;
-        }
-    }
+	size_t	pos;
+	size_t	semicolon;
+	size_t	start;
+	size_t	end;
+		size_t chunkSize;
+	size_t	trailerPos;
+	size_t	totalNeeded;
+
+	while (true)
+	{
+		pos = _buffer.find("\r\n");
+		if (pos == std::string::npos)
+			return (false);
+		std::string sizeline(pos, '\0');
+		_buffer.peek(&sizeline[0], pos);
+		semicolon = sizeline.find(";");
+		if (semicolon != std::string::npos)
+			sizeline = sizeline.substr(0, semicolon);
+		start = sizeline.find_first_not_of(" \t");
+		end = sizeline.find_last_not_of(" \t");
+		if (start == std::string::npos)
+		{
+			_statusCode = 400;
+			_validRequest = false;
+			return (false);
+		}
+		sizeline = sizeline.substr(start, end - start + 1);
+		if (!parseHex(sizeline, chunkSize, _maxBodySize))
+		{
+			_statusCode = 400;
+			_validRequest = false;
+			return (false);
+		}
+		if (chunkSize == 0)
+		{
+			_buffer.consume(pos + 2);
+			while (true)
+			{
+				trailerPos = _buffer.find("\r\n");
+				if (trailerPos == std::string::npos)
+					return (false);
+				_buffer.consume(trailerPos + 2);
+				if (trailerPos == 0)
+				{
+					_state = DONE;
+					_validRequest = true;
+					return (true);
+				}
+			}
+		}
+		totalNeeded = pos + 2 + chunkSize + 2;
+		if (_buffer.get_Size() < totalNeeded)
+			return (false);
+		_buffer.consume(pos + 2);
+		appendToBody(chunkSize);
+		if (_statusCode != 0)
+			return (false);
+		if (!consume_CRLF())
+		{
+			_statusCode = 400;
+			_validRequest = false;
+			return (false);
+		}
+	}
 }
 bool Request::process_Body()
 {
-    size_t  remaining;
-    size_t  available;
-    size_t  toRead;
-    size_t  oldSize;
+	size_t	remaining;
+	size_t	available;
+	size_t	toRead;
+	size_t	oldSize;
 
-    remaining = _contentLength - _body.size();
-    if (remaining == 0)
-    {
-        _state = DONE;
-	    return (true);
-    }
-    available = _buffer.get_Size();
-    toRead = std::min(remaining, available);
-    if (toRead == 0)
-	{	
-        return (false);
+	remaining = _contentLength - _body.size();
+	if (remaining == 0)
+	{
+		_state = DONE;
+		return (true);
+	}
+	available = _buffer.get_Size();
+	toRead = std::min(remaining, available);
+	if (toRead == 0)
+	{
+		return (false);
 	}
 	if (_maxBodySize > 0 && _body.size() + toRead > _maxBodySize)
-    {
-        _statusCode = 413;
-        _validRequest = false;
-        _state = DONE;
-        _buffer.consume(available);
-        return false;
-    }
-    oldSize = _body.size();
-    _body.resize(oldSize + toRead);
-    _buffer.read(&_body[oldSize], toRead);
-    if (_body.size() == _contentLength)
-        _state = DONE;
-    return (true);
+	{
+		_statusCode = 413;
+		_validRequest = false;
+		_state = DONE;
+		_buffer.consume(available);
+		return false;
+	}
+	oldSize = _body.size();
+	_body.resize(oldSize + toRead);
+	_buffer.read(&_body[oldSize], toRead);
+	if (_body.size() == _contentLength)
+		_state = DONE;
+	return (true);
 }
 
 void Request::parse_RequestLine(std::string &line, std::istringstream &split)
@@ -385,14 +398,14 @@ static bool	is_UniqueHeader(const std::string &key)
 		|| key == "transfer-encoding");
 }
 
-static bool is_validHeader(const std::string &key)
+static bool	is_validHeader(const std::string &key)
 {
 	for (size_t i = 0; i < key.size(); i++)
 	{
 		if (!std::isalnum(key[i]) && key[i] != '-')
 			return false;
 	}
-	return true;	
+	return true;
 }
 
 void Request::parse_Headers(std::string &line, std::istringstream &split)
@@ -447,31 +460,30 @@ void Request::parse_Headers(std::string &line, std::istringstream &split)
 	}
 }
 
-static bool has_BareLF(const std::string &header)
+static bool	has_BareLF(const std::string &header)
 {
-    for (size_t i = 0; i < header.size(); i++)
-    {
-        if (header[i] == '\n' && (i == 0 || header[i - 1] != '\r'))
-            return (true);
-    }
-    return (false);
+	for (size_t i = 0; i < header.size(); i++)
+	{
+		if (header[i] == '\n' && (i == 0 || header[i - 1] != '\r'))
+			return (true);
+	}
+	return (false);
 }
 
 void Request::parse_Header(const std::string &headerStr)
 {
 	if (has_BareLF(headerStr))
 	{
-        _statusCode = 400;
-        _validRequest = false;
-        return ;
-    }
+		_statusCode = 400;
+		_validRequest = false;
+		return ;
+	}
 	std::istringstream split(headerStr);
 	std::string line;
 	parse_RequestLine(line, split);
 	if (!_validRequest)
 		return ;
 	parse_Headers(line, split);
-
 }
 
 void Request::advanceParsing()
@@ -514,7 +526,7 @@ void Request::split_PathQuery(const std::string &path)
 
 std::string Request::get_Leftover()
 {
-    std::string leftover(_buffer.get_Size(), '\0');
-    _buffer.read(&leftover[0], leftover.size());
-    return leftover;
+	std::string leftover(_buffer.get_Size(), '\0');
+	_buffer.read(&leftover[0], leftover.size());
+	return leftover;
 }

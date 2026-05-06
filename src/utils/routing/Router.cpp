@@ -222,7 +222,6 @@ Response Router::handle_GET(const Request &request, Location &location)
 			return make_ErrorCode(403);
 	}
 	if (!check_File(_absolutePath))
-		// if it's not a directory but the file doens't exist
 		return make_ErrorCode(404);
 	std::string content;
 	if (!read_File(_absolutePath, content))
@@ -318,7 +317,6 @@ Response Router::handle_POST(const Request &request, Location &location)
 		if (n == -1)
 		{
 			close(fd);
-			// Apagar o ficheiro parcialmente escrito para não deixar lixo
 			std::remove(_absolutePath.c_str());
 			return make_ErrorCode(500);
 		}

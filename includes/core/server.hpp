@@ -44,8 +44,8 @@ class Server
   private:
 	int _server_fd;
 	int _port;
-	std::map<int, Client> _allClients; // client_fd  → Client
-	std::map<int, int> _pipeToClient;  // pipe_fd    → client_fd
+	std::map<int, Client> _allClients;
+	std::map<int, int> _pipeToClient;
 	Router _router;
 
 	bool start_Cgi(Client &client, const Request &req,
