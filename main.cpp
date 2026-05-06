@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/05/04 23:00:39 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/06 01:52:11 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,7 @@ int	main(int argc, char **argv)
         std::cerr << "Usage: ./webserv [configuration file]" << std::endl;
         return -1;
     }
+    signal(SIGPIPE, SIG_IGN);
     signal(SIGINT, handle_Sigint);
     try
     {
