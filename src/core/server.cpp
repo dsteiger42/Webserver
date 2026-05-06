@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/05/04 19:40:34 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/06 03:47:05 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -112,12 +112,18 @@ int Server::accept_NewClient(std::vector<pollfd> &fds, unsigned long tick)
 		return (-1);
 	}
 	std::cout << "Client connected: fd=" << client_fd << "\n";
-	fcntl(client_fd, F_SETFL, O_NONBLOCK);
+	if (fcntl(client_fd, F_SETFL, O_NONBLOCK) == -1)
+	{
+		std::cerr << "Error: fcntl O_NONBLOCK failed on client fd=" << client_fd << "\n";
+		close(client_fd);
+    	return (-1);
+	}
 	ft_memset(&poll, 0, sizeof(poll));
 	poll.fd = client_fd;
 	poll.events = POLLIN;
 	fds.push_back(poll);
-	_allClients[client_fd] = Client(client_fd, tick);
+	size_t maxBodySize = _router.get_Config().config.client_max_body_size;
+	_allClients[client_fd] = Client(client_fd, tick, maxBodySize);
 	maxBody = _router.get_Config().config.client_max_body_size;
 	_allClients[client_fd].request.set_MaxBodySize(maxBody);
 	return (client_fd);
@@ -179,11 +185,11 @@ bool Server::receive_FromClient(std::vector<pollfd> &fds, size_t index, unsigned
 SendStatus Server::send_ToClient(std::vector<pollfd> &fds, size_t index)
 {
 	int		fd;
+	int		sent;
 	size_t	available;
 	char	temp[1024];
 	size_t	toSend;
 	size_t	copied;
-	size_t	sent;
 
 	fd = fds[index].fd;
 	Client &client = _allClients[fd];

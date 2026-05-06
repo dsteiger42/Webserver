@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/25 04:17:02 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/06 03:11:00 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@ class Client
 	CgiContext      cgi;
 
 	Client();
-	Client(int fileD, unsigned long tick);
+	Client(int fileD, unsigned long tick, size_t maxBodySize);
 };
 
 #endif
