@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/27 03:40:51 by rafael            #+#    #+#             */
-/*   Updated: 2026/05/06 02:24:06 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/06 03:30:49 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,11 +91,6 @@ void Server::process_CgiWrite(std::vector<pollfd> &fds, size_t i)
         }
         return;
     }
-    if (written == -1)
-    {
-		remove_PipeFd(fds, pipeFd, true);
-    	ctx.inFd = -1;
-	}
     remove_PipeFd(fds, pipeFd, true);
     ctx.inFd = -1;
 }
