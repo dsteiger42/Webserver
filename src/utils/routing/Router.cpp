@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/05/05 01:54:53 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/06 01:06:56 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -181,7 +181,7 @@ bool Router::is_CgiRequest(const Request &request)
 {
 	size_t	pos;
 
-	if (!request.get_validRequest() && request.get_statusCode() == 0)
+	if (!request.get_validRequest())
 		return (false);
 	std::string path = request.get_Path();
 	pos = path.find('?');
