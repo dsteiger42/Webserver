@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/27 03:49:39 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/06 18:58:52 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,8 +44,8 @@ class Server
   private:
 	int _server_fd;
 	int _port;
-	std::map<int, Client> _allClients; // client_fd  → Client
-	std::map<int, int> _pipeToClient;  // pipe_fd    → client_fd
+	std::map<int, Client> _allClients;
+	std::map<int, int> _pipeToClient;
 	Router _router;
 
 	bool start_Cgi(Client &client, const Request &req,

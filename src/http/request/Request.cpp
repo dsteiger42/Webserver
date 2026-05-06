@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/05/06 03:10:18 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/06 19:03:17 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -238,7 +238,7 @@ bool Request::process_Header()
 
 static bool parseHex(const std::string& str, size_t& result, size_t maxSize)
 {
-	if (str.empty() || str.size() > 8)  // max 0xFFFFFFFF é suficiente
+	if (str.empty() || str.size() > 8)
         return false;
     std::istringstream iss(str);
     iss >> std::hex >> result;

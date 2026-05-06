@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/16 15:17:16 by dsteiger          #+#    #+#             */
-/*   Updated: 2026/05/05 01:47:10 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/06 19:01:59 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,8 +50,8 @@ bool	parse_all(const std::string &filename, Parser &parser)
 		if (tokens[i] == "server" && i + 1 < tokens.size() && tokens[i
 			+ 1] == "{")
 		{
-			i += 2; // skip "server" and "{"
-			ServerConfig sc; // novo sc por iteração
+			i += 2;
+			ServerConfig sc;
 			if (!parse_ServerBlock(tokens, i, sc))
 				return false;
 			parser.servers.push_back(sc);

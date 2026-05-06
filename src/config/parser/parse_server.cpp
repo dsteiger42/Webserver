@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 00:54:23 by rafael            #+#    #+#             */
-/*   Updated: 2026/05/05 18:02:34 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/06 19:01:39 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,8 +22,8 @@ bool	parse_ServerBlock(const std::vector<std::string> &tokens, size_t &i, Server
 				return false;
 			sc.config.listen = std::atoi(tokens[i + 1].c_str());
 			if (sc.config.listen < 1 || sc.config.listen > 65535)
-				return false; //invalid ports
-			i += 3; // skip "listen", value, ";"
+				return false;
+			i += 3;
 		}
 		else if (tokens[i] == "server_name" && i + 2 < tokens.size())
 		{
@@ -57,20 +57,20 @@ bool	parse_ServerBlock(const std::vector<std::string> &tokens, size_t &i, Server
 		}
 		else if (tokens[i] == "mime_types" && i + 1 < tokens.size() && tokens[i + 1] == "{")
 		{
-			if (!parse_MimeTypes(sc.mimeTypes, i, tokens)) // make sure this advances i past "}"
+			if (!parse_MimeTypes(sc.mimeTypes, i, tokens))
 				return false;
 		}
 		else if (tokens[i] == "location" && i + 2 < tokens.size() && tokens[i + 2] == "{")
 		{
 			Location loc;
 			if (!parse_Location(loc, i, tokens))
-				return false; // make sure this advances i past "}"
+				return false;
 			sc.location.push_back(loc);
 		}
 		else
 			i++;
 	}
-	i++; // skip the closing "}"
+	i++;
 	if (sc.location.empty())
         return false;
 	return true;

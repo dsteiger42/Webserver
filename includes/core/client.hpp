@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/05/06 03:11:00 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/06 18:58:44 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@ class Client
 {
   public:
 	int fd;
-	CircularBuffer writeBuffer; // the server writes a response to the client
+	CircularBuffer writeBuffer;
 	Request request;
 	Response response;
 	unsigned long lastActivity;

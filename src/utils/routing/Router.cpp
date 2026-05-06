@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/05/06 03:43:13 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/06 19:04:15 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@ Router::Router(ServerConfig &sc) : _config(sc)
 	_path = "";
 	_query = "";
 	_method = "";
-	_documentRoot = sc.config.root; //"./www/"
+	_documentRoot = sc.config.root;
 	_absolutePath = "";
 	cgi = new CGI;
 	cgi->setRouter(this);
@@ -222,7 +222,6 @@ Response Router::handle_GET(const Request &request, Location &location)
 			return make_ErrorCode(403);
 	}
 	if (!check_File(_absolutePath))
-		// if it's not a directory but the file doens't exist
 		return make_ErrorCode(404);
 	std::string content;
 	if (!read_File(_absolutePath, content))
@@ -315,7 +314,6 @@ Response Router::handle_POST(const Request &request, Location &location)
 		if (n == -1)
 		{
 			close(fd);
-			// Apagar o ficheiro parcialmente escrito para não deixar lixo
 			std::remove(_absolutePath.c_str());
 			return make_ErrorCode(500);
 		}

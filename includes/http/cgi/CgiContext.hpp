@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/25 00:00:00 by rafael            #+#    #+#             */
-/*   Updated: 2026/05/04 17:26:30 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/06 19:00:34 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,15 +22,14 @@
 
 struct CgiContext
 {
-    bool        active;       // true while CGI process is in flight
-    pid_t       pid;          // child PID
-    int         inFd;         // inPipe[1]  — write request body to CGI stdin
-    int         outFd;        // outPipe[0] — read CGI stdout
-    std::string bodyToSend;   // full request body to forward
-    size_t      bodyOffset;   // bytes already written to inFd
-    std::string output;       // accumulated CGI stdout
-    unsigned long startTime;    // for timeout enforcement
-
+    bool        active;
+    pid_t       pid;
+    int         inFd;
+    int         outFd;   
+    std::string bodyToSend;
+    size_t      bodyOffset;
+    std::string output;
+    unsigned long startTime;
     CgiContext();
     void reset();
 };

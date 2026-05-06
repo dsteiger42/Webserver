@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/01 14:54:07 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/06 19:03:49 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,17 +14,17 @@
 
 bool	read_File(const std::string &path, std::string &outContent)
 {
-    outContent.clear(); //limpa a string
+    outContent.clear();
     std::ifstream file(path.c_str(), std::ios::in | std::ios::binary);
     if (!file.is_open())
         return false;
-    file.seekg(0, std::ios::end); //avanca para o fim
-    std::ifstream::pos_type size = file.tellg(); //verifica o size
+    file.seekg(0, std::ios::end);
+    std::ifstream::pos_type size = file.tellg();
     if (size < 0)
         return false;
-    outContent.resize(size); //aloca espaco para size bytes
-    file.seekg(0, std::ios::beg);//volta ao inicio
-    file.read(&outContent[0], size); //le 
+    outContent.resize(size);
+    file.seekg(0, std::ios::beg);
+    file.read(&outContent[0], size); 
     if (!file)
         return false;
     file.close();

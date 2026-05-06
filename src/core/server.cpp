@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/05/06 03:47:05 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/06 19:03:11 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -221,7 +221,6 @@ void Server::cleanup_TimeoutClients(std::vector<pollfd> &fds,
 		Client &client = it->second;
 		doKill = false;
 
-		// ── CGI timeout ───────────────────────────────────────────────────
 		if (client.cgi.active && (tick - client.cgi.startTime) > (unsigned long)CGI_TIMEOUT_SEC)
 		{
 			std::cout << "CGI timeout for client " << fd << "\n";
@@ -243,7 +242,6 @@ void Server::cleanup_TimeoutClients(std::vector<pollfd> &fds,
 			continue ;
 		}
 
-		// ── Incomplete request timeout (408) ──────────────────────────────
 		if (!client.request.is_Done() && !client.cgi.active)
 		{
 			if (tick - client.requestStart > (unsigned long)INCOMPLETE_REQUEST_TIMEOUT_TICKS)
@@ -266,11 +264,8 @@ void Server::cleanup_TimeoutClients(std::vector<pollfd> &fds,
 				continue ;
 			}
 		}
-
-		// ── Idle timeout ──────────────────────────────────────────────────
 		else if (!client.cgi.active && (tick - client.lastActivity) > (unsigned long)timeoutTicks)
 			doKill = true;
-
 		if (doKill)
 		{
 			close(fd);
@@ -333,21 +328,16 @@ bool Server::process_ClientWrite(std::vector<Server> &servers, std::vector<pollf
         SendStatus status = servers[s].send_ToClient(fds, i);
 
         if (status == SEND_OK)
-            return true;   // partial write — keep POLLOUT, come back next tick
-
+            return true;
         if (status == SEND_DONE)
         {
-            // ── Buffer fully drained ──────────────────────────────────────
             if (client.shouldClose)
             {
-                // Intentional close after timeout/error response
                 close(fd);
                 servers[s]._allClients.erase(fd);
                 fds.erase(fds.begin() + i);
                 return false;
             }
-
-            // Existing 413/431 drain-then-keep-alive logic
             int code = client.response.get_StatusCode();
             if (code == 413 || code == 431)
             {
@@ -355,15 +345,11 @@ bool Server::process_ClientWrite(std::vector<Server> &servers, std::vector<pollf
                 fds[i].events  = POLLIN;
                 return true;
             }
-
-            // Normal close after response
             close(fd);
             servers[s]._allClients.erase(fd);
             fds.erase(fds.begin() + i);
             return false;
         }
-
-        // SEND_ERROR
         close(fd);
         servers[s]._allClients.erase(fd);
         fds.erase(fds.begin() + i);
