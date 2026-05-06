@@ -14,21 +14,21 @@
 
 bool	read_File(const std::string &path, std::string &outContent)
 {
-	outContent.clear();
-	std::ifstream file(path.c_str(), std::ios::in | std::ios::binary);
-	if (!file.is_open())
-		return (false);
-	file.seekg(0, std::ios::end);
-	std::ifstream::pos_type size = file.tellg();
-	if (size < 0)
-		return (false);
-	outContent.resize(size);
-	file.seekg(0, std::ios::beg);
-	file.read(&outContent[0], size);
-	if (!file)
-		return (false);
-	file.close();
-	return (true);
+    outContent.clear(); //limpa a string
+    std::ifstream file(path.c_str(), std::ios::in | std::ios::binary);
+    if (!file.is_open())
+        return false;
+    file.seekg(0, std::ios::end); //avanca para o fim
+    std::ifstream::pos_type size = file.tellg(); //verifica o size
+    if (size < 0)
+        return false;
+    outContent.resize(size); //aloca espaco para size bytes
+    file.seekg(0, std::ios::beg);//volta ao inicio
+    file.read(&outContent[0], size); //le 
+    if (!file)
+        return false;
+    file.close();
+    return true;
 }
 
 bool	is_Directory(const std::string &absolutePath)
@@ -39,6 +39,8 @@ bool	is_Directory(const std::string &absolutePath)
 		return (false);
 	if (!S_ISDIR(info.st_mode))
 		return (false);
+	/* if (access(absolutePath.c_str(), R_OK) != 0)
+		return (false); */
 	return (true);
 }
 

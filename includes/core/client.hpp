@@ -14,23 +14,23 @@
 # define CLIENT_HPP
 
 # include <http/buffer/CircularBuffer.hpp>
-# include <http/cgi/CgiContext.hpp>
 # include <http/request/Request.hpp>
 # include <http/response/Response.hpp>
 # include <iostream>
+# include <http/cgi/CgiContext.hpp>
 
 class Client
 {
   public:
 	int fd;
-	CircularBuffer writeBuffer;
+	CircularBuffer writeBuffer; // the server writes a response to the client
 	Request request;
 	Response response;
 	unsigned long lastActivity;
 	unsigned long requestStart;
-	bool drain;
-	bool shouldClose;
-	CgiContext cgi;
+    bool drain;
+    bool shouldClose;
+	CgiContext      cgi;
 
 	Client();
 	Client(int fileD, unsigned long tick, size_t maxBodySize);

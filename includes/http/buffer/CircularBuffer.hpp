@@ -22,10 +22,10 @@ class CircularBuffer
 {
   private:
 	std::vector<char> _buffer;
-	size_t _head;
-	size_t _tail;
-	size_t _size;
-	size_t _capacity;
+	size_t _head;     // write pos
+	size_t _tail;     // read pos
+	size_t _size;     // numbber of bytes in the buffer
+	size_t _capacity; // max size of the buffer
   public:
 	CircularBuffer(size_t cap);
 	bool is_Empty();

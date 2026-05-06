@@ -12,30 +12,28 @@
 
 #include <utils/http/mime.hpp>
 
-bool	sanitize_Filename(std::string &filename)
+bool sanitize_Filename(std::string &filename)
 {
-	char				c;
-	static char const	*invalid[] = {"php", "py", "sh", "cgi", NULL};
-
-	std::string sanitized;
-	for (size_t i = 0; i < filename.size(); i++)
-	{
-		c = filename[i];
-		if (std::isalnum(c) || c == '_' || c == '.')
-			sanitized += c;
-	}
+    std::string sanitized;
+    for (size_t i = 0; i < filename.size(); i++)
+    {
+        char c = filename[i];
+        if (std::isalnum(c) || c == '_' || c == '.')
+            sanitized += c;
+    }
 	if (sanitized.empty())
-		return (true);
-	if (sanitized == "." || sanitized == ".." || sanitized[0] == '.')
-		return (false);
-	std::string extension = get_Extension(sanitized);
+		return true;
+    if (sanitized == "." || sanitized == ".." || sanitized[0] == '.')
+        return false;
+    std::string extension = get_Extension(sanitized);
+	static char const *invalid[] = {"php", "py", "sh", "cgi", NULL};
 	transform(extension);
 	for (size_t i = 0; invalid[i]; i++)
 	{
 		if (extension == invalid[i])
-			return (false);
+			return false;
 	}
-	return (true);
+	return true;        
 }
 
 std::string get_Extension(std::string file)
@@ -55,12 +53,11 @@ std::string get_Extension(std::string file)
 		}
 	}
 	if (pos != -1)
-		extension = file.substr(pos + 1);
+		extension = file.substr(pos + 1); //(pos + 1)
 	return (extension);
 }
 
-std::string get_MimeType(const std::string &extension,
-	const std::map<std::string, std::string> &mimeTypes)
+std::string get_MimeType(const std::string &extension, const std::map<std::string, std::string> &mimeTypes)
 {
 	std::map<std::string,
 		std::string>::const_iterator it = mimeTypes.find(extension);
@@ -69,15 +66,15 @@ std::string get_MimeType(const std::string &extension,
 	return ("application/octet-stream");
 }
 
-bool	is_acceptableExtension(const std::string &path, Location &location)
+bool is_acceptableExtension(const std::string &path, Location &location)
 {
-	std::string extension = get_Extension(path);
+    std::string extension = get_Extension(path);
 	size_t i = 0;
 	while (i < location.cgiExt.size())
 	{
-		if (extension == location.cgiExt[i])
-			return (true);
+		if (extension ==  location.cgiExt[i])
+			return true;
 		i++;
 	}
-	return (false);
+	return false;	
 }
