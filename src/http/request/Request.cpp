@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/05/04 22:28:48 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/06 03:10:18 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,14 @@
 Request::Request() : _state(READING_HEADER), _contentLength(0), _statusCode(0),
 	_maxBodySize(1024 * 1024), _validRequest(false), _buffer(MAX_HEADER_SIZE
 	+ _maxBodySize)
+{
+}
+
+Request::Request(size_t maxBodySize) : _state(READING_HEADER),
+    _contentLength(0), _statusCode(0),
+    _maxBodySize(maxBodySize),
+    _validRequest(false),
+    _buffer(MAX_HEADER_SIZE + maxBodySize)
 {
 }
 

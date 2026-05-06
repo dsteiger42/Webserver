@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/05/04 23:32:32 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/06 03:09:39 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,8 +51,8 @@ class Request
 	CircularBuffer _buffer;
 	
   public:
-	void set_MaxBodySize(size_t max);
- 	Request();
+	Request();
+	Request(size_t maxBodySize);
 	const std::string &get_Method() const;
 	const std::string &get_Path() const;
 	const std::string &get_Version() const;
@@ -77,6 +77,7 @@ class Request
 	void parse_Header(const std::string &headerStr);
 	void advanceParsing();
 	void fill_Buffer(const std::string &request, size_t pos);
+	void set_MaxBodySize(size_t max);
 	std::string get_Leftover();
 };
 

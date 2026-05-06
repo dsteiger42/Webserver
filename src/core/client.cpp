@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/20 03:08:45 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/06 03:11:25 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,6 @@ Client::Client() : fd(-1), writeBuffer(4096), request(), response(), drain(false
 {
 }
 
-Client::Client(int fileD, unsigned long tick) : fd(fileD), writeBuffer(4096), request(), response(), lastActivity(tick), requestStart(tick), drain(false), shouldClose(false)
+Client::Client(int fileD, unsigned long tick, size_t maxBodySize) : fd(fileD), writeBuffer(4096), request(maxBodySize), response(), lastActivity(tick), requestStart(tick), drain(false), shouldClose(false)
 {
 }

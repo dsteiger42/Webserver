@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 00:54:23 by rafael            #+#    #+#             */
-/*   Updated: 2026/05/05 01:54:06 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/05 18:02:34 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,8 @@ bool	parse_ServerBlock(const std::vector<std::string> &tokens, size_t &i,
 	{
 		if (tokens[i] == "listen" && i + 2 < tokens.size())
 		{
+			if (!is_Number(tokens[i + 1]))
+				return false;
 			sc.config.listen = std::atoi(tokens[i + 1].c_str());
 			if (sc.config.listen < 1 || sc.config.listen > 65535)
 				return (false);
@@ -43,6 +45,8 @@ bool	parse_ServerBlock(const std::vector<std::string> &tokens, size_t &i,
 		}
 		else if (tokens[i] == "client_max_body_size" && i + 2 < tokens.size())
 		{
+			if (!is_Number(tokens[i + 1]))
+				return false;
 			sc.config.client_max_body_size = std::atoi(tokens[i + 1].c_str());
 			if (sc.config.client_max_body_size > INT_MAX)
 				return (false);
