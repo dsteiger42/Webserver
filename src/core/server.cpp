@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/05/05 18:12:49 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/06 03:12:21 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -122,7 +122,8 @@ int Server::accept_NewClient(std::vector<pollfd> &fds, unsigned long tick)
 	poll.fd = client_fd;
 	poll.events = POLLIN;
 	fds.push_back(poll);
-	_allClients[client_fd] = Client(client_fd, tick);
+	size_t maxBodySize = _router.get_Config().config.client_max_body_size;
+	_allClients[client_fd] = Client(client_fd, tick, maxBodySize);
 	maxBody = _router.get_Config().config.client_max_body_size;
 	_allClients[client_fd].request.set_MaxBodySize(maxBody);
 	return (client_fd);
