@@ -12,8 +12,11 @@
 
 #include <config/parser/parser.hpp>
 
-bool	parse_ServerBlock(const std::vector<std::string> &tokens, size_t &i, ServerConfig &sc)
+bool	parse_ServerBlock(const std::vector<std::string> &tokens, size_t &i,
+		ServerConfig &sc)
 {
+			Location loc;
+
 	while (i < tokens.size() && tokens[i] != "}")
 	{
 		if (tokens[i] == "listen" && i + 2 < tokens.size())
@@ -22,8 +25,8 @@ bool	parse_ServerBlock(const std::vector<std::string> &tokens, size_t &i, Server
 				return false;
 			sc.config.listen = std::atoi(tokens[i + 1].c_str());
 			if (sc.config.listen < 1 || sc.config.listen > 65535)
-				return false; //invalid ports
-			i += 3; // skip "listen", value, ";"
+				return (false);
+			i += 3;
 		}
 		else if (tokens[i] == "server_name" && i + 2 < tokens.size())
 		{
@@ -46,32 +49,33 @@ bool	parse_ServerBlock(const std::vector<std::string> &tokens, size_t &i, Server
 				return false;
 			sc.config.client_max_body_size = std::atoi(tokens[i + 1].c_str());
 			if (sc.config.client_max_body_size > INT_MAX)
-				return false;
+				return (false);
 			i += 3;
 		}
 		else if (tokens[i] == "error_page" && i + 2 < tokens.size())
 		{
 			i++;
 			if (!parse_ErrorPage(tokens, i, sc.errorPages))
-				return false;
+				return (false);
 		}
-		else if (tokens[i] == "mime_types" && i + 1 < tokens.size() && tokens[i + 1] == "{")
+		else if (tokens[i] == "mime_types" && i + 1 < tokens.size() && tokens[i
+			+ 1] == "{")
 		{
-			if (!parse_MimeTypes(sc.mimeTypes, i, tokens)) // make sure this advances i past "}"
-				return false;
+			if (!parse_MimeTypes(sc.mimeTypes, i, tokens))
+				return (false);
 		}
-		else if (tokens[i] == "location" && i + 2 < tokens.size() && tokens[i + 2] == "{")
+		else if (tokens[i] == "location" && i + 2 < tokens.size() && tokens[i
+			+ 2] == "{")
 		{
-			Location loc;
 			if (!parse_Location(loc, i, tokens))
-				return false; // make sure this advances i past "}"
+				return (false);
 			sc.location.push_back(loc);
 		}
 		else
 			i++;
 	}
-	i++; // skip the closing "}"
+	i++;
 	if (sc.location.empty())
-        return false;
-	return true;
+		return (false);
+	return (true);
 }
