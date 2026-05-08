@@ -6,21 +6,24 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 00:54:23 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/23 01:29:05 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/06 19:01:39 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <config/parser/parser.hpp>
 
-void	parse_ServerBlock(const std::vector<std::string> &tokens, size_t &i, ServerConfig &sc)
+bool	parse_ServerBlock(const std::vector<std::string> &tokens, size_t &i, ServerConfig &sc)
 {
 	while (i < tokens.size() && tokens[i] != "}")
 	{
 		if (tokens[i] == "listen" && i + 2 < tokens.size())
 		{
-			//adicionar verificacao de portas validas -> 1-65535
+			if (!is_Number(tokens[i + 1]))
+				return false;
 			sc.config.listen = std::atoi(tokens[i + 1].c_str());
-			i += 3; // skip "listen", value, ";"
+			if (sc.config.listen < 1 || sc.config.listen > 65535)
+				return false;
+			i += 3;
 		}
 		else if (tokens[i] == "server_name" && i + 2 < tokens.size())
 		{
@@ -39,28 +42,36 @@ void	parse_ServerBlock(const std::vector<std::string> &tokens, size_t &i, Server
 		}
 		else if (tokens[i] == "client_max_body_size" && i + 2 < tokens.size())
 		{
+			if (!is_Number(tokens[i + 1]))
+				return false;
 			sc.config.client_max_body_size = std::atoi(tokens[i + 1].c_str());
 			if (sc.config.client_max_body_size > INT_MAX)
-				return ;
+				return false;
 			i += 3;
 		}
 		else if (tokens[i] == "error_page" && i + 2 < tokens.size())
 		{
 			i++;
-			parse_ErrorPage(tokens, i, sc.errorPages);
+			if (!parse_ErrorPage(tokens, i, sc.errorPages))
+				return false;
 		}
 		else if (tokens[i] == "mime_types" && i + 1 < tokens.size() && tokens[i + 1] == "{")
 		{
-			parse_MimeTypes(sc.mimeTypes, i, tokens); // make sure this advances i past "}"
+			if (!parse_MimeTypes(sc.mimeTypes, i, tokens))
+				return false;
 		}
 		else if (tokens[i] == "location" && i + 2 < tokens.size() && tokens[i + 2] == "{")
 		{
 			Location loc;
-			parse_Location(loc, i, tokens); // make sure this advances i past "}"
+			if (!parse_Location(loc, i, tokens))
+				return false;
 			sc.location.push_back(loc);
 		}
 		else
 			i++;
 	}
-	i++; // skip the closing "}"
+	i++;
+	if (sc.location.empty())
+        return false;
+	return true;
 }

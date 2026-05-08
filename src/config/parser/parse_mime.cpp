@@ -6,17 +6,17 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:01:35 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/10 15:20:08 by rafael           ###   ########.fr       */
+/*   Updated: 2026/04/29 19:28:33 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <config/parser/parser.hpp>
 
-void	parse_MimeTypes(MimeTypes &MimeTypes, size_t &i, const std::vector<std::string> &tokens)
+bool	parse_MimeTypes(MimeTypes &MimeTypes, size_t &i, const std::vector<std::string> &tokens)
 {
 	i++;
 	if (tokens[i] != "{")
-		throw std::runtime_error("Expected '{'");
+		return false;
 	i++;
 	while (i < tokens.size() && tokens[i] != "}")
 	{
@@ -31,4 +31,5 @@ void	parse_MimeTypes(MimeTypes &MimeTypes, size_t &i, const std::vector<std::str
 		i++;
 	}
 	i++;
+	return true;
 }

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   parser.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
+/*   By: dsteiger <dsteiger@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/16 15:18:48 by dsteiger          #+#    #+#             */
-/*   Updated: 2026/04/15 02:09:53 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/08 14:39:37 by dsteiger         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,14 +30,14 @@ struct	ServerConfig
 
 struct	Parser
 {
-	std::vector<ServerConfig> servers;
+	std::vector<ServerConfig> serverBlocks;
 	Parser();
 };
 
 bool	parse_all(const std::string &filename, Parser &parse);
-void	parse_ServerBlock(const std::vector<std::string> &tokens, size_t &i, ServerConfig &sc);
-void	parse_ErrorPage(const std::vector<std::string> &tokens, size_t &i, ErrorPages &errorPages);
-void	parse_MimeTypes(MimeTypes &MimeTypes, size_t &i, const std::vector<std::string> &tokens);
-void	parse_Location(Location &Location, size_t &i, const std::vector<std::string> &tokens);
+bool	parse_ServerBlock(const std::vector<std::string> &tokens, size_t &i, ServerConfig &sc);
+bool	parse_ErrorPage(const std::vector<std::string> &tokens, size_t &i, ErrorPages &errorPages);
+bool	parse_MimeTypes(MimeTypes &MimeTypes, size_t &i, const std::vector<std::string> &tokens);
+bool	parse_Location(Location &Location, size_t &i, const std::vector<std::string> &tokens);
 
 #endif

@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   path_utils.cpp                                     :+:      :+:    :+:   */
+/*   CircularBuffer.hpp                                 :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/03/24 02:59:09 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/06 18:59:09 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,10 +22,10 @@ class CircularBuffer
 {
   private:
 	std::vector<char> _buffer;
-	size_t _head;     // write pos
-	size_t _tail;     // read pos
-	size_t _size;     // numbber of bytes in the buffer
-	size_t _capacity; // max size of the buffer
+	size_t _head;
+	size_t _tail;
+	size_t _size;
+	size_t _capacity;
   public:
 	CircularBuffer(size_t cap);
 	bool is_Empty();

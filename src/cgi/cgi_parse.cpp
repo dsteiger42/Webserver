@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:18:09 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/20 03:13:08 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/06 19:01:13 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,6 +44,8 @@ CGI::CGIResult CGI::parse_CGIOutput(const std::string &output)
 		if (line.empty())
 			break ;
 		colon = line.find(':');
+		if (colon == std::string::npos)
+    		continue;
 		std::string key = line.substr(0, colon);
 		std::string value = line.substr(colon + 1);
 		while (!value.empty() && (value[0] == ' ' || value[0] == '\t'))
@@ -58,9 +60,7 @@ CGI::CGIResult CGI::parse_CGIOutput(const std::string &output)
 		}
 		if (key == "Location")
 		{
-			result.headers[key] = value;
-			//se cgi nao enviou o status troca para 302
-			if (result.status == 200)
+			result.headers[key] = value;			if (result.status == 200)
 				result.status = 302;
 		}
 	}
@@ -80,7 +80,7 @@ bool CGI::is_ValidCGIOutput(const std::string &output)
     }
 	std::string headers = output.substr(0, pos);
 	transform(headers);
-	if (headers.find("content-type:") == std::string::npos) //noralizar letra grande e pequena
+	if (headers.find("content-type:") == std::string::npos)
 		return false;
 	return true;
 }

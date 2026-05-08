@@ -1,21 +1,39 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   client.cpp                                         :+:      :+:    :+:   */
+/*   CgiContext.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/05/06 03:11:25 by rafael           ###   ########.fr       */
+/*   Created: 2026/04/25 00:00:00 by rafael            #+#    #+#             */
+/*   Updated: 2026/04/25 05:33:10 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <core/client.hpp>
+#include <http/cgi/CgiContext.hpp>
+#include <unistd.h>
 
-Client::Client() : fd(-1), writeBuffer(4096), request(), response(), drain(false), shouldClose(false)
+CgiContext::CgiContext() : active(false), pid(-1), inFd(-1), outFd(-1),
+	bodyOffset(0), startTime(0)
 {
 }
 
-Client::Client(int fileD, unsigned long tick, size_t maxBodySize) : fd(fileD), writeBuffer(4096), request(maxBodySize), response(), lastActivity(tick), requestStart(tick), drain(false), shouldClose(false)
+void CgiContext::reset()
 {
+	if (inFd != -1)
+	{
+		close(inFd);
+		inFd = -1;
+	}
+	if (outFd != -1)
+	{
+		close(outFd);
+		outFd = -1;
+	}
+	active = false;
+	pid = -1;
+	bodyOffset = 0;
+	bodyToSend.clear();
+	output.clear();
+	startTime = 0;
 }

@@ -3,17 +3,25 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dsteiger <dsteiger@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/21 16:41:07 by dsteiger         ###   ########.fr       */
+/*   Updated: 2026/05/06 19:03:17 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <http/request/Request.hpp>
 
 Request::Request() :  _state(READING_HEADER),
-	_contentLength(0), _statusCode(0), _maxBodySize(1024 * 1024) /*1MB */, _validRequest(false), _buffer(MAX_HEADER_SIZE + _maxBodySize)
+	_contentLength(0), _statusCode(0), _maxBodySize(1024 * 1024), _validRequest(false), _buffer(MAX_HEADER_SIZE + _maxBodySize)
+{
+}
+
+Request::Request(size_t maxBodySize) : _state(READING_HEADER),
+    _contentLength(0), _statusCode(0),
+    _maxBodySize(maxBodySize),
+    _validRequest(false),
+    _buffer(MAX_HEADER_SIZE + maxBodySize)
 {
 }
 
@@ -127,12 +135,20 @@ void Request::validate_Request()
 	{
 		_statusCode = 400;
 		_validRequest = false;
+		return ;
+	}
+	if (_version != "HTTP/1.1")
+	{
+		_statusCode = 505;
+		_validRequest = false;
+		return ;
 	}
 	if (_headers.find("content-length") != _headers.end()
 		&& _headers.find("transfer-encoding") != _headers.end())
 	{
 		_statusCode = 400;
 		_validRequest = false;
+		return ;
 	}
 }
 
@@ -222,7 +238,7 @@ bool Request::process_Header()
 
 static bool parseHex(const std::string& str, size_t& result, size_t maxSize)
 {
-	if (str.empty() || str.size() > 8)  // max 0xFFFFFFFF é suficiente
+	if (str.empty() || str.size() > 8)
         return false;
     std::istringstream iss(str);
     iss >> std::hex >> result;
@@ -237,13 +253,10 @@ bool Request::consume_CRLF()
 {
     if (_buffer.get_Size() < 2)
         return false;
-
     char crlf[2];
     _buffer.peek(crlf, 2);
-
     if (crlf[0] != '\r' || crlf[1] != '\n')
         return false;
-
     _buffer.consume(2);
     return true;
 }
@@ -263,54 +276,64 @@ void Request::appendToBody(size_t size)
 
 bool Request::process_Chunked()
 {
-	while (true)
-	{
-		size_t pos = _buffer.find("\r\n");
-		if (pos == std::string::npos)
-			return false;
-		std::string sizeline(pos , '\0');
-		_buffer.peek(&sizeline[0], pos);
-		size_t semicolon = sizeline.find(";");
-		if (semicolon != std::string::npos)
-			sizeline = sizeline.substr(0, semicolon);
-		size_t chunkSize;
-		if (!parseHex(sizeline, chunkSize, _maxBodySize))
-		{
-			_statusCode = 400;
-			_validRequest = false;
-			return false;
-		}
-		if (chunkSize == 0)
-		{
-			if (_buffer.get_Size() < pos + 4)
-                return false;
-			_buffer.consume(pos + 2);
-			if (!consume_CRLF())
-			{
-				_statusCode = 400;
-                _validRequest = false;
-				return false;
-			}
-			_state = DONE;
-			_validRequest = true; 
-			return true;
-		}
-		size_t totalNeeded = pos + 2 + chunkSize + 2;
+    while (true)
+    {
+        size_t pos = _buffer.find("\r\n");
+        if (pos == std::string::npos)
+            return false;
+        std::string sizeline(pos, '\0');
+        _buffer.peek(&sizeline[0], pos);
+        size_t semicolon = sizeline.find(";");
+        if (semicolon != std::string::npos)
+            sizeline = sizeline.substr(0, semicolon);
+        size_t start = sizeline.find_first_not_of(" \t");
+        size_t end   = sizeline.find_last_not_of(" \t");
+        if (start == std::string::npos)
+        {
+            _statusCode = 400;
+            _validRequest = false;
+            return false;
+        }
+        sizeline = sizeline.substr(start, end - start + 1);
+        size_t chunkSize;
+        if (!parseHex(sizeline, chunkSize, _maxBodySize))
+        {
+            _statusCode = 400;
+            _validRequest = false;
+            return false;
+        }
+        if (chunkSize == 0)
+        {
+            _buffer.consume(pos + 2);
+            while (true)
+            {
+                size_t trailerPos = _buffer.find("\r\n");
+                if (trailerPos == std::string::npos)
+                    return false;
+                _buffer.consume(trailerPos + 2);
+                if (trailerPos == 0)
+                {
+                    _state = DONE;
+                    _validRequest = true;
+                    return true;
+                }
+            }
+        }
+        size_t totalNeeded = pos + 2 + chunkSize + 2;
         if (_buffer.get_Size() < totalNeeded)
             return false;
-		_buffer.consume(pos + 2);
-		appendToBody(chunkSize);
-		if (_statusCode != 0)
-    		return false;
-		if (!consume_CRLF())
-		{
-			_statusCode = 400;
-			_validRequest = false;
-			return false;   
-		}
-	}
+        _buffer.consume(pos + 2);
+        appendToBody(chunkSize);
+        if (_statusCode != 0)
+            return false;
+        if (!consume_CRLF())
+        {
+            _statusCode = 400;
+            _validRequest = false;
+            return false;
+        }
+    }
 }
-
 bool Request::process_Body()
 {
     size_t  remaining;
@@ -325,25 +348,16 @@ bool Request::process_Body()
 	    return (true);
     }
     available = _buffer.get_Size();
-    /*
-    ** Lê exactamente min(remaining, available) bytes.
-    ** Se available > remaining, os bytes extra pertencem ao próximo
-    ** request (keep-alive) ou são ruído do pipe — ignoramos, não
-    ** rejeitamos. O RFC HTTP manda ler Content-Length bytes e parar.
-    ** Se available < remaining, ainda estamos a espera de mais dados
-    ** — retornamos false para esperar o próximo recv().
-    */
     toRead = std::min(remaining, available);
     if (toRead == 0)
 	{	
         return (false);
 	}
-	if (_maxBodySize > 0 && _body.size() + toRead >= _maxBodySize)
+	if (_maxBodySize > 0 && _body.size() + toRead > _maxBodySize)
     {
         _statusCode = 413;
         _validRequest = false;
         _state = DONE;
-        // Consumir os dados do buffer para não ficar preso
         _buffer.consume(available);
         return false;
     }
@@ -401,6 +415,7 @@ void Request::parse_Headers(std::string &line, std::istringstream &split)
 			break ;
 		if (line.size() > MAX_HEADER_SIZE)
 		{
+			_statusCode = 431;
 			_validRequest = false;
 			return ;
 		}

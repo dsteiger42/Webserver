@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/15 21:52:02 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/06 18:44:38 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,14 +32,14 @@ enum	State
 };
 
 
-# define MAX_HEADER_SIZE 8192
+# define MAX_HEADER_SIZE 4096
 
 class Request
 {
   private:
-	std::string _method;  // GET, POST, DELETE
-	std::string _path;    // /index.html
-	std::string _version; // HTTP/1.1
+	std::string _method;
+	std::string _path;
+	std::string _version;
 	std::string _body;
 	std::string _query;
 	std::map<std::string, std::string> _headers;
@@ -51,8 +51,8 @@ class Request
 	CircularBuffer _buffer;
 	
   public:
-	void set_MaxBodySize(size_t max);
- 	Request();
+	Request();
+	Request(size_t maxBodySize);
 	const std::string &get_Method() const;
 	const std::string &get_Path() const;
 	const std::string &get_Version() const;
@@ -77,7 +77,8 @@ class Request
 	void parse_Header(const std::string &headerStr);
 	void advanceParsing();
 	void fill_Buffer(const std::string &request, size_t pos);
-    std::string get_Leftover();
+	void set_MaxBodySize(size_t max);
+	std::string get_Leftover();
 };
 
 #endif

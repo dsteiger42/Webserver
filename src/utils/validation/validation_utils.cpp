@@ -6,24 +6,28 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:32:35 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/15 02:57:31 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/06 18:43:52 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <utils/utils.hpp>
 
-bool	is_Number(const std::string &string)
+bool is_Number(const std::string &s)
 {
-    if (string.empty())
+    if (s.empty())
         return false;
-    for (size_t i = 0; i < string.size(); i++)
+    size_t i = 0;
+    while (i < s.size() && is_Space(s[i]))
+        i++;
+    if (i < s.size() && s[i] == '+')
+        i++;
+    if (i >= s.size())
+        return false;
+    while (i < s.size())
     {
-        while(i < string.size() &&  is_Space(string[i]))
-            i++;
-        if (i < string.size() && string[i] == '+')
-            i++;
-        if (!std::isdigit(string[i]))
+        if (!std::isdigit(static_cast<unsigned char>(s[i])))
             return false;
+        i++;
     }
     return true;
 }
