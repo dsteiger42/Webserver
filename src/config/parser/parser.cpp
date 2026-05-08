@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   parser.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
+/*   By: dsteiger <dsteiger@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/16 15:17:16 by dsteiger          #+#    #+#             */
-/*   Updated: 2026/05/06 19:01:59 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/08 14:41:25 by dsteiger         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ Location::Location() : path(""), root(""), upload_store(""), autoIndex(false), c
 {
 }
 
-Parser::Parser() : servers()
+Parser::Parser() : serverBlocks()
 {
 }
 
@@ -54,7 +54,7 @@ bool	parse_all(const std::string &filename, Parser &parser)
 			ServerConfig sc;
 			if (!parse_ServerBlock(tokens, i, sc))
 				return false;
-			parser.servers.push_back(sc);
+			parser.serverBlocks.push_back(sc);
 		}
 		else
 			i++;
