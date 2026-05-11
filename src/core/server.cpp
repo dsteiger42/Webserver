@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dsteiger <dsteiger@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/05/08 14:59:55 by dsteiger         ###   ########.fr       */
+/*   Updated: 2026/05/11 16:24:26 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -429,7 +429,7 @@ void Server::handle_Clients(std::vector<Server> &servers)
 			{
 				if (revents & POLLOUT)
 					dispatch_CgiWrite(servers, fds, i);
-				if (i < fds.size() && fds[i].fd == fd && (revents & POLLIN))
+				if (i < fds.size() && fds[i].fd == fd && (revents & (POLLIN | POLLHUP)))
 					dispatch_CgiRead(servers, fds, i);
 				continue ;
 			}

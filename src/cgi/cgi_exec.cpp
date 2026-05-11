@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:18:06 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/30 03:02:43 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/11 16:23:45 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -151,6 +151,13 @@ Response CGI::finish(CgiContext &ctx, int waitStatus)
 
 	if (!WIFEXITED(waitStatus) || WEXITSTATUS(waitStatus) != 0)
 		return (router->make_ErrorCode(500));
+	if (ctx.output.empty())
+	{
+		res.set_StatusCode(200);
+		res.set_Header("Content-Type", "text/plain");
+		res.set_Body("");
+		return res;
+	}
 	if (!is_ValidCGIOutput(ctx.output))
 		return (router->make_ErrorCode(502));
 	result = parse_CGIOutput(ctx.output);
