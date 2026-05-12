@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/27 03:40:51 by rafael            #+#    #+#             */
-/*   Updated: 2026/05/06 03:35:10 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/12 22:01:11 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,10 +85,7 @@ void Server::process_CgiWrite(std::vector<pollfd> &fds, size_t i)
     {
         ctx.bodyOffset += (size_t)written;
         if (ctx.bodyOffset >= ctx.bodyToSend.size())
-        {
-            remove_PipeFd(fds, pipeFd, true);
-            ctx.inFd = -1;
-        }
+            remove_PipeFd(fds, pipeFd, false);
         return;
     }
     remove_PipeFd(fds, pipeFd, true);
