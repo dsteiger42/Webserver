@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/05/06 19:04:15 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/14 03:04:07 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -200,12 +200,29 @@ Response Router::handle_GET(const Request &request, Location &location)
 		return (make_ErrorCode(405));
 	if (!build_FinalPath(_path))
 		return (make_ErrorCode(403));
-	_absolutePath = _documentRoot + _path;
+	std::string effectivePath = _path;
+    if (!location.root.empty())
+    {
+        std::string locPath = location.path;
+        if (!locPath.empty() && locPath[locPath.size() - 1] != '/')
+            locPath += '/';
+        if (effectivePath.compare(0, locPath.size(), locPath) == 0)
+            effectivePath = effectivePath.substr(locPath.size() - 1);
+        if (effectivePath.empty())
+            effectivePath = "/";
+    }
+    _absolutePath = _documentRoot + effectivePath;
 	if (!is_InsideRoot(_absolutePath, _documentRoot))
 		return (make_ErrorCode(403));
+	if (is_Directory(_absolutePath) && _path[_path.size() - 1] != '/')
+    	return redirect(301, _path + "/");
 	if (is_Directory(_absolutePath))
 	{
-		std::string index = _absolutePath + _config.config.index;
+		std::string index;
+		if (!location.index.empty())
+			index = _absolutePath + location.index;
+		else
+			index = _absolutePath + _config.config.index;
 		if (check_File(index))
 			_absolutePath = index;
 		else if (location.autoIndex)
@@ -242,6 +259,17 @@ Response Router::handle_DELETE(const Request &request, Location &location)
 		return make_ErrorCode(405);
 	if (!build_FinalPath(_path))
 		return make_ErrorCode(403);
+	std::string effectivePath = _path;
+    if (!location.root.empty())
+    {
+        std::string locPath = location.path;
+        if (!locPath.empty() && locPath[locPath.size() - 1] != '/')
+            locPath += '/';
+        if (effectivePath.compare(0, locPath.size(), locPath) == 0)
+            effectivePath = effectivePath.substr(locPath.size() - 1);
+        if (effectivePath.empty())
+            effectivePath = "/";
+    }
 	_absolutePath = _documentRoot + _path;
 	if (!is_InsideRoot(_absolutePath, _documentRoot))
 		return make_ErrorCode(403);
@@ -362,31 +390,37 @@ Response Router::handle_Request(const Request &request)
 	return make_ErrorCode(405);
 }
 
+
 Location &Router::matchLocation(const std::string &path)
 {
-	Location *bestMatch = NULL;
-	size_t bestLength = 0;
+    Location *bestMatch = NULL;
+    size_t bestLength = 0;
 
-	for (size_t i = 0; i < _config.location.size(); i++)
-	{
-		Location &loc = _config.location[i];
-		if (path.compare(0, loc.path.size(), loc.path) == 0)
-		{
-			if (loc.path.size() > bestLength)
-			{
-				bestLength = loc.path.size();
-				bestMatch = &loc;
-			}
-		}
-	}
-	if (!bestMatch)
-	{
-		for (size_t i = 0; i < _config.location.size(); i++)
-		{
-			if (_config.location[i].path == "/")
-				return _config.location[i];
-		}
-		return _config.location[0];
-	}
-	return (*bestMatch);
+    for (size_t i = 0; i < _config.location.size(); i++)
+    {
+        Location &loc = _config.location[i];
+        std::string locPath = loc.path;
+        std::string locPathNoSlash = locPath;
+        if (locPathNoSlash.size() > 1 && locPathNoSlash[locPathNoSlash.size() - 1] == '/')
+            locPathNoSlash = locPathNoSlash.substr(0, locPathNoSlash.size() - 1);
+        if (path.compare(0, locPath.size(), locPath) == 0 ||
+            path == locPathNoSlash)
+        {
+            if (locPath.size() > bestLength)
+            {
+                bestLength = locPath.size();
+                bestMatch = &loc;
+            }
+        }
+    }
+    if (!bestMatch)
+    {
+        for (size_t i = 0; i < _config.location.size(); i++)
+        {
+            if (_config.location[i].path == "/")
+                return _config.location[i];
+        }
+        return _config.location[0];
+    }
+    return (*bestMatch);
 }

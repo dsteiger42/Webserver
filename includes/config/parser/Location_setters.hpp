@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/23 17:33:23 by raamorim          #+#    #+#             */
-/*   Updated: 2026/05/05 01:36:20 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/13 20:30:29 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 
 #include <config/model/types.hpp>
 
+bool	set_Index(const std::string &value, Location &location);
 bool	set_Autoindex(const std::string &value, Location &location);
 void	set_AllowedMethods(const std::vector<std::string> &tokens, size_t &i,
 	Location &location);

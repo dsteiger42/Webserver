@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/23 01:32:49 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/13 20:30:49 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,6 +46,7 @@ struct		MimeTypes
 
 struct		Location
 {
+	std::string index;
 	std::string path;
 	std::string root;
 	std::string upload_store;
