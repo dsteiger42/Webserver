@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/05/13 20:30:49 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/14 04:41:38 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,6 +59,7 @@ struct		Location
 	bool	has_tryFiles;
 	size_t	redirectCode;
 	std::string redirectUrl;
+	size_t client_max_body_size;
 	Location();
 };
 

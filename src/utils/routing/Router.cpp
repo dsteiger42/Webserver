@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/05/14 04:24:14 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/14 05:42:04 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -179,16 +179,25 @@ Response Router::redirect(int redirectCode, std::string redirectUrl)
 
 bool Router::is_CgiRequest(const Request &request)
 {
-	size_t	pos;
-
-	if (!request.get_validRequest())
-		return (false);
-	std::string path = request.get_Path();
-	pos = path.find('?');
-	if (pos != std::string::npos)
-		path = path.substr(0, pos);
-	Location &loc = matchLocation(path);
-	return (loc.cgiPass);
+    if (!request.get_validRequest())
+        return (false);
+    std::string path = request.get_Path();
+    size_t pos = path.find('?');
+    if (pos != std::string::npos)
+        path = path.substr(0, pos);
+    Location &loc = matchLocation(path);
+    if (!loc.cgiPass)
+        return (false);
+    size_t dot = path.rfind('.');
+    if (dot == std::string::npos)
+        return (false);
+    std::string ext = path.substr(dot);
+    for (size_t i = 0; i < loc.cgiExt.size(); i++)
+    {
+        if (loc.cgiExt[i] == ext)
+            return (true);
+    }
+    return (false);
 }
 
 Response Router::handle_GET(const Request &request, Location &location)
@@ -294,7 +303,10 @@ Response Router::handle_POST(const Request &request, Location &location)
 	ssize_t	n;
 
 	Response response(_config.errorPages);
-	maxSize = _config.config.client_max_body_size;
+	if (location.client_max_body_size > 0)
+		maxSize = location.client_max_body_size;
+	else
+		maxSize = _config.config.client_max_body_size;
 	if (maxSize > 0 && request.get_Body().size() > maxSize)
 		return make_ErrorCode(413);
 	std::string uploadDir;
