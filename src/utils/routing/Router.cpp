@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/05/14 03:04:07 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/14 04:24:14 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -236,7 +236,7 @@ Response Router::handle_GET(const Request &request, Location &location)
 			return response;
 		}
 		else
-			return make_ErrorCode(403);
+			return make_ErrorCode(404);
 	}
 	if (!check_File(_absolutePath))
 		return make_ErrorCode(404);
