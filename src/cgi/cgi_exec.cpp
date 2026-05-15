@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:18:06 by rafael            #+#    #+#             */
-/*   Updated: 2026/05/11 16:23:45 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/15 05:19:31 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,7 +89,12 @@ int CGI::launch(const Request &req, Location &location, CgiContext &ctx, unsigne
 	std::string scriptPath = resolve_ScriptPath(req.get_Path());
 	if (!is_acceptableExtension(req.get_Path(), location))
 		return (403);
-	if (!is_InsideRoot(scriptPath, router->get_Config().config.root))
+	std::string DocumentRoot;
+	if (location.root.empty())
+		DocumentRoot = router->get_Config().config.root;
+	else
+		DocumentRoot = location.root;
+	if (!is_InsideRoot(scriptPath, DocumentRoot))
 		return (403);
 	if (!check_File(scriptPath))
 		return (404);

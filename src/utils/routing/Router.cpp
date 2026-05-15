@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/05/15 02:05:37 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/15 05:18:56 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -191,7 +191,7 @@ bool Router::is_CgiRequest(const Request &request)
     size_t dot = path.rfind('.');
     if (dot == std::string::npos)
         return (false);
-    std::string ext = path.substr(dot);
+    std::string ext = path.substr(dot + 1);
     for (size_t i = 0; i < loc.cgiExt.size(); i++)
     {
         if (loc.cgiExt[i] == ext)
