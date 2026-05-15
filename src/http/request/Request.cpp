@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/05/06 19:03:17 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/15 02:03:22 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -193,7 +193,7 @@ void Request::determine_NextState()
 			transform(value);
 			if (value == "chunked")
 			{
-				_state = READING_CHUNKED;
+				_state = READING_BODY;
 				return ;
 			}
 			_statusCode = 501;
@@ -494,8 +494,8 @@ void Request::advanceParsing()
 			progressed = process_Header();
 		else if (_state == READING_BODY)
 			progressed = process_Body();
-		else if (_state == READING_CHUNKED)
-			progressed = process_Chunked();
+		/* else if (_state == READING_CHUNKED)
+			progressed = process_Chunked(); */
 		else if (_state == DONE)
 			return ;
 	}
