@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:13:49 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/16 14:25:44 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/16 05:26:31 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,6 +44,11 @@ void CGI::build_Environment(const Request &req, const std::string &scriptPath)
     env.push_back("SCRIPT_NAME=" + sanitize_Env(req.get_Path()));
     env.push_back("PATH_INFO=" + sanitize_Env(req.get_Path()));
     env.push_back("PATH_TRANSLATED=" + scriptPath);
+	std::string requestURI = sanitize_Env(req.get_Path());
+	std::string queryString = sanitize_Env(req.get_Query());
+	if (!queryString.empty())
+		requestURI += "?" + queryString;
+	env.push_back("REQUEST_URI=" + requestURI);
     env.push_back("SERVER_PROTOCOL=" + sanitize_Env(req.get_Version()));
     env.push_back("GATEWAY_INTERFACE=CGI/1.1");
     env.push_back("REDIRECT_STATUS=200");
@@ -53,6 +58,7 @@ void CGI::build_Environment(const Request &req, const std::string &scriptPath)
 	env.push_back("SERVER_PORT=" + port.str());
 	env.push_back("HTTP_HOST=" + sanitize_Env(req.get_Header("host")));
 }
+
 
 std::vector<char *> CGI::convert_Env(const std::vector<std::string> &env)
 {

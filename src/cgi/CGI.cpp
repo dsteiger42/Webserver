@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/25 05:33:06 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/16 05:17:45 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,17 +30,35 @@ std::string CGI::resolve_ScriptPath(const std::string &path)
 {
 	std::string baseRoot;
 	Location &loc = router->matchLocation(path);
+
+	std::cerr << "[CGI DEBUG] resolve_ScriptPath: path='" << path << "'" << std::endl;
+	std::cerr << "[CGI DEBUG] resolve_ScriptPath: loc.path='" << loc.path << "'" << std::endl;
+	std::cerr << "[CGI DEBUG] resolve_ScriptPath: loc.root='" << loc.root << "'" << std::endl;
+
 	if (loc.root.empty())
+	{
 		baseRoot = router->get_Config().config.root;
+		std::cerr << "[CGI DEBUG] resolve_ScriptPath: usando server root='"
+		          << baseRoot << "'" << std::endl;
+	}
 	else
+	{
 		baseRoot = loc.root;
+		std::cerr << "[CGI DEBUG] resolve_ScriptPath: usando location root='"
+		          << baseRoot << "'" << std::endl;
+	}
 	std::string relativePath = path.substr(loc.path.size() - 1);
+	std::cerr << "[CGI DEBUG] resolve_ScriptPath: relativePath='"
+	          << relativePath << "'" << std::endl;
 	if (!relativePath.empty() && relativePath[0] == '/')
 		relativePath.erase(0, 1);
 	std::string fullPath = baseRoot;
 	if (!fullPath.empty() && fullPath[fullPath.size() - 1] != '/')
 		fullPath += '/';
-	return (fullPath + relativePath);
+	std::string finalPath = fullPath + relativePath;
+	std::cerr << "[CGI DEBUG] resolve_ScriptPath: finalPath='"
+	          << finalPath << "'" << std::endl;
+	return (finalPath);
 }
 
 std::vector<char *> CGI::build_Arguments(const std::string &scriptPath,
