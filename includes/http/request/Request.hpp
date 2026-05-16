@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/05/15 02:03:32 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/16 06:25:26 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@ enum	State
 {
 	READING_HEADER,
 	READING_BODY,
-	/* READING_CHUNKED, */
+	READING_CHUNKED,
 	DONE
 };
 
