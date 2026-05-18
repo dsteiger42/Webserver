@@ -286,6 +286,8 @@ Response Router::handle_DELETE(const Request &request, Location &location)
 		return make_ErrorCode(409);
 	if (!check_File(_absolutePath))
 		return make_ErrorCode(404);
+	if (location.upload_store.empty())
+		return make_ErrorCode(403);
 	if (std::remove(_absolutePath.c_str()) != 0)
 		return make_ErrorCode(500);
 	response.set_StatusCode(204);
