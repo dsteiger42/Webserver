@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/05/16 06:25:48 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/18 16:22:33 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -118,14 +118,23 @@ void Request::fill_Buffer(const std::string &request, size_t len)
 		if (bytesWritten == 0)
 		{
 			advanceParsing();
+			std::cerr << "aqui6\n";
 			if (_buffer.is_Full())
+			{
+				std::cerr << "aqui7\n";
 				break ;
+			}
+			std::cerr << "aqui8\n";
 			continue ;
 		}
 		written += bytesWritten;
 		advanceParsing();
-		if (!_validRequest && _statusCode != 0)
+		std::cerr << "aqui5\n";
+		/* if (!_validRequest && _statusCode != 0)
+		{
+			std::cerr << "poooo\n";
             return;
+		} */
 	}
 }
 
@@ -290,6 +299,7 @@ bool Request::process_Chunked()
         size_t end   = sizeline.find_last_not_of(" \t");
         if (start == std::string::npos)
         {
+			std::cerr << "aqui4\n";
             _statusCode = 400;
             _validRequest = false;
             return false;
