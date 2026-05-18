@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/05/15 02:01:42 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/18 22:29:29 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -146,7 +146,6 @@ bool Server::receive_FromClient(std::vector<pollfd> &fds, size_t index,
 			return (true);
 		client.lastActivity = tick;
 		std::string chunk(buffer, bytes_received);
-		std::cout << chunk << std::endl;
 		client.request.fill_Buffer(chunk, chunk.size());
 		while (client.request.is_Done() || (!client.request.get_validRequest()
 				&& client.request.get_statusCode() != 0))
@@ -160,7 +159,6 @@ bool Server::receive_FromClient(std::vector<pollfd> &fds, size_t index,
 			}
 			client.response = _router.handle_Request(client.request);
 			std::string raw = client.response.serialize();
-			std::cout << "RESPONSE:\n " << raw << std::endl;
 			client.writeBuffer.write(raw.c_str(), raw.size());
 			fds[index].events |= POLLOUT;
 			std::string leftover = client.request.get_Leftover();
