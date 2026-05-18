@@ -85,11 +85,11 @@ void Server::process_CgiWrite(std::vector<pollfd> &fds, size_t i)
     {
         ctx.bodyOffset += (size_t)written;
         if (ctx.bodyOffset >= ctx.bodyToSend.size())
-            remove_PipeFd(fds, pipeFd, false);
-        return;
+        {
+            remove_PipeFd(fds, pipeFd, true);
+            ctx.inFd = -1;
+        }
     }
-    remove_PipeFd(fds, pipeFd, true);
-    ctx.inFd = -1;
 }
 
 

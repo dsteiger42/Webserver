@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/05/18 16:22:33 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/18 22:09:06 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,6 +52,11 @@ const std::string &Request::get_Header(const std::string &key) const
 	if (it != _headers.end())
 		return (it->second);
 	return (empty);
+}
+
+const std::map<std::string, std::string> &Request::get_Headers() const
+{
+	return (this->_headers);
 }
 
 const std::string Request::get_Query() const
@@ -118,23 +123,14 @@ void Request::fill_Buffer(const std::string &request, size_t len)
 		if (bytesWritten == 0)
 		{
 			advanceParsing();
-			std::cerr << "aqui6\n";
 			if (_buffer.is_Full())
-			{
-				std::cerr << "aqui7\n";
 				break ;
-			}
-			std::cerr << "aqui8\n";
 			continue ;
 		}
 		written += bytesWritten;
 		advanceParsing();
-		std::cerr << "aqui5\n";
-		/* if (!_validRequest && _statusCode != 0)
-		{
-			std::cerr << "poooo\n";
+		if (!_validRequest && _statusCode != 0)
             return;
-		} */
 	}
 }
 
@@ -285,65 +281,152 @@ void Request::appendToBody(size_t size)
 
 bool Request::process_Chunked()
 {
+    std::cerr << "[DEBUG] Entering process_Chunked()\n";
+
     while (true)
     {
+        std::cerr << "\n[DEBUG] New loop iteration\n";
+        std::cerr << "[DEBUG] Current buffer size: " << _buffer.get_Size() << "\n";
+
         size_t pos = _buffer.find("\r\n");
+
+        std::cerr << "[DEBUG] Position of CRLF: " << pos << "\n";
+
         if (pos == std::string::npos)
+        {
+            std::cerr << "[DEBUG] CRLF not found yet, waiting for more data\n";
             return false;
+        }
+
         std::string sizeline(pos, '\0');
         _buffer.peek(&sizeline[0], pos);
+
+        std::cerr << "[DEBUG] Raw chunk size line: [" << sizeline << "]\n";
+
         size_t semicolon = sizeline.find(";");
+
         if (semicolon != std::string::npos)
+        {
+            std::cerr << "[DEBUG] Chunk extension detected, trimming after ';'\n";
             sizeline = sizeline.substr(0, semicolon);
+        }
+
         size_t start = sizeline.find_first_not_of(" \t");
         size_t end   = sizeline.find_last_not_of(" \t");
+
+        std::cerr << "[DEBUG] Trim positions -> start: "
+                  << start << ", end: " << end << "\n";
+
         if (start == std::string::npos)
         {
-			std::cerr << "aqui4\n";
+            std::cerr << "[ERROR] Invalid empty chunk size line\n";
+
             _statusCode = 400;
             _validRequest = false;
+
             return false;
         }
+
         sizeline = sizeline.substr(start, end - start + 1);
+
+        std::cerr << "[DEBUG] Trimmed chunk size string: ["
+                  << sizeline << "]\n";
+
         size_t chunkSize;
+
         if (!parseHex(sizeline, chunkSize, _maxBodySize))
         {
+            std::cerr << "[ERROR] Failed to parse hex chunk size\n";
+
             _statusCode = 400;
             _validRequest = false;
+
             return false;
         }
+
+        std::cerr << "[DEBUG] Parsed chunk size: "
+                  << chunkSize << "\n";
+
         if (chunkSize == 0)
         {
+            std::cerr << "[DEBUG] Final chunk detected (size 0)\n";
+
             _buffer.consume(pos + 2);
+
             while (true)
             {
                 size_t trailerPos = _buffer.find("\r\n");
+
+                std::cerr << "[DEBUG] Trailer CRLF position: "
+                          << trailerPos << "\n";
+
                 if (trailerPos == std::string::npos)
+                {
+                    std::cerr << "[DEBUG] Waiting for complete trailer\n";
                     return false;
+                }
+
                 _buffer.consume(trailerPos + 2);
+
+                std::cerr << "[DEBUG] Consumed trailer line\n";
+
                 if (trailerPos == 0)
                 {
+                    std::cerr << "[DEBUG] End of trailers reached\n";
+                    std::cerr << "[DEBUG] Request parsing DONE\n";
+
                     _state = DONE;
                     _validRequest = true;
+
                     return true;
                 }
             }
         }
+
         size_t totalNeeded = pos + 2 + chunkSize + 2;
+
+        std::cerr << "[DEBUG] Total bytes needed for this chunk: "
+                  << totalNeeded << "\n";
+
         if (_buffer.get_Size() < totalNeeded)
-            return false;
-        _buffer.consume(pos + 2);
-        appendToBody(chunkSize);
-        if (_statusCode != 0)
-            return false;
-        if (!consume_CRLF())
         {
-            _statusCode = 400;
-            _validRequest = false;
+            std::cerr << "[DEBUG] Incomplete chunk data, waiting for more\n";
             return false;
         }
+
+        std::cerr << "[DEBUG] Consuming chunk size line\n";
+
+        _buffer.consume(pos + 2);
+
+        std::cerr << "[DEBUG] Appending chunk body of size "
+                  << chunkSize << "\n";
+
+        appendToBody(chunkSize);
+
+        if (_statusCode != 0)
+        {
+            std::cerr << "[ERROR] appendToBody failed, status code: "
+                      << _statusCode << "\n";
+
+            return false;
+        }
+
+        std::cerr << "[DEBUG] Consuming trailing CRLF after chunk data\n";
+
+        if (!consume_CRLF())
+        {
+            std::cerr << "[ERROR] Missing CRLF after chunk data\n";
+
+            _statusCode = 400;
+            _validRequest = false;
+
+            return false;
+        }
+
+        std::cerr << "[DEBUG] Chunk processed successfully\n";
     }
 }
+
 bool Request::process_Body()
 {
     size_t  remaining;

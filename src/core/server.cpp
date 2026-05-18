@@ -191,7 +191,7 @@ SendStatus Server::send_ToClient(std::vector<pollfd> &fds, size_t index)
 	int		fd;
 	int		sent;
 	size_t	available;
-	char	temp[1024];
+	char	temp[65536];
 	size_t	toSend;
 	size_t	copied;
 
@@ -203,7 +203,9 @@ SendStatus Server::send_ToClient(std::vector<pollfd> &fds, size_t index)
 	toSend = std::min(available, sizeof(temp));
 	copied = client.writeBuffer.peek(temp, toSend);
 	sent = send(fd, temp, copied, 0);
-	if (sent <= 0)
+	if (sent < 0)
+		return (SEND_OK);
+	if (sent == 0)
 		return (SEND_ERROR);
 	client.writeBuffer.consume(sent);
 	if (client.writeBuffer.get_Size() == 0)
@@ -433,6 +435,8 @@ void Server::handle_Clients(std::vector<Server> &servers)
 					dispatch_CgiWrite(servers, fds, i);
 				if (i < fds.size() && fds[i].fd == fd && (revents & (POLLIN | POLLHUP)))
 					dispatch_CgiRead(servers, fds, i);
+				if (i < fds.size() && fds[i].fd == fd)
+					++i;
 				continue ;
 			}
 			if (revents & POLLIN)

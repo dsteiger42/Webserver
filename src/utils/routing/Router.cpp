@@ -341,8 +341,6 @@ Response Router::handle_POST(const Request &request, Location &location)
 		return make_ErrorCode(403);
 	if (is_Directory(_absolutePath))
 		return make_ErrorCode(403);
-	if (check_File(_absolutePath))
-		return make_ErrorCode(409);
 	fd = open(_absolutePath.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
 	if (fd == -1)
 		return make_ErrorCode(500);

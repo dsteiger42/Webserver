@@ -18,7 +18,7 @@
 
 
 # define CGI_TIMEOUT_SEC 10
-# define MAX_CGI_OUTPUT  1000000
+# define MAX_CGI_OUTPUT  200000000
 
 struct CgiContext
 {

@@ -56,7 +56,21 @@ void CGI::build_Environment(const Request &req, const std::string &scriptPath)
 	std::stringstream port;
 	port << conf.config.listen;
 	env.push_back("SERVER_PORT=" + port.str());
-	env.push_back("HTTP_HOST=" + sanitize_Env(req.get_Header("host")));
+	const std::map<std::string, std::string> &headers = req.get_Headers();
+	for (std::map<std::string, std::string>::const_iterator it = headers.begin(); it != headers.end(); ++it)
+	{
+		std::string key = it->first;
+		if (key == "content-type" || key == "content-length")
+			continue ;
+		for (size_t i = 0; i < key.size(); i++)
+		{
+			if (key[i] == '-')
+				key[i] = '_';
+			else
+				key[i] = std::toupper(key[i]);
+		}
+		env.push_back("HTTP_" + key + "=" + sanitize_Env(it->second));
+	}
 }
 
 

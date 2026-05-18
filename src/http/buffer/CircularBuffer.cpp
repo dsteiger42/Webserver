@@ -39,6 +39,11 @@ size_t CircularBuffer::write(const char *data, size_t len)
 	size_t	firstChunk;
 	size_t	secondChunk;
 
+	if (_size + len > _capacity)
+	{
+		size_t new_cap = std::max(_capacity * 2, _size + len);
+		grow(new_cap);
+	}
 	if (_size == _capacity)
 		return (0);
 	freeSpace = (_capacity - _size);
@@ -116,4 +121,20 @@ void CircularBuffer::consume(size_t bytes)
 	bytes = std::min(bytes, _size);
 	_tail = (_tail + bytes) % _capacity;
 	_size -= bytes;
+}
+
+void CircularBuffer::grow(size_t new_capacity)
+{
+	if (new_capacity <= _capacity)
+		return;
+	std::vector<char> new_buf(new_capacity);
+	size_t copied = 0;
+	if (_size > 0)
+	{
+		copied = peek(&new_buf[0], _size);
+	}
+	_buffer = new_buf;
+	_tail = 0;
+	_head = copied;
+	_capacity = new_capacity;
 }

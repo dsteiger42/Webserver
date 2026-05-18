@@ -58,6 +58,7 @@ class Request
 	const std::string &get_Version() const;
 	const std::string &get_Body() const;
 	const std::string &get_Header(const std::string &key) const;
+	const std::map<std::string, std::string> &get_Headers() const;
 	const std::string get_Query() const;
 	size_t get_statusCode() const;
 	bool get_validRequest() const;
