@@ -113,7 +113,6 @@ int Server::accept_NewClient(std::vector<pollfd> &fds, unsigned long tick)
 		std::cerr << "Error: accept failed\n";
 		return (-1);
 	}
-	std::cout << "Client connected: fd=" << client_fd << "\n";
 	if (fcntl(client_fd, F_SETFL, O_NONBLOCK) == -1)
 	{
 		std::cerr << "Error: fcntl O_NONBLOCK failed on client fd=" << client_fd << "\n";
@@ -126,6 +125,7 @@ int Server::accept_NewClient(std::vector<pollfd> &fds, unsigned long tick)
 	fds.push_back(poll);
 	maxBodySize = _router.get_Config().config.client_max_body_size;
 	_allClients[client_fd] = Client(client_fd, tick, maxBodySize);
+	std::cout << "\033[32m[Client " << _allClients[client_fd].id << " (FD " << client_fd << ")] Connected\033[0m\n";
 	_allClients[client_fd].request.set_MaxBodySize(maxBodySize);
 	return (client_fd);
 }
@@ -150,14 +150,22 @@ bool Server::receive_FromClient(std::vector<pollfd> &fds, size_t index,
 		while (client.request.is_Done() || (!client.request.get_validRequest()
 				&& client.request.get_statusCode() != 0))
 		{
+			if (!client.request.get_validRequest())
+				std::cout << "\033[31m[Client " << client.id << " (FD " << client_fd << ")] Invalid Request (Status " << client.request.get_statusCode() << ")\033[0m\n";
+			else
+				std::cout << "\033[34m[Client " << client.id << " (FD " << client_fd << ")] Request: " << client.request.get_Method() << " " << client.request.get_Path() << "\033[0m\n";
+
 			if (_router.is_CgiRequest(client.request))
 			{
+				std::cout << "\033[33m[Client " << client.id << " (FD " << client_fd << ")] Launching CGI...\033[0m\n";
 				if (!start_Cgi(client, client.request, fds, tick))
 					fds[index].events |= POLLOUT;
 				client.request.reset();
 				break ;
 			}
 			client.response = _router.handle_Request(client.request);
+			std::cout << "\033[36m[Client " << client.id << " (FD " << client_fd << ")] Response: " << client.response.get_StatusCode() << "\033[0m\n";
+
 			std::string raw = client.response.serialize();
 			client.writeBuffer.write(raw.c_str(), raw.size());
 			fds[index].events |= POLLOUT;
@@ -172,7 +180,7 @@ bool Server::receive_FromClient(std::vector<pollfd> &fds, size_t index,
 	else
 	{
 		if (bytes_received == 0)
-			std::cout << "Client disconnected: fd=" << client_fd << "\n";
+			std::cout << "\033[35m[Client " << client.id << " (FD " << client_fd << ")] Disconnected\033[0m\n";
 		else
 			std::cerr << "Error receiving from client fd=" << client_fd << "\n";
 		if (client.cgi.active)

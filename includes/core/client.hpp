@@ -23,6 +23,7 @@ class Client
 {
   public:
 	int fd;
+	long id;
 	CircularBuffer writeBuffer;
 	Request request;
 	Response response;
