@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/05/06 19:04:15 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/15 05:18:56 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -179,16 +179,25 @@ Response Router::redirect(int redirectCode, std::string redirectUrl)
 
 bool Router::is_CgiRequest(const Request &request)
 {
-	size_t	pos;
-
-	if (!request.get_validRequest())
-		return (false);
-	std::string path = request.get_Path();
-	pos = path.find('?');
-	if (pos != std::string::npos)
-		path = path.substr(0, pos);
-	Location &loc = matchLocation(path);
-	return (loc.cgiPass);
+    if (!request.get_validRequest())
+        return (false);
+    std::string path = request.get_Path();
+    size_t pos = path.find('?');
+    if (pos != std::string::npos)
+        path = path.substr(0, pos);
+    Location &loc = matchLocation(path);
+    if (!loc.cgiPass)
+        return (false);
+    size_t dot = path.rfind('.');
+    if (dot == std::string::npos)
+        return (false);
+    std::string ext = path.substr(dot + 1);
+    for (size_t i = 0; i < loc.cgiExt.size(); i++)
+    {
+        if (loc.cgiExt[i] == ext)
+            return (true);
+    }
+    return (false);
 }
 
 Response Router::handle_GET(const Request &request, Location &location)
@@ -200,12 +209,29 @@ Response Router::handle_GET(const Request &request, Location &location)
 		return (make_ErrorCode(405));
 	if (!build_FinalPath(_path))
 		return (make_ErrorCode(403));
-	_absolutePath = _documentRoot + _path;
+	std::string effectivePath = _path;
+    if (!location.root.empty())
+    {
+        std::string locPath = location.path;
+        if (!locPath.empty() && locPath[locPath.size() - 1] != '/')
+            locPath += '/';
+        if (effectivePath.compare(0, locPath.size(), locPath) == 0)
+            effectivePath = effectivePath.substr(locPath.size() - 1);
+        if (effectivePath.empty())
+            effectivePath = "/";
+    }
+    _absolutePath = _documentRoot + effectivePath;
 	if (!is_InsideRoot(_absolutePath, _documentRoot))
 		return (make_ErrorCode(403));
+	if (is_Directory(_absolutePath) && _path[_path.size() - 1] != '/')
+    	return redirect(301, _path + "/");
 	if (is_Directory(_absolutePath))
 	{
-		std::string index = _absolutePath + _config.config.index;
+		std::string index;
+		if (!location.index.empty())
+			index = _absolutePath + location.index;
+		else
+			index = _absolutePath + _config.config.index;
 		if (check_File(index))
 			_absolutePath = index;
 		else if (location.autoIndex)
@@ -219,7 +245,7 @@ Response Router::handle_GET(const Request &request, Location &location)
 			return response;
 		}
 		else
-			return make_ErrorCode(403);
+			return make_ErrorCode(404);
 	}
 	if (!check_File(_absolutePath))
 		return make_ErrorCode(404);
@@ -242,6 +268,17 @@ Response Router::handle_DELETE(const Request &request, Location &location)
 		return make_ErrorCode(405);
 	if (!build_FinalPath(_path))
 		return make_ErrorCode(403);
+	std::string effectivePath = _path;
+    if (!location.root.empty())
+    {
+        std::string locPath = location.path;
+        if (!locPath.empty() && locPath[locPath.size() - 1] != '/')
+            locPath += '/';
+        if (effectivePath.compare(0, locPath.size(), locPath) == 0)
+            effectivePath = effectivePath.substr(locPath.size() - 1);
+        if (effectivePath.empty())
+            effectivePath = "/";
+    }
 	_absolutePath = _documentRoot + _path;
 	if (!is_InsideRoot(_absolutePath, _documentRoot))
 		return make_ErrorCode(403);
@@ -249,6 +286,8 @@ Response Router::handle_DELETE(const Request &request, Location &location)
 		return make_ErrorCode(409);
 	if (!check_File(_absolutePath))
 		return make_ErrorCode(404);
+	if (location.upload_store.empty())
+		return make_ErrorCode(403);
 	if (std::remove(_absolutePath.c_str()) != 0)
 		return make_ErrorCode(500);
 	response.set_StatusCode(204);
@@ -266,7 +305,10 @@ Response Router::handle_POST(const Request &request, Location &location)
 	ssize_t	n;
 
 	Response response(_config.errorPages);
-	maxSize = _config.config.client_max_body_size;
+	if (location.client_max_body_size > 0)
+		maxSize = location.client_max_body_size;
+	else
+		maxSize = _config.config.client_max_body_size;
 	if (maxSize > 0 && request.get_Body().size() > maxSize)
 		return make_ErrorCode(413);
 	std::string uploadDir;
@@ -301,9 +343,7 @@ Response Router::handle_POST(const Request &request, Location &location)
 		return make_ErrorCode(403);
 	if (is_Directory(_absolutePath))
 		return make_ErrorCode(403);
-	if (check_File(_absolutePath))
-		return make_ErrorCode(409);
-	fd = open(_absolutePath.c_str(), O_WRONLY | O_CREAT | O_EXCL, 0644);
+	fd = open(_absolutePath.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
 	if (fd == -1)
 		return make_ErrorCode(500);
 	const std::string &body = request.get_Body();
@@ -362,31 +402,37 @@ Response Router::handle_Request(const Request &request)
 	return make_ErrorCode(405);
 }
 
+
 Location &Router::matchLocation(const std::string &path)
 {
-	Location *bestMatch = NULL;
-	size_t bestLength = 0;
+    Location *bestMatch = NULL;
+    size_t bestLength = 0;
 
-	for (size_t i = 0; i < _config.location.size(); i++)
-	{
-		Location &loc = _config.location[i];
-		if (path.compare(0, loc.path.size(), loc.path) == 0)
-		{
-			if (loc.path.size() > bestLength)
-			{
-				bestLength = loc.path.size();
-				bestMatch = &loc;
-			}
-		}
-	}
-	if (!bestMatch)
-	{
-		for (size_t i = 0; i < _config.location.size(); i++)
-		{
-			if (_config.location[i].path == "/")
-				return _config.location[i];
-		}
-		return _config.location[0];
-	}
-	return (*bestMatch);
+    for (size_t i = 0; i < _config.location.size(); i++)
+    {
+        Location &loc = _config.location[i];
+        std::string locPath = loc.path;
+        std::string locPathNoSlash = locPath;
+        if (locPathNoSlash.size() > 1 && locPathNoSlash[locPathNoSlash.size() - 1] == '/')
+            locPathNoSlash = locPathNoSlash.substr(0, locPathNoSlash.size() - 1);
+        if (path.compare(0, locPath.size(), locPath) == 0 ||
+            path == locPathNoSlash)
+        {
+            if (locPath.size() > bestLength)
+            {
+                bestLength = locPath.size();
+                bestMatch = &loc;
+            }
+        }
+    }
+    if (!bestMatch)
+    {
+        for (size_t i = 0; i < _config.location.size(); i++)
+        {
+            if (_config.location[i].path == "/")
+                return _config.location[i];
+        }
+        return _config.location[0];
+    }
+    return (*bestMatch);
 }

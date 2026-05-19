@@ -36,6 +36,7 @@ class CircularBuffer
 	size_t peek(char *temp, size_t len) const;
 	size_t find(const std::string &pattern) const;
 	void consume(size_t bytes);
+	void grow(size_t new_capacity);
 };
 
 #endif

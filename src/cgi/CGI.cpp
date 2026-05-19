@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/25 05:33:06 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/18 22:14:41 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,7 @@ std::string CGI::resolve_ScriptPath(const std::string &path)
 {
 	std::string baseRoot;
 	Location &loc = router->matchLocation(path);
+
 	if (loc.root.empty())
 		baseRoot = router->get_Config().config.root;
 	else
@@ -40,7 +41,8 @@ std::string CGI::resolve_ScriptPath(const std::string &path)
 	std::string fullPath = baseRoot;
 	if (!fullPath.empty() && fullPath[fullPath.size() - 1] != '/')
 		fullPath += '/';
-	return (fullPath + relativePath);
+	std::string finalPath = fullPath + relativePath;
+	return (finalPath);
 }
 
 std::vector<char *> CGI::build_Arguments(const std::string &scriptPath,

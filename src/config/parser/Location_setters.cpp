@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/23 17:33:01 by raamorim          #+#    #+#             */
-/*   Updated: 2026/05/04 20:45:05 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/14 04:44:59 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,13 @@ void	set_Path(const std::vector<std::string> &tokens, size_t &i,
 	else
 		location.path = "/";
 }
+
+bool	set_Index(const std::string &value, Location &location)
+{
+	location.index = value;
+	return true;
+}
+
 bool	set_Autoindex(const std::string &value, Location &location)
 {
 	if (value == "on")
@@ -106,4 +113,12 @@ void	set_CgiExt(const std::vector<std::string> &tokens, size_t &i,
 		location.cgiExt.push_back(extension);
 		i++;
 	}
+}
+
+bool set_clientMaxBodySize(const std::vector<std::string> &tokens, size_t &i, Location &location)
+{
+	if (!is_Number(tokens[i]))
+		return false;
+	location.client_max_body_size = std::atoi(tokens[i].c_str());
+	return true;
 }

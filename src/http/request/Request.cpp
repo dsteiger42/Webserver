@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/05/06 19:03:17 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/18 22:28:15 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,6 +52,11 @@ const std::string &Request::get_Header(const std::string &key) const
 	if (it != _headers.end())
 		return (it->second);
 	return (empty);
+}
+
+const std::map<std::string, std::string> &Request::get_Headers() const
+{
+	return (this->_headers);
 }
 
 const std::string Request::get_Query() const
@@ -304,6 +309,9 @@ bool Request::process_Chunked()
         }
         if (chunkSize == 0)
         {
+            size_t endOfTrailers = _buffer.find("\r\n\r\n");
+            if (endOfTrailers == std::string::npos)
+                return false;
             _buffer.consume(pos + 2);
             while (true)
             {
@@ -334,6 +342,7 @@ bool Request::process_Chunked()
         }
     }
 }
+
 bool Request::process_Body()
 {
     size_t  remaining;

@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/05/06 18:44:38 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/16 06:25:26 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,6 +58,7 @@ class Request
 	const std::string &get_Version() const;
 	const std::string &get_Body() const;
 	const std::string &get_Header(const std::string &key) const;
+	const std::map<std::string, std::string> &get_Headers() const;
 	const std::string get_Query() const;
 	size_t get_statusCode() const;
 	bool get_validRequest() const;

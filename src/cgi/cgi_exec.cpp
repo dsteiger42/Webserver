@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:18:06 by rafael            #+#    #+#             */
-/*   Updated: 2026/04/30 03:02:43 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/18 22:10:48 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,15 +20,11 @@
 bool CGI::create_Pipes(int inPipe[2], int outPipe[2])
 {
 	if (pipe(inPipe) == -1)
-	{
-		std::cerr << "Error creating inPipe" << std::endl;
 		return (false);
-	}
 	if (pipe(outPipe) == -1)
 	{
 		close(inPipe[0]);
 		close(inPipe[1]);
-		std::cerr << "Error creating outPipe" << std::endl;
 		return (false);
 	}
 	return (true);
@@ -38,6 +34,7 @@ static std::string get_CgiPath(const std::map<std::string,
 	std::string> &cgi_Path, std::string &filename)
 {
 	std::string extension = get_Extension(filename);
+
 	std::map<std::string,
 		std::string>::const_iterator it = cgi_Path.find(extension);
 	if (it != cgi_Path.end())
@@ -50,12 +47,10 @@ void CGI::execute_ChildProcess(int inPipe[2], int outPipe[2],
 	std::string> &cgiPath, char *const envp[])
 {
 	std::string dir = scriptPath.substr(0, scriptPath.find_last_of('/') + 1);
-	if (chdir(dir.c_str()) == -1)
-	{
-		perror("chdir failed");
-		exit(1);
-	}
 	std::string filename = scriptPath.substr(scriptPath.find_last_of('/') + 1);
+
+	if (chdir(dir.c_str()) == -1)
+		exit(1);
 	std::string interpreter = get_CgiPath(cgiPath, filename);
 	if (interpreter.empty())
 		exit(1);
@@ -79,7 +74,6 @@ void CGI::execute_ChildProcess(int inPipe[2], int outPipe[2],
 	exit(1);
 }
 
-
 int CGI::launch(const Request &req, Location &location, CgiContext &ctx, unsigned long tick)
 {
 	int		inPipe[2];
@@ -89,16 +83,26 @@ int CGI::launch(const Request &req, Location &location, CgiContext &ctx, unsigne
 	std::string scriptPath = resolve_ScriptPath(req.get_Path());
 	if (!is_acceptableExtension(req.get_Path(), location))
 		return (403);
-	if (!is_InsideRoot(scriptPath, router->get_Config().config.root))
+	std::string DocumentRoot;
+	if (location.root.empty())
+		DocumentRoot = router->get_Config().config.root;
+	else
+		DocumentRoot = location.root;
+	if (!is_InsideRoot(scriptPath, DocumentRoot))
 		return (403);
-	if (!check_File(scriptPath))
-		return (404);
-	if (!is_Executable(scriptPath))
-		return (403);
+	std::string filename = scriptPath.substr(scriptPath.find_last_of('/') + 1);
+	std::string interpreter = get_CgiPath(location.cgiPath, filename);
+	if (interpreter.empty())
+		return (500);
+	if (!check_File(interpreter))
+		return (500);
+	if (!is_Executable(interpreter))
+		return (500);
 	build_Environment(req, scriptPath);
 	std::vector<char *> envp = convert_Env(env);
 	if (!create_Pipes(inPipe, outPipe))
 		return (500);
+
 	pid = fork();
 	if (pid == -1)
 	{
@@ -114,6 +118,7 @@ int CGI::launch(const Request &req, Location &location, CgiContext &ctx, unsigne
 			&envp[0]);
 		exit(1);
 	}
+
 	close(inPipe[0]);
 	close(outPipe[1]);
 	if (fcntl(inPipe[1], F_SETFL, O_NONBLOCK) == -1)
@@ -143,14 +148,23 @@ int CGI::launch(const Request &req, Location &location, CgiContext &ctx, unsigne
 	return (0);
 }
 
-
 Response CGI::finish(CgiContext &ctx, int waitStatus)
 {
 	CGIResult	result;
 	Response	res;
 
-	if (!WIFEXITED(waitStatus) || WEXITSTATUS(waitStatus) != 0)
+	if (!WIFEXITED(waitStatus))
 		return (router->make_ErrorCode(500));
+	int exitCode = WEXITSTATUS(waitStatus);
+	if (exitCode != 0)
+		return (router->make_ErrorCode(500));
+	if (ctx.output.empty())
+	{
+		res.set_StatusCode(200);
+		res.set_Header("Content-Type", "text/plain");
+		res.set_Body("");
+		return res;
+	}
 	if (!is_ValidCGIOutput(ctx.output))
 		return (router->make_ErrorCode(502));
 	result = parse_CGIOutput(ctx.output);

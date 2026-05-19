@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/27 03:40:51 by rafael            #+#    #+#             */
-/*   Updated: 2026/05/06 03:35:10 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/14 05:43:23 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,7 +72,7 @@ void Server::abort_Cgi(Client &client, std::vector<pollfd> &fds)
 }
 
 
-void Server::process_CgiWrite(std::vector<pollfd> &fds, size_t i)
+void Server::process_CgiWrite(std::vector<pollfd> &fds, size_t i, unsigned long tick)
 {
     int         pipeFd   = fds[i].fd;
     int         clientFd = _pipeToClient[pipeFd];
@@ -83,20 +83,18 @@ void Server::process_CgiWrite(std::vector<pollfd> &fds, size_t i)
     ssize_t written = write(pipeFd, data, rem);
     if (written > 0)
     {
+		ctx.startTime = tick;
         ctx.bodyOffset += (size_t)written;
         if (ctx.bodyOffset >= ctx.bodyToSend.size())
         {
             remove_PipeFd(fds, pipeFd, true);
             ctx.inFd = -1;
         }
-        return;
     }
-    remove_PipeFd(fds, pipeFd, true);
-    ctx.inFd = -1;
 }
 
 
-void Server::process_CgiRead(std::vector<pollfd> &fds, size_t i)
+void Server::process_CgiRead(std::vector<pollfd> &fds, size_t i, unsigned long tick)
 {
 	int		pipeFd;
 	int		clientFd;
@@ -111,6 +109,7 @@ void Server::process_CgiRead(std::vector<pollfd> &fds, size_t i)
 	n = read(pipeFd, buf, sizeof(buf));
 	if (n > 0)
 	{
+		ctx.startTime = tick;
 		if (ctx.output.size() + (size_t)n > MAX_CGI_OUTPUT)
 		{
 			abort_Cgi(client, fds);
@@ -157,7 +156,7 @@ void Server::process_CgiRead(std::vector<pollfd> &fds, size_t i)
 }
 
 bool Server::dispatch_CgiWrite(std::vector<Server> &servers,
-	std::vector<pollfd> &fds, size_t i)
+	std::vector<pollfd> &fds, size_t i, unsigned long tick)
 {
 	int	pipeFd;
 
@@ -166,7 +165,7 @@ bool Server::dispatch_CgiWrite(std::vector<Server> &servers,
 	{
 		if (servers[s]._pipeToClient.count(pipeFd))
 		{
-			servers[s].process_CgiWrite(fds, i);
+			servers[s].process_CgiWrite(fds, i, tick);
 			return true;
 		}
 	}
@@ -174,7 +173,7 @@ bool Server::dispatch_CgiWrite(std::vector<Server> &servers,
 }
 
 bool Server::dispatch_CgiRead(std::vector<Server> &servers,
-	std::vector<pollfd> &fds, size_t i)
+	std::vector<pollfd> &fds, size_t i, unsigned long tick)
 {
 	int	pipeFd;
 
@@ -183,7 +182,7 @@ bool Server::dispatch_CgiRead(std::vector<Server> &servers,
 	{
 		if (servers[s]._pipeToClient.count(pipeFd))
 		{
-			servers[s].process_CgiRead(fds, i);
+			servers[s].process_CgiRead(fds, i, tick);
 			return true;
 		}
 	}

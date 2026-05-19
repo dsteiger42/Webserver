@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   parser.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dsteiger <dsteiger@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/16 15:17:16 by dsteiger          #+#    #+#             */
-/*   Updated: 2026/05/08 14:41:25 by dsteiger         ###   ########.fr       */
+/*   Updated: 2026/05/14 05:42:10 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,8 +19,8 @@ Config::Config() : server_name(""), root(""), index(""),
 {
 }
 
-Location::Location() : path(""), root(""), upload_store(""), autoIndex(false), cgiPass(false),
-	hasRedirect(false), has_tryFiles(false), redirectCode(0), redirectUrl("")
+Location::Location() : index(""), path(""), root(""), upload_store(""), autoIndex(false), cgiPass(false),
+	hasRedirect(false), has_tryFiles(false), redirectCode(0), redirectUrl(""), client_max_body_size(0)
 {
 }
 

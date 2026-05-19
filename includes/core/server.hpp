@@ -50,8 +50,8 @@ class Server
 
 	bool start_Cgi(Client &client, const Request &req,
 		std::vector<pollfd> &fds, unsigned long tick);
-	void process_CgiWrite(std::vector<pollfd> &fds, size_t i);
-	void process_CgiRead(std::vector<pollfd> &fds, size_t i);
+	void process_CgiWrite(std::vector<pollfd> &fds, size_t i, unsigned long tick);
+	void process_CgiRead(std::vector<pollfd> &fds, size_t i, unsigned long tick);
 	void remove_PipeFd(std::vector<pollfd> &fds, int fd, bool doClose);
 	void abort_Cgi(Client &client, std::vector<pollfd> &fds);
 
@@ -76,9 +76,9 @@ class Server
 		std::vector<pollfd> &fds, size_t i);
 
 	static bool dispatch_CgiWrite(std::vector<Server> &servers,
-		std::vector<pollfd> &fds, size_t i);
+		std::vector<pollfd> &fds, size_t i, unsigned long tick);
 	static bool dispatch_CgiRead(std::vector<Server> &servers,
-		std::vector<pollfd> &fds, size_t i);
+		std::vector<pollfd> &fds, size_t i, unsigned long tick);
 
 	static void close_AllClients(std::vector<Server> &servers);
 	static void handle_Clients(std::vector<Server> &servers);

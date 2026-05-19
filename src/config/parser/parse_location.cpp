@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 00:53:07 by rafael            #+#    #+#             */
-/*   Updated: 2026/05/05 02:02:30 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/14 04:46:26 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,13 @@ bool	parse_Location(Location &Location, size_t &i,
 		return false;
 	while (i < tokens.size() && tokens[i] != "}")
 	{
-		if (tokens[i] == "autoindex")
+		if (tokens[i] == "index")
+		{
+			i++;
+			if (!set_Index(tokens[i], Location))
+				return false;
+		}
+		else if (tokens[i] == "autoindex")
 		{
 			i++;
 			if (!set_Autoindex(tokens[i], Location))
@@ -65,6 +71,12 @@ bool	parse_Location(Location &Location, size_t &i,
 			i++;
 			if (tokens[i] != ";")
 				Location.upload_store = tokens[i];
+		}
+		else if (tokens[i] == "client_max_body_size" && i + 1 < tokens.size())
+		{
+			i++;
+			if (!set_clientMaxBodySize(tokens, i, Location))
+				return false;
 		}
 		i++;
 	}
