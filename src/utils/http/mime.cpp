@@ -26,7 +26,7 @@ bool sanitize_Filename(std::string &filename)
     if (sanitized == "." || sanitized == ".." || sanitized[0] == '.')
         return false;
     std::string extension = get_Extension(sanitized);
-	static char const *invalid[] = {".php", ".py", ".sh", ".cgi", NULL};
+	static char const *invalid[] = {"php", "py", "sh", "cgi", NULL};
 	transform(extension);
 	for (size_t i = 0; invalid[i]; i++)
 	{

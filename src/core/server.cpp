@@ -169,6 +169,27 @@ bool Server::receive_FromClient(std::vector<pollfd> &fds, size_t index,
 			std::string raw = client.response.serialize();
 			client.writeBuffer.write(raw.c_str(), raw.size());
 			fds[index].events |= POLLOUT;
+			
+			if (client.response.get_StatusCode() >= 400)
+			{
+				client.shouldClose = true;
+				client.drain = true;
+			}
+
+			const std::map<std::string, std::string>& req_headers = client.request.get_Headers();
+			std::map<std::string, std::string>::const_iterator conn_it = req_headers.find("connection");
+			if (conn_it != req_headers.end())
+			{
+				std::string conn_val = conn_it->second;
+				for (size_t i = 0; i < conn_val.length(); i++)
+					if (conn_val[i] >= 'A' && conn_val[i] <= 'Z') conn_val[i] += 32;
+				if (conn_val == "keep-alive")
+					client.shouldClose = false;
+				else
+					client.shouldClose = true;
+			}
+			else
+				client.shouldClose = true;
 			std::string leftover = client.request.get_Leftover();
 			client.request.reset();
 			if (leftover.empty())
@@ -233,7 +254,7 @@ void Server::cleanup_TimeoutClients(std::vector<pollfd> &fds,
 		Client &client = it->second;
 		doKill = false;
 		if (client.cgi.active && (tick
-				- client.cgi.startTime) > (unsigned long)CGI_TIMEOUT_SEC)
+				- client.cgi.startTime) > 100)
 		{
 			std::cout << "CGI timeout for client " << fd << "\n";
 			abort_Cgi(client, fds);
@@ -256,7 +277,7 @@ void Server::cleanup_TimeoutClients(std::vector<pollfd> &fds,
 		if (!client.request.is_Done() && !client.cgi.active)
 		{
 			if (tick
-				- client.requestStart > (unsigned long)INCOMPLETE_REQUEST_TIMEOUT_TICKS)
+				- client.lastActivity > (unsigned long)INCOMPLETE_REQUEST_TIMEOUT_TICKS)
 			{
 				std::cout << "Client " << fd << " timed out (incomplete request)\n";
 				client.response = _router.make_ErrorCode(408);
@@ -349,7 +370,7 @@ bool Server::process_ClientWrite(std::vector<Server> &servers,
 			return (true);
 		if (status == SEND_DONE)
 		{
-			if (client.shouldClose)
+			if (client.shouldClose && !client.drain)
 			{
 				close(fd);
 				servers[s]._allClients.erase(fd);
@@ -391,7 +412,7 @@ void Server::close_AllClients(std::vector<Server> &servers)
 void Server::handle_Clients(std::vector<Server> &servers)
 {
 	const int		POLL_TIMEOUT_MS = 325;
-	/* const int		CLIENT_TIMEOUT_TICKS = 30; */
+	const int		CLIENT_TIMEOUT_TICKS = 15;
 	unsigned long	tick;
 	int				ret;
 	short			revents;
@@ -438,9 +459,9 @@ void Server::handle_Clients(std::vector<Server> &servers)
 			if (isCgiPipe)
 			{
 				if (revents & POLLOUT)
-					dispatch_CgiWrite(servers, fds, i);
+					dispatch_CgiWrite(servers, fds, i, tick);
 				if (i < fds.size() && fds[i].fd == fd && (revents & (POLLIN | POLLHUP)))
-					dispatch_CgiRead(servers, fds, i);
+					dispatch_CgiRead(servers, fds, i, tick);
 				if (i < fds.size() && fds[i].fd == fd)
 					++i;
 				continue ;
@@ -457,7 +478,8 @@ void Server::handle_Clients(std::vector<Server> &servers)
 			}
 			++i;
 		}
-		/* for (size_t s = 0; s < servers.size(); s++)
-			servers[s].cleanup_TimeoutClients(fds, tick, CLIENT_TIMEOUT_TICKS);*/	}
+		for (size_t s = 0; s < servers.size(); s++)
+			servers[s].cleanup_TimeoutClients(fds, tick, CLIENT_TIMEOUT_TICKS);
+	}
 	close_AllClients(servers);
 }
