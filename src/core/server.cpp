@@ -6,7 +6,7 @@
 /*   By: rafael <rafael@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/24 01:31:55 by rafael            #+#    #+#             */
-/*   Updated: 2026/05/19 04:38:45 by rafael           ###   ########.fr       */
+/*   Updated: 2026/05/19 04:53:44 by rafael           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -144,13 +144,10 @@ bool Server::receive_FromClient(std::vector<pollfd> &fds, size_t index,
 	if (bytes_received > 0)
 	{
 		client.lastActivity = tick;
-
 		if (client.drain)
 			return (true);
-
 		std::string chunk(buffer, bytes_received);
 		client.request.fill_Buffer(chunk, chunk.size());
-
 		while (client.request.is_Done() || (!client.request.get_validRequest()
 				&& client.request.get_statusCode() != 0))
 		{
@@ -172,22 +169,18 @@ bool Server::receive_FromClient(std::vector<pollfd> &fds, size_t index,
 				client.request.reset();
 				break ;
 			}
-
 			client.response = _router.handle_Request(client.request);
 			std::cout << "\033[36m[Client " << client.id << " (FD "
 				<< client_fd << ")] Response: "
 				<< client.response.get_StatusCode() << "\033[0m\n";
-
 			std::string raw = client.response.serialize();
 			client.writeBuffer.write(raw.c_str(), raw.size());
 			fds[index].events |= POLLOUT;
-
 			if (client.response.get_StatusCode() >= 400)
 			{
 				client.shouldClose = true;
 				client.drain = true;
 			}
-
 			const std::map<std::string, std::string>& req_headers =
 				client.request.get_Headers();
 			std::map<std::string, std::string>::const_iterator conn_it =
@@ -205,7 +198,6 @@ bool Server::receive_FromClient(std::vector<pollfd> &fds, size_t index,
 			}
 			else
 				client.shouldClose = true;
-
 			std::string leftover = client.request.get_Leftover();
 			client.request.reset();
 			if (leftover.empty())
