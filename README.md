@@ -202,7 +202,7 @@ curl -v -X DELETE http://localhost:8080/upload/test.txt
 
 ## 👥 Authors
 
-- **[raamorim](https://github.com/1Fr3aK2)** & **[dsteiger](https://github.com/dsteiger42)**
+- **[1F3aK2](https://github.com/1Fr3aK2)** & **[dsteiger](https://github.com/dsteiger42)**
 
 ---
 
