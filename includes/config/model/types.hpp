@@ -30,7 +30,7 @@ struct		Config
 	std::string root;
 	std::string index;
 	size_t	client_max_body_size;
-	int		listen;
+	std::vector<int> listen;
 	Config();
 };
 
