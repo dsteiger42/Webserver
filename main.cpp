@@ -50,8 +50,10 @@ int	main(int argc, char **argv)
 	}
 	std::vector<Server> servers;
 	for (size_t i = 0; i < parser.serverBlocks.size(); i++)
-		servers.push_back(Server(parser.serverBlocks[i].config.listen,
-				parser.serverBlocks[i]));
+    {
+        for (size_t j = 0; j < parser.serverBlocks[i].config.listen.size(); j++)
+            servers.push_back(Server( parser.serverBlocks[i].config.listen[j], parser.serverBlocks[i]));
+    }
 	for (size_t i = 0; i < servers.size(); i++)
 	{
 		if (servers[i].setup_Socket() == -1)

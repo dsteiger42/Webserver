@@ -15,7 +15,7 @@
 #include <config/parser/parsing_utils.hpp>
 
 Config::Config() : server_name(""), root(""), index(""),
-	client_max_body_size(0), listen(0)
+	client_max_body_size(0)
 {
 }
 

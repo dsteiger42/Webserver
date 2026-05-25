@@ -54,7 +54,10 @@ void CGI::build_Environment(const Request &req, const std::string &scriptPath)
     env.push_back("REDIRECT_STATUS=200");
     env.push_back("SERVER_NAME=" + conf.config.server_name);
 	std::stringstream port;
-	port << conf.config.listen;
+	if (!conf.config.listen.empty())
+	    port << conf.config.listen[0];
+    else
+	    port << 80;
 	env.push_back("SERVER_PORT=" + port.str());
 	const std::map<std::string, std::string> &headers = req.get_Headers();
 	for (std::map<std::string, std::string>::const_iterator it = headers.begin(); it != headers.end(); ++it)
