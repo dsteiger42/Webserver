@@ -45,7 +45,6 @@ CFLAGS = -Wall -Wextra -Werror -g -std=c++98 -I./includes
 
 OBJ_DIR = obj
 
-# Lista de arquivos .o correspondentes aos .cpp
 OBJS = $(SRCS:src/%.cpp=$(OBJ_DIR)/%.o)
 
 RESET   = \033[0m
