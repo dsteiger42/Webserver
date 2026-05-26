@@ -1,103 +1,209 @@
-_This project has been created as part of the 42 curriculum by dsteiger and raamorim._
+# 🌐 Webserv
 
-DESCRIPTION:
-    This project is a fully functional HTTP/1.1 webserver written in C++, capable of serving dynamic content via CGI and maintaining persistent connections.
-    The goal is to understand how the web works at a low level by implementing sockets, protocols, and request handling from scratch.
+> A fully functional HTTP/1.1 web server written in C++98 from scratch — built as part of the **42 Lisboa** curriculum.
 
-    Concepts:
-        - Server: A computer that listens for incoming requests over a network and sends back a response.
+![Language](https://img.shields.io/badge/language-C++98-00599C?style=flat-square&logo=cplusplus)
+![School](https://img.shields.io/badge/school-42_Lisboa-black?style=flat-square)
+![Protocol](https://img.shields.io/badge/protocol-HTTP%2F1.1-blue?style=flat-square)
+![I/O](https://img.shields.io/badge/I%2FO-poll()-orange?style=flat-square)
 
-        - Web Server: A server that specifically understands HTTP, the language browsers use to ask for web pages, images, and other resources.
+---
 
-        - HTTP Protocol: The set of rules that define how a client and server communicate. A client sends a request following these rules, and the server replies following the same rules. Similar to how humans have to know the same language to communicate.
+## 📖 About
 
-        - Sockets: The endpoint of a network connection. A socket is what the server opens to start listening for incoming connections.
+**Webserv** is an HTTP/1.1 web server implemented entirely in C++98 with no external libraries. The goal is to understand how the web works at a low level — implementing sockets, request parsing, response handling, CGI execution, and connection management from scratch.
 
-        - IP & Port:  An IP address identifies a machine on the network. A port identifies a specific service running on that machine. Together they tell the network exactly where to deliver a message, like a street address and an apartment number.
+All I/O multiplexing runs through a **single global `poll()` call** — no threads, no blocking, no nested event loops.
 
-        - Methods: The action the client wants to perform. GET means "give me this resource" (ex: browsing to youtube), POST means "here is some data to process" (ex: commenting on a video), DELETE means "remove this resource" (ex: deleting the comment on a video), and so on. 
+---
 
-        - CGI (Common Gateway Interface): A standard for running external programs on the server to generate dynamic responses. Instead of sending a file, the server executes a script and sends its output back to the client.
+## ✨ Features
 
-        - Request: The message sent by the client to the server. It contains a method, a path (which resource it wants), headers (metadata), and sometimes a body (extra data).
+### 🔌 Core Server
+- **TCP socket server** — handles multiple concurrent client connections
+- **Single `poll()` event loop** — all sockets (listen, client, CGI pipes) share one `pollfd` array
+- **HTTP pipelining** — multiple requests per connection via `CircularBuffer` with leftover handling
+- **Multiple server blocks** — different ports/addresses in one config file
+- **Signal handling** — graceful shutdown on `SIGINT`; `SIGPIPE` suppressed via `sigaction`
 
-        - Response: The message the server sends back. It contains a status code (200 OK, 404 Not Found, etc.), headers, and usually a body with the requested content.
+### 📨 HTTP Protocol
+- **HTTP/1.1 request parser** — state machine supporting fragmented TCP delivery
+- **Supported methods** — `GET`, `POST`, `DELETE`
+- **Chunked transfer encoding** — full support for chunked request bodies
+- **Static file serving** — with automatic MIME type detection
+- **Directory listing** — `autoindex` with XSS-safe HTML generation
+- **Custom error pages** — configurable per server block
+- **Drain-before-close** — graceful teardown on 413 responses (avoids TCP RST)
 
+### ⚙️ CGI Execution
+- **Fully async CGI** — `fork/execve` integrated into the `poll()` loop (no blocking `waitpid`)
+- **Pipe-based I/O** — stdin/stdout streamed through `poll()` events
+- **CGI timeout** — enforced via tick counter (no `time()` call)
+- **Process isolation** — CGI runs in a child process; server is unaffected by script crashes
+- **Supported** — Python (`.py`), PHP (`.php` via `php-cgi`), Bash (`.sh`), and any configured interpreter
 
-    Extra Concepts:
-        --- TCP vs UDP ---
+### 🗂️ Configuration
+- **NGINX-inspired syntax** — `server` and `location` blocks
+- Full directive support: `listen`, `server_name`, `root`, `index`, `autoindex`, `allowed_methods`, `client_max_body_size`, `return`, `error_page`, `upload_store`
+- **CGI block** — map file extensions to interpreter paths
+- **MIME block** — override or extend the built-in type table
 
-        TCP:
-            - checks if every packet arrived in full
-            - reliable
+---
 
-        UDP:
-            - faster
-            - might lose data, as it does not check if the packets arrived in full
-            
-        Design Choice: TCP
-            - used in almost every web server in the world
-            - chosen for his security/reliability
+## 🗂️ Project Structure
 
+```
+Webserver/
+├── includes/               # All .hpp headers
+├── src/
+│   ├── core/               # Server event loop, client state machine
+│   ├── http/               # Request parser, response builder, CircularBuffer
+│   ├── cgi/                # CGI launch, env builder, response parser
+│   ├── config/parser/      # Config file parser (server, location, cgi, mime, error)
+│   └── utils/              # Filesystem, routing, autoindex, MIME, signals
+├── www/                    # Default web root (HTML, error pages, CGI scripts)
+├── main.cpp                # Entry point
+├── webserver.conf          # Default configuration file
+└── Makefile
+```
 
-        --- HTTP vs HTTPS ---
+---
 
-        HTTP:
-            - older and outdated version
-            - messages are not encrypted and can be read by others
+## ⚙️ Configuration File
 
-        HTTPS:
-            - HTTP with a security measure
-            - uses TLS (Transport Layer Security) to encrypt messages sent over the Internet.
+NGINX-inspired syntax. Blocks delimited by `{ }`. Lines starting with `#` are comments.
 
-        Design Choice: HTTP/1.1
-            - HTTP because the subject requested
-            - 1.1 because its simple, text-based design makes it practical to implement and debug at a low level, while newer versions like HTTP/2 and HTTP/3 introduce significantly more complexity (binary framing, and QUIC/TLS integration) that goes beyond the scope of this project.
+```nginx
+server {
+    listen                8080
+    server_name           localhost
+    root                  ./www
+    index                 index.html
+    client_max_body_size  10M
 
+    error_page  404  ./www/errors/404.html
+    error_page  500  ./www/errors/500.html
+    error_page  413  ./www/errors/413.html
 
-        --- Select() vs Poll() vs Epoll() ---
-        These are file monitors. They help monitor each client connected and trying to connect.
+    location / {
+        allowed_methods  GET
+        autoindex        off
+    }
 
+    location /upload {
+        allowed_methods  POST DELETE
+        upload_store     ./www/uploads
+    }
 
-        Select():
-            - Monitors up to FD_SETSIZE (typically 1024) file descriptors.
-            - Uses three separate fd_sets: read, write, and exception.
-            - Modifies the fd_sets in-place, so they must be reset on every call.
-            - O(n) scan. Iterates over all monitored FDs each call, even idle ones.
-            - Available on virtually all POSIX systems (widest portability).
+    location /cgi-bin {
+        allowed_methods  GET POST
+    }
 
-        Poll():
-            - No hard FD limit (uses a pollfd array you size yourself).
-            - Combines events/revents in one struct. No need to rebuild sets each call.
-            - Still O(n). Kernel scans all entries regardless of activity.
-            - Cleaner API than select(). Easier to add/remove descriptors.
-            - Widely supported. Good cross-platform option (Linux, macOS, BSD).
+    location /old {
+        return  301  /
+    }
 
-        Epoll():
-            - Linux-only. Scales to hundreds of thousands of FDs efficiently.
-            - O(1) for event retrieval. Kernel only returns active FDs.
-            - Edge-triggered (EPOLLET) or level-triggered (default) modes.
-            - Uses epoll_create / epoll_ctl / epoll_wait, which is a more complex setup.
-            - Internally uses a red-black tree + ready list. No repeated full scans.
+    cgi {
+        .py   /usr/bin/python3
+        .php  /usr/bin/php-cgi
+        .sh   /bin/bash
+    }
 
-        Design Choice: Poll()
-            - No arbitrary FD limit like select()'s 1024 cap.
-            - Simpler API than epoll(). No separate create/ctl/wait lifecycle.
-            - Good enough for moderate connection counts (hundreds, not millions).
-            - Portable: Works on Linux, macOS, BSD without platform-specific code.
-            - O(n) cost is acceptable when N stays manageable for this use case.
-            - Overall, more capable than select() and simpler than epoll().
+    mime {
+        .html  text/html
+        .css   text/css
+        .js    application/javascript
+        .png   image/png
+        .jpg   image/jpeg
+        .json  application/json
+        .pdf   application/pdf
+    }
+}
+```
 
-INSTRUCTIONS:
-    - To compile, write "make".
-    - To execute, write the program's name followed by the configuration file. Ex: "./Webserv webserver.conf".
-    - To test connections, execute the program, open another terminal and write "nc localhost 8080" or any other port listening.
-    - To test connections via browser, write "http://localhost:8080", or any other port listening.
-    - To test cgi via browser, write "http://localhost:8080/cgi-bin/test.py", or any other script's name.
+### Directives Reference
 
+| Directive | Scope | Description |
+|---|---|---|
+| `listen` | server | Port (`8080`) or address:port (`0.0.0.0:8080`) |
+| `server_name` | server | Hostname label |
+| `root` | server / location | Document root |
+| `index` | server / location | Default index file |
+| `client_max_body_size` | server / location | Max body size — units: `B` `K` `M` `G` |
+| `error_page` | server | `<code> <path>` — custom HTML error page |
+| `autoindex` | location | `on` / `off` — directory listing |
+| `allowed_methods` | location | `GET` `POST` `DELETE` (space-separated) |
+| `upload_store` | location | Target directory for POST file uploads |
+| `return` | location | `<code> <url>` — HTTP redirect |
+| `cgi` block | server | `.<ext> <interpreter>` mappings |
+| `mime` block | server | `.<ext> <Content-Type>` mappings |
 
-RESOURCES:
-    - Youtube: used to learn all the concepts related to Web Servers.
-    - AI: was used mainly for writing scripts running different tests and to help with some concepts.
-    - Github: looked at several projects to see the logic behind them.
-    - RFCs: helped understanding the HTTP protocol.
+---
+
+## 🚀 Getting Started
+
+```bash
+git clone https://github.com/1Fr3aK2/Webserver.git
+cd Webserver
+make
+```
+
+```bash
+# With default config
+./Webserv
+
+# With custom config
+./Webserv path/to/your.conf
+```
+
+### Makefile Targets
+
+| Target | Description |
+|---|---|
+| `make` | Build the project |
+| `make clean` | Remove object files |
+| `make fclean` | Remove object files and binary |
+| `make re` | Full rebuild |
+| `make v` | Run with Valgrind (leak + FD check) |
+
+---
+
+## 🧪 Testing
+
+```bash
+# Browser
+http://localhost:8080/
+http://localhost:8080/cgi-bin/test.py
+
+# Netcat (raw HTTP)
+nc localhost 8080
+GET / HTTP/1.1
+Host: localhost
+
+# curl
+curl -v http://localhost:8080/
+curl -v -X POST -F "file=@test.txt" http://localhost:8080/upload
+curl -v -X DELETE http://localhost:8080/upload/test.txt
+```
+
+---
+
+## 🧠 Design Decisions
+
+**TCP over UDP** — ordered, reliable delivery is required by HTTP. Used in virtually every real-world web server.
+
+**HTTP/1.1 over HTTP/2 / HTTP/3** — text-based design is practical to implement at a low level. HTTP/2 and HTTP/3 introduce binary framing and QUIC/TLS integration that goes beyond the project scope.
+
+**`poll()` over `select()` / `epoll()`** — no 1024 FD cap like `select()`, simpler API than `epoll()`'s create/ctl/wait lifecycle, and portable across Linux and macOS.
+
+**Async CGI over blocking** — CGI pipes are registered in the global `poll()` array. No blocking `waitpid()`, no nested `poll()` calls — full compliance with the 42 subject rules.
+
+---
+
+## 👥 Authors
+
+- **[1F3aK2](https://github.com/1Fr3aK2)** & **[dsteiger](https://github.com/dsteiger42)**
+
+---
+
+> *Built at 42 Lisboa — C++98 — `poll()` — HTTP/1.1*
